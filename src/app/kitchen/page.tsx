@@ -76,7 +76,7 @@ export default function KitchenPage() {
       // Detect new orders and beep
       const isFirstLoad = prevIdsRef.current.size === 0 && data.length > 0
       if (!isFirstLoad) {
-        for (const id of newIds) {
+        for (const id of Array.from(newIds)) {
           if (!prevIdsRef.current.has(id)) { playBeep(); break }
         }
       }

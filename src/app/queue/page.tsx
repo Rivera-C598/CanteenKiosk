@@ -26,7 +26,7 @@ export default function QueuePage() {
 
       // Detect newly ready orders for animation
       const rdyIds = new Set(rdy.map(o => o.id))
-      const newIds = new Set([...rdyIds].filter(id => !prevReadyIds.has(id)))
+      const newIds = new Set(Array.from(rdyIds).filter(id => !prevReadyIds.has(id)))
       if (newIds.size > 0) {
         setNewlyReady(newIds)
         // Play success chime for students to check the board

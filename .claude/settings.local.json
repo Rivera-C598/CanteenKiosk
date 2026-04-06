@@ -18,7 +18,11 @@
       "Bash(node -e \"const {PrismaClient} = require\\('./src/generated/prisma/client.ts'\\); console.log\\('ok'\\)\")",
       "Bash(npm show:*)",
       "Bash(npm ls:*)",
-      "Bash([ -f \"C:/Users/user/Documents/me/App/CanteenKiosk/src/app/page.tsx\" ])"
+      "Bash([ -f \"C:/Users/user/Documents/me/App/CanteenKiosk/src/app/page.tsx\" ])",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git show:*)",
+      "Bash(ls:*)"
     ]
   }
 }

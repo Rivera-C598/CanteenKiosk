@@ -303,7 +303,7 @@ git commit -m "add orders GET with filters and orders/[id] PATCH route"
 - Create: `src/app/api/gcash/route.ts`
 - Create: `src/app/api/gcash/[id]/route.ts`
 
-- [ ] **Step 1: Create `src/app/api/gcash/route.ts`**
+- [x] **Step 1: Create `src/app/api/gcash/route.ts`**
 
 ```typescript
 import { NextResponse } from 'next/server'
@@ -334,7 +334,7 @@ export async function POST(request: Request) {
 }
 ```
 
-- [ ] **Step 2: Create `src/app/api/gcash/[id]/route.ts`**
+- [x] **Step 2: Create `src/app/api/gcash/[id]/route.ts`**
 
 ```typescript
 import { NextResponse } from 'next/server'
@@ -371,7 +371,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 }
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/app/api/gcash/route.ts src/app/api/gcash/[id]/route.ts
@@ -386,7 +386,7 @@ git commit -m "add GCash account CRUD routes"
 - Create: `settings.json` (project root)
 - Create: `src/app/api/settings/route.ts`
 
-- [ ] **Step 1: Create `settings.json` in project root**
+- [x] **Step 1: Create `settings.json` in project root**
 
 ```json
 {
@@ -399,7 +399,7 @@ git commit -m "add GCash account CRUD routes"
 }
 ```
 
-- [ ] **Step 2: Create `src/app/api/settings/route.ts`**
+- [x] **Step 2: Create `src/app/api/settings/route.ts`**
 
 ```typescript
 import { NextResponse } from 'next/server'
@@ -431,7 +431,7 @@ export async function PATCH(request: Request) {
 }
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add settings.json src/app/api/settings/route.ts
@@ -445,7 +445,7 @@ git commit -m "add settings.json and settings API route"
 **Files:**
 - Create: `src/components/admin/DrawerPanel.tsx`
 
-- [ ] **Step 1: Create `src/components/admin/DrawerPanel.tsx`**
+- [x] **Step 1: Create `src/components/admin/DrawerPanel.tsx`**
 
 ```typescript
 'use client'
@@ -501,7 +501,7 @@ export function DrawerPanel({ open, onClose, title, children }: DrawerPanelProps
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/components/admin/DrawerPanel.tsx
@@ -515,7 +515,7 @@ git commit -m "add shared DrawerPanel component for admin"
 **Files:**
 - Create: `src/app/admin/menu/page.tsx`
 
-- [ ] **Step 1: Create `src/app/admin/menu/page.tsx`**
+- [x] **Step 1: Create `src/app/admin/menu/page.tsx`**
 
 ```typescript
 'use client'
@@ -1010,7 +1010,7 @@ export default function MenuPage() {
 }
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Navigate to `http://localhost:3000/admin/menu`. You should see:
 - Stats row with item counts
@@ -1019,7 +1019,7 @@ Navigate to `http://localhost:3000/admin/menu`. You should see:
 - Edit/delete icons appear on row hover
 - Available toggle updates immediately
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/app/admin/menu/page.tsx
@@ -1033,7 +1033,7 @@ git commit -m "add admin menu management page with categories and items CRUD"
 **Files:**
 - Create: `src/app/admin/orders/page.tsx`
 
-- [ ] **Step 1: Create `src/app/admin/orders/page.tsx`**
+- [x] **Step 1: Create `src/app/admin/orders/page.tsx`**
 
 ```typescript
 'use client'
@@ -1252,14 +1252,14 @@ export default function OrdersPage() {
 }
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Navigate to `http://localhost:3000/admin/orders`. Place a test order on the kiosk first, then confirm that:
 - The order appears in the list
 - "Confirm GCash" / "Confirm Cash" button is visible for pending orders
 - Clicking the action button updates the status
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/app/admin/orders/page.tsx
@@ -1273,7 +1273,7 @@ git commit -m "add admin orders page with status management and payment confirma
 **Files:**
 - Create: `src/app/admin/gcash/page.tsx`
 
-- [ ] **Step 1: Create `src/app/admin/gcash/page.tsx`**
+- [x] **Step 1: Create `src/app/admin/gcash/page.tsx`**
 
 ```typescript
 'use client'
@@ -1522,11 +1522,11 @@ export default function GCashPage() {
 }
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Navigate to `http://localhost:3000/admin/gcash`. Add a GCash account, upload a QR image, and set it as active.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/app/admin/gcash/page.tsx
@@ -1540,7 +1540,7 @@ git commit -m "add admin GCash account management page"
 **Files:**
 - Create: `src/app/admin/settings/page.tsx`
 
-- [ ] **Step 1: Create `src/app/admin/settings/page.tsx`**
+- [x] **Step 1: Create `src/app/admin/settings/page.tsx`**
 
 ```typescript
 'use client'
@@ -1696,7 +1696,7 @@ git commit -m "add admin settings page"
 **Files:**
 - Create: `src/app/kitchen/page.tsx`
 
-- [ ] **Step 1: Create `src/app/kitchen/page.tsx`**
+- [x] **Step 1: Create `src/app/kitchen/page.tsx`**
 
 ```typescript
 'use client'
@@ -1943,7 +1943,7 @@ git commit -m "add kitchen display system with polling and status advancement"
 **Files:**
 - Create: `src/app/queue/page.tsx`
 
-- [ ] **Step 1: Create `src/app/queue/page.tsx`**
+- [x] **Step 1: Create `src/app/queue/page.tsx`**
 
 ```typescript
 'use client'
