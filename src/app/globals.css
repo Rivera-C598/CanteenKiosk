@@ -22,8 +22,12 @@
 }
 
 @layer components {
+  .bg-login-hero {
+    background-image: linear-gradient(135deg, #4d2126 0%, #b90905 50%, #745700 100%);
+  }
+
   .glass-panel {
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 244, 244, 0.85);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
   }
