@@ -26,10 +26,13 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     const { name, icon = 'restaurant', sortOrder = 0 } = body
+    if (!name) {
+      return NextResponse.json({ error: 'name is required' }, { status: 400 })
+    }
     const category = await prisma.category.create({
       data: { name, icon, sortOrder },
     })
-    return NextResponse.json(category)
+    return NextResponse.json(category, { status: 201 })
   } catch (error) {
     console.error('Create category error:', error)
     return NextResponse.json({ error: 'Failed to create category' }, { status: 500 })
