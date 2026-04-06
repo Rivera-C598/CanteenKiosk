@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
     const session = await getIronSession<SessionData>(request, response, sessionOptions)
 
     if (!session.isLoggedIn) {
-      return NextResponse.redirect(new URL('/login', request.url))
+      return NextResponse.redirect(new URL('/admin/login', request.url))
     }
   }
 

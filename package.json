@@ -17,6 +17,7 @@
     "@prisma/client": "^7.6.0",
     "bcryptjs": "^3.0.3",
     "framer-motion": "^12.38.0",
+    "iron-session": "^8.0.4",
     "lucide-react": "^1.7.0",
     "next": "14.2.35",
     "prisma": "^7.6.0",
