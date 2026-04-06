@@ -31,7 +31,11 @@ export default function PaymentPage() {
       if (!res.ok) throw new Error('Order failed')
       const order = await res.json()
       clearCart()
-      router.push(`/confirmed?order=${order.orderNumber}&method=${selected}`)
+      if (selected === 'gcash') {
+        router.push(`/payment/gcash?order=${order.orderNumber}&amount=${totalAmount}`)
+      } else {
+        router.push(`/confirmed?order=${order.orderNumber}&method=${selected}`)
+      }
     } catch {
       setError('Something went wrong. Please try again.')
       setLoading(false)
