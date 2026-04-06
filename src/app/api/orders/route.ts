@@ -7,15 +7,17 @@ export async function GET(request: Request) {
   const statusParam = searchParams.get('status')
 
   try {
-    let dateWhere = {}
-    if (dateFilter === 'today') {
+    let dateWhere: Record<string, unknown> = {}
+    const resolvedDate = ['today', 'week', 'all'].includes(dateFilter) ? dateFilter : 'today'
+    if (resolvedDate === 'today') {
       const today = new Date()
       const start = new Date(today.getFullYear(), today.getMonth(), today.getDate())
       dateWhere = { createdAt: { gte: start } }
-    } else if (dateFilter === 'week') {
+    } else if (resolvedDate === 'week') {
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
       dateWhere = { createdAt: { gte: weekAgo } }
     }
+    // resolvedDate === 'all': no date filter
 
     const statusWhere = statusParam
       ? { status: { in: statusParam.split(',') } }
