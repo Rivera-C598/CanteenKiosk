@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest . --typescript --app --tailwind --eslint --src-dir --import-alias \"@/*\" --no-git --yes)",
+      "Bash(npx create-next-app@latest . --typescript --app --tailwind --eslint --src-dir --import-alias \"@/*\" --no-git --yes --name hyperbite)",
+      "Bash(npx create-next-app@latest --help)",
+      "Read(//c/Users/user/Documents/me/App/**)",
+      "Bash(npx create-next-app@14 hyperbite-temp --typescript --app --tailwind --eslint --src-dir --import-alias \"@/*\" --no-git --yes)",
+      "Bash(cp .eslintrc.json \"C:/Users/user/Documents/me/App/CanteenKiosk/\")",
+      "Bash(cp next.config.mjs \"C:/Users/user/Documents/me/App/CanteenKiosk/\")",
+      "Bash(cp next-env.d.ts \"C:/Users/user/Documents/me/App/CanteenKiosk/\")",
+      "Bash(cp package.json \"C:/Users/user/Documents/me/App/CanteenKiosk/\")",
+      "Bash(cp package-lock.json \"C:/Users/user/Documents/me/App/CanteenKiosk/\")",
+      "Bash(cp:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(npx prisma:*)",
+      "Bash(node -e \"const {PrismaClient} = require\\('./src/generated/prisma/client.ts'\\); console.log\\('ok'\\)\")",
+      "Bash(npm show:*)",
+      "Bash(npm ls:*)",
+      "Bash([ -f \"C:/Users/user/Documents/me/App/CanteenKiosk/src/app/page.tsx\" ])"
+    ]
+  }
+}

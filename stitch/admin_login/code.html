@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Be_Vietnam_Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-fixed": "#ff7764",
+                      "primary-container": "#ff7764",
+                      "surface-container-highest": "#ffd2d4",
+                      "error": "#b41340",
+                      "on-background": "#4d2126",
+                      "surface-container": "#ffe1e2",
+                      "primary-fixed-dim": "#ff5b48",
+                      "on-tertiary-container": "#00612b",
+                      "inverse-primary": "#ff5541",
+                      "secondary-container": "#ffca42",
+                      "on-tertiary-fixed": "#004c20",
+                      "surface-bright": "#fff4f4",
+                      "secondary-fixed": "#ffca42",
+                      "inverse-surface": "#240307",
+                      "inverse-on-surface": "#cc8c91",
+                      "secondary-fixed-dim": "#f2bc1e",
+                      "secondary-dim": "#654c00",
+                      "on-surface-variant": "#824c51",
+                      "tertiary-fixed-dim": "#80ee98",
+                      "outline": "#a1676c",
+                      "surface-dim": "#ffc6ca",
+                      "tertiary-dim": "#005d28",
+                      "outline-variant": "#de9ca1",
+                      "tertiary": "#006a2f",
+                      "on-secondary-container": "#5b4400",
+                      "surface-container-lowest": "#ffffff",
+                      "error-container": "#f74b6d",
+                      "secondary": "#745700",
+                      "on-error-container": "#510017",
+                      "on-secondary-fixed-variant": "#664d00",
+                      "on-tertiary-fixed-variant": "#006c30",
+                      "on-surface": "#4d2126",
+                      "surface-container-low": "#ffeced",
+                      "surface-tint": "#b90905",
+                      "primary-dim": "#a40001",
+                      "primary": "#b90905",
+                      "on-primary": "#ffefed",
+                      "on-secondary": "#fff1d9",
+                      "surface": "#fff4f4",
+                      "on-error": "#ffefef",
+                      "on-tertiary": "#ceffd1",
+                      "on-primary-fixed-variant": "#610000",
+                      "on-primary-fixed": "#000000",
+                      "tertiary-container": "#8ffda5",
+                      "on-secondary-fixed": "#433200",
+                      "surface-container-high": "#ffdadb",
+                      "on-primary-container": "#4f0000",
+                      "error-dim": "#a70138",
+                      "surface-variant": "#ffd2d4",
+                      "tertiary-fixed": "#8ffda5",
+                      "background": "#fff4f4"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Plus Jakarta Sans"],
+                      "body": ["Be Vietnam Pro"],
+                      "label": ["Plus Jakarta Sans"]
+              }
+            },
+          },
+        }
+      </script>
+<style>.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }
+.bg-login-hero {
+    background-image: linear-gradient(rgba(77, 33, 38, 0.4), rgba(77, 33, 38, 0.6)), url(https://lh3.googleusercontent.com/aida-public/AB6AXuDMUyY1u6B9XtEkAPOOj82e70V8E49RybUE_JZEAeW6gFfWeTTDk1fCN6DffZWo2rf9s_5_wGT7aXuzyt5SEgTgDuIBXb8TPra_3WJIdueZtKzOW0_OcgMLQMrNw0wQuC7RB8dV2E4bD_BNqLvLDce9vf3IRLFo3NsS15dkiETqP5IzrxFVZGIoPToxG9uVBrfJsNtaa8yLmpFkgusJcmh7QjYrv3AQVW1rnu8gb2snLDZi3FkURMu0GUFvFYaNIV6oYP9JuZ_sknw);
+    background-size: cover;
+    background-position: center
+    }
+.glass-panel {
+    background: rgba(255, 244, 244, 0.85);
+    backdrop-filter: blur(24px)
+    }</style>
+</head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+<main class="min-h-screen flex items-center justify-center relative overflow-hidden bg-login-hero" data-alt="Wide shot of a modern brightly lit corporate canteen with clean lines white furniture and warm wooden accents in soft focus">
+<!-- Animated Blob for Depth -->
+<div class="absolute -top-24 -left-24 w-96 h-96 bg-primary opacity-10 rounded-full blur-3xl"></div>
+<div class="absolute -bottom-24 -right-24 w-96 h-96 bg-secondary opacity-10 rounded-full blur-3xl"></div>
+<div class="z-10 w-full max-w-md px-6 py-12">
+<!-- Branding Header -->
+<div class="flex flex-col items-center mb-8 text-center">
+<div class="mb-4 bg-primary p-3 rounded-xl shadow-lg">
+<span class="material-symbols-outlined text-surface text-4xl" data-icon="restaurant">restaurant</span>
+</div>
+<h1 class="font-headline font-black text-4xl text-surface tracking-tighter mb-1">
+                    HyperBite Admin
+                </h1>
+<p class="text-surface/80 font-medium text-sm">Centralized Canteen Management System</p>
+</div>
+<!-- Login Card -->
+<div class="surface-container-lowest glass-panel rounded-xl shadow-[0_20px_40px_rgba(77,33,38,0.15)] p-10 border border-white/20">
+<div class="mb-8">
+<h2 class="font-headline font-bold text-2xl text-on-surface mb-2">Welcome Back</h2>
+<p class="text-on-surface-variant text-sm">Please enter your credentials to access the dashboard</p>
+</div>
+<form class="space-y-6">
+<div class="space-y-1.5">
+<label class="block text-sm font-semibold text-on-surface-variant ml-1" for="employee-id">Employee ID</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors" data-icon="badge">badge</span>
+<input class="w-full pl-12 pr-4 py-4 bg-surface-container-low border-transparent focus:border-primary focus:ring-0 rounded-xl transition-all font-medium text-on-surface placeholder:text-on-surface-variant/40" id="employee-id" name="employee-id" placeholder="HB-000-00" type="text"/>
+</div>
+</div>
+<div class="space-y-1.5">
+<div class="flex justify-between items-center px-1">
+<label class="block text-sm font-semibold text-on-surface-variant" for="password">Password</label>
+<a class="text-xs font-bold text-primary hover:text-primary-dim transition-colors" href="#">Forgot Password?</a>
+</div>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors" data-icon="lock">lock</span>
+<input class="w-full pl-12 pr-12 py-4 bg-surface-container-low border-transparent focus:border-primary focus:ring-0 rounded-xl transition-all font-medium text-on-surface placeholder:text-on-surface-variant/40" id="password" name="password" placeholder="••••••••" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+</div>
+</div>
+<div class="pt-2">
+<button class="w-full py-4 bg-primary text-on-primary rounded-xl font-headline font-bold text-lg shadow-lg shadow-primary/20 hover:bg-primary-dim active:scale-[0.98] transition-all flex items-center justify-center gap-2" type="submit">
+                            Log In
+                            <span class="material-symbols-outlined text-xl" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</form>
+<div class="mt-10 flex flex-col items-center gap-4 border-t border-outline-variant/10 pt-8">
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-on-surface transition-colors text-sm font-medium">
+<span class="material-symbols-outlined text-lg" data-icon="info">info</span>
+                        System Info
+                    </button>
+<div class="flex gap-4 text-xs text-on-surface-variant/60 font-medium">
+<span>v2.4.0-Stable</span>
+<span>•</span>
+<span>St. Jude Campus</span>
+</div>
+</div>
+</div>
+<!-- Footer Text -->
+<p class="mt-8 text-center text-surface/60 text-xs font-medium uppercase tracking-widest">
+                Authorized Access Only
+            </p>
+</div>
+</main>
+<!-- Contextual FAB Suppression: Navigation elements are hidden for login screen per mandate -->
+</body></html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Order Confirmed | HyperBite</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,700;0,800;1,800&amp;family=Be+Vietnam+Pro:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "tertiary-container": "#8ffda5",
+                "secondary": "#745700",
+                "on-tertiary": "#ceffd1",
+                "secondary-dim": "#654c00",
+                "error-dim": "#a70138",
+                "secondary-fixed-dim": "#f2bc1e",
+                "on-surface-variant": "#824c51",
+                "on-secondary-fixed": "#433200",
+                "inverse-on-surface": "#cc8c91",
+                "tertiary-fixed-dim": "#80ee98",
+                "primary-fixed": "#ff7764",
+                "on-secondary-fixed-variant": "#664d00",
+                "surface-container": "#ffe1e2",
+                "tertiary-dim": "#005d28",
+                "primary-container": "#ff7764",
+                "surface-container-lowest": "#ffffff",
+                "surface-container-highest": "#ffd2d4",
+                "inverse-primary": "#ff5541",
+                "secondary-fixed": "#ffca42",
+                "on-secondary": "#fff1d9",
+                "on-surface": "#4d2126",
+                "on-tertiary-fixed-variant": "#006c30",
+                "tertiary": "#006a2f",
+                "on-primary": "#ffefed",
+                "inverse-surface": "#240307",
+                "outline-variant": "#de9ca1",
+                "primary-dim": "#a40001",
+                "primary-fixed-dim": "#ff5b48",
+                "error-container": "#f74b6d",
+                "on-primary-fixed": "#000000",
+                "surface-dim": "#ffc6ca",
+                "on-tertiary-fixed": "#004c20",
+                "on-primary-fixed-variant": "#610000",
+                "on-error": "#ffefef",
+                "surface": "#fff4f4",
+                "secondary-container": "#ffca42",
+                "on-secondary-container": "#5b4400",
+                "background": "#fff4f4",
+                "on-tertiary-container": "#00612b",
+                "on-background": "#4d2126",
+                "surface-container-low": "#ffeced",
+                "surface-bright": "#fff4f4",
+                "on-error-container": "#510017",
+                "outline": "#a1676c",
+                "surface-container-high": "#ffdadb",
+                "surface-variant": "#ffd2d4",
+                "on-primary-container": "#4f0000",
+                "surface-tint": "#b90905",
+                "error": "#b41340",
+                "primary": "#b90905",
+                "tertiary-fixed": "#8ffda5"
+            },
+            "borderRadius": {
+                "DEFAULT": "1rem",
+                "lg": "2rem",
+                "xl": "3rem",
+                "full": "9999px"
+            },
+            "fontFamily": {
+                "headline": ["Plus Jakarta Sans"],
+                "body": ["Be Vietnam Pro"],
+                "label": ["Plus Jakarta Sans"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+        }
+        .bento-shape-1 {
+            clip-path: polygon(0% 0%, 100% 0%, 100% 85%, 85% 100%, 0% 100%);
+        }
+        .bento-shape-2 {
+            clip-path: polygon(15% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 15%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body min-h-screen flex flex-col overflow-x-hidden">
+<!-- Header Section (Inspired by TopAppBar but suppressed for transactional focus) -->
+<header class="w-full top-0 sticky bg-[#fff4f4] dark:bg-stone-950 z-50">
+<div class="flex justify-between items-center w-full px-8 py-6">
+<div class="text-3xl font-black italic text-[#b90905] dark:text-red-500 tracking-tighter font-headline">
+                HyperBite
+            </div>
+<div class="flex items-center gap-2">
+<div class="h-12 w-12 bg-surface-container rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="restaurant">restaurant</span>
+</div>
+</div>
+</div>
+<div class="bg-[#f5eaea] dark:bg-stone-900 h-px w-full"></div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow flex items-center justify-center p-6 md:p-12 relative">
+<!-- Abstract Background Decorative Elements -->
+<div class="absolute top-20 right-[-5%] w-96 h-96 bg-primary-container/20 rounded-full blur-3xl -z-10"></div>
+<div class="absolute bottom-20 left-[-5%] w-80 h-80 bg-secondary-container/20 rounded-full blur-3xl -z-10"></div>
+<div class="max-w-6xl w-full grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch">
+<!-- Left Column: Success & Order ID (Bento Style) -->
+<div class="md:col-span-7 flex flex-col gap-8">
+<!-- Main Success Card -->
+<div class="bg-surface-container-lowest rounded-xl p-10 md:p-16 shadow-xl shadow-[#4d2126]/5 border border-outline-variant/10 relative overflow-hidden flex flex-col items-center text-center">
+<div class="absolute top-0 right-0 p-8 opacity-10">
+<span class="material-symbols-outlined text-[120px]" data-icon="check_circle">check_circle</span>
+</div>
+<div class="w-24 h-24 bg-tertiary-container rounded-full flex items-center justify-center mb-8 shadow-lg shadow-tertiary/20">
+<span class="material-symbols-outlined text-on-tertiary-container text-5xl" data-icon="task_alt" style="font-variation-settings: 'FILL' 1;">task_alt</span>
+</div>
+<h1 class="font-headline font-extrabold text-5xl md:text-7xl text-primary tracking-tighter mb-4">
+                        ORDER SUCCESSFUL
+                    </h1>
+<p class="text-xl md:text-2xl font-medium text-on-surface-variant max-w-lg mx-auto leading-relaxed">
+                        Your delicious meal is now in the making. Grab a seat and relax!
+                    </p>
+<div class="mt-12 mb-4">
+<span class="text-sm font-bold uppercase tracking-widest text-on-surface-variant/60 block mb-2">YOUR ORDER NUMBER</span>
+<div class="inline-block bg-primary text-white font-headline font-black text-7xl md:text-9xl px-12 py-6 rounded-xl shadow-2xl shadow-primary/30 transform -rotate-2">
+                            #123
+                        </div>
+</div>
+</div>
+<!-- Secondary Instructions Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="bg-secondary-container rounded-xl p-8 flex flex-col justify-between border border-secondary/10">
+<div class="flex items-start justify-between mb-4">
+<span class="material-symbols-outlined text-4xl text-on-secondary-container" data-icon="notifications_active">notifications_active</span>
+</div>
+<div>
+<h3 class="font-headline font-bold text-2xl text-on-secondary-container mb-2">Listen Up</h3>
+<p class="text-on-secondary-container/80 font-medium">Wait for your number to be called on the main display.</p>
+</div>
+</div>
+<div class="bg-surface-container-high rounded-xl p-8 flex flex-col justify-between border border-primary/5">
+<div class="flex items-start justify-between mb-4">
+<span class="material-symbols-outlined text-4xl text-primary" data-icon="payments">payments</span>
+</div>
+<div>
+<h3 class="font-headline font-bold text-2xl text-on-primary-container mb-2">Next Steps</h3>
+<p class="text-on-primary-container/80 font-medium">Proceed to the collection counter to pay or pick up your order.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Visual Summary & CTA -->
+<div class="md:col-span-5 flex flex-col gap-8">
+<!-- Image Component with Asymmetric Clip -->
+<div class="relative flex-grow min-h-[300px] bg-surface-container-lowest rounded-xl shadow-xl overflow-hidden bento-shape-1 group">
+<img alt="Delicious Burger" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Gourmet double-stack cheeseburger with melting cheese, fresh lettuce, and crispy bacon on a toasted brioche bun, studio lighting, appetizing" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaI8fR8ekX7rf94UKwTxfBAukxGGhJy-xcCPk5xI0vhQ4b17yocasSJmaDow6fxyEYGndzIlXDnA3qxjEWXNB1SXbYyJCNlNdaXdrYRqdds67w2WZHVWXWipgmva63h3PpUSizzYEbd7pNzJC8n64omPsGeioMt1nEZqIvINhVsjteY2mIEwW03M3Qi9sugyOIb6fW2kSAzuqQ-2R5hnjeAzV58cxQAmdyZikAge0R-NNH-SQEE2fc-Xk6kROQ2slX3wik5leQahM"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-8 text-white">
+<p class="font-headline font-bold text-2xl leading-tight">Freshly prepared,<br/>just for you.</p>
+</div>
+</div>
+<!-- CTA Section -->
+<div class="bg-surface-container-lowest rounded-xl p-8 shadow-xl border border-outline-variant/10 flex flex-col gap-6">
+<div class="flex items-center gap-4 p-4 bg-surface rounded-lg">
+<div class="h-10 w-10 bg-primary-container rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="receipt_long">receipt_long</span>
+</div>
+<div class="flex-grow">
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Receipt Status</p>
+<p class="font-bold text-on-surface">Digital copy sent to #123</p>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-primary-dim text-white font-headline font-extrabold text-xl py-6 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-3 active:scale-95 transition-all duration-200">
+<span>Start a New Order</span>
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+</button>
+<button class="w-full bg-transparent border-2 border-outline-variant/20 hover:border-primary/40 text-on-surface-variant font-bold py-4 rounded-xl transition-colors">
+                        View Order Details
+                    </button>
+</div>
+<!-- Small Brand Anchor -->
+<div class="flex justify-center items-center opacity-40 gap-2 grayscale">
+<span class="text-xs font-bold tracking-widest uppercase">Powered by HyperBite Tech</span>
+<span class="material-symbols-outlined text-sm" data-icon="bolt">bolt</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Success Modal Decoration (Subtle background pulse) -->
+<div class="fixed inset-0 pointer-events-none -z-20 overflow-hidden">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120vw] h-[120vw] bg-[radial-gradient(circle,rgba(185,9,5,0.03)_0%,rgba(255,244,244,0)_70%)] animate-pulse"></div>
+</div>
+</body></html>

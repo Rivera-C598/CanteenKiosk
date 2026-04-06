@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HyperBite - Menu Selection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-container": "#8ffda5",
+                    "secondary": "#745700",
+                    "on-tertiary": "#ceffd1",
+                    "secondary-dim": "#654c00",
+                    "error-dim": "#a70138",
+                    "secondary-fixed-dim": "#f2bc1e",
+                    "on-surface-variant": "#824c51",
+                    "on-secondary-fixed": "#433200",
+                    "inverse-on-surface": "#cc8c91",
+                    "tertiary-fixed-dim": "#80ee98",
+                    "primary-fixed": "#ff7764",
+                    "on-secondary-fixed-variant": "#664d00",
+                    "surface-container": "#ffe1e2",
+                    "tertiary-dim": "#005d28",
+                    "primary-container": "#ff7764",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-highest": "#ffd2d4",
+                    "inverse-primary": "#ff5541",
+                    "secondary-fixed": "#ffca42",
+                    "on-secondary": "#fff1d9",
+                    "on-surface": "#4d2126",
+                    "on-tertiary-fixed-variant": "#006c30",
+                    "tertiary": "#006a2f",
+                    "on-primary": "#ffefed",
+                    "inverse-surface": "#240307",
+                    "outline-variant": "#de9ca1",
+                    "primary-dim": "#a40001",
+                    "primary-fixed-dim": "#ff5b48",
+                    "error-container": "#f74b6d",
+                    "on-primary-fixed": "#000000",
+                    "surface-dim": "#ffc6ca",
+                    "on-tertiary-fixed": "#004c20",
+                    "on-primary-fixed-variant": "#610000",
+                    "on-error": "#ffefef",
+                    "surface": "#fff4f4",
+                    "secondary-container": "#ffca42",
+                    "on-secondary-container": "#5b4400",
+                    "background": "#fff4f4",
+                    "on-tertiary-container": "#00612b",
+                    "on-background": "#4d2126",
+                    "surface-container-low": "#ffeced",
+                    "surface-bright": "#fff4f4",
+                    "on-error-container": "#510017",
+                    "outline": "#a1676c",
+                    "surface-container-high": "#ffdadb",
+                    "surface-variant": "#ffd2d4",
+                    "on-primary-container": "#4f0000",
+                    "surface-tint": "#b90905",
+                    "error": "#b41340",
+                    "primary": "#b90905",
+                    "tertiary-fixed": "#8ffda5"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Be Vietnam Pro"],
+                    "label": ["Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary/20">
+<div class="flex min-h-screen">
+<!-- SideNavBar - JSON Defined -->
+<aside class="h-screen w-64 rounded-r-[3rem] sticky left-0 bg-[#f5eaea] dark:bg-stone-900 flex flex-col py-8 gap-4 shadow-xl shadow-[#4d2126]/10 z-30">
+<div class="px-8 mb-6">
+<h2 class="text-[#4d2126] font-bold text-xl font-headline tracking-tight">HyperBite</h2>
+</div>
+<nav class="flex-1 flex flex-col gap-2">
+<!-- Popular Tab (Active State for Menu Selection) -->
+<a class="bg-[#b90905] text-white rounded-full mx-2 shadow-lg shadow-red-900/20 flex items-center gap-4 px-6 py-4 transition-all duration-300 font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="local_fire_department">local_fire_department</span>
+<span>Popular</span>
+</a>
+<a class="text-[#4d2126] dark:text-stone-400 hover:bg-[#ffca42]/10 rounded-full mx-2 flex items-center gap-4 px-6 py-4 hover:translate-x-1 transition-all duration-300 font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="schedule">schedule</span>
+<span>Recent</span>
+</a>
+<a class="text-[#4d2126] dark:text-stone-400 hover:bg-[#ffca42]/10 rounded-full mx-2 flex items-center gap-4 px-6 py-4 hover:translate-x-1 transition-all duration-300 font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
+<span>Favorites</span>
+</a>
+<a class="text-[#4d2126] dark:text-stone-400 hover:bg-[#ffca42]/10 rounded-full mx-2 flex items-center gap-4 px-6 py-4 hover:translate-x-1 transition-all duration-300 font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="sell">sell</span>
+<span>Deals</span>
+</a>
+<a class="text-[#4d2126] dark:text-stone-400 hover:bg-[#ffca42]/10 rounded-full mx-2 flex items-center gap-4 px-6 py-4 hover:translate-x-1 transition-all duration-300 font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span>History</span>
+</a>
+</nav>
+<div class="px-4 mt-auto">
+<button class="w-full bg-secondary-container text-on-secondary-container font-headline font-bold py-4 px-6 rounded-xl hover:scale-[1.02] active:scale-95 transition-all duration-200 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+                    View Cart
+                </button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 px-8 py-8 flex flex-col h-screen overflow-hidden">
+<!-- TopAppBar Content & Identity -->
+<header class="w-full mb-8 flex justify-between items-center bg-[#fff4f4] dark:bg-stone-950 font-['Plus_Jakarta_Sans']">
+<div class="flex items-center gap-8">
+<h1 class="text-3xl font-black italic text-[#b90905] dark:text-red-500 tracking-tighter">HyperBite</h1>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-[#b90905] dark:text-red-500 border-b-4 border-[#b90905] pb-2 font-bold text-lg tracking-tight" href="#">Burgers</a>
+<a class="text-[#4d2126] dark:text-stone-400 font-semibold hover:text-[#b90905] transition-colors duration-200" href="#">Sides</a>
+<a class="text-[#4d2126] dark:text-stone-400 font-semibold hover:text-[#b90905] transition-colors duration-200" href="#">Drinks</a>
+<a class="text-[#4d2126] dark:text-stone-400 font-semibold hover:text-[#b90905] transition-colors duration-200" href="#">Desserts</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="bg-surface-container-low px-6 py-3 rounded-full flex items-center gap-3 w-80">
+<span class="material-symbols-outlined text-outline" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 w-full text-on-surface placeholder:text-outline-variant font-medium" placeholder="Search delicious food..." type="text"/>
+</div>
+<button class="w-12 h-12 flex items-center justify-center rounded-full bg-surface-container-high text-primary active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+</button>
+</div>
+</header>
+<!-- Hero Promotion (Asymmetric Layout) -->
+<section class="grid grid-cols-12 gap-6 mb-12 flex-shrink-0">
+<div class="col-span-8 bg-primary rounded-xl p-10 relative overflow-hidden flex flex-col justify-center">
+<div class="z-10 max-w-md">
+<span class="bg-secondary-container text-on-secondary-container px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-4 inline-block">Limited Time Offer</span>
+<h2 class="text-white text-5xl font-black font-headline mb-4 leading-tight">The Inferno Beast Burger</h2>
+<p class="text-white/80 font-medium text-lg mb-8">Triple flame-grilled Angus beef, spicy ghost-pepper jack, and crispy onion strings.</p>
+<button class="bg-white text-primary font-bold px-8 py-4 rounded-xl shadow-xl hover:scale-105 transition-transform flex items-center gap-3">
+                            Claim 20% Off <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<img alt="Gourmet Burger" class="absolute -right-12 -bottom-12 w-96 h-96 object-contain rotate-[-12deg] drop-shadow-2xl" data-alt="Stunning close-up of a giant gourmet burger with melting cheese, crispy onions, and juicy beef patties, warm studio lighting, red background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgFp_TbX4SvJ6TPQke92w7QFARfkT9cbU82aD7guK1C_TAnfz1pvbs3trFZBe3YdX3g4ac-TUPh6TQUQae4sF8l9gAF0E76XNmDwUsvy-sCRnRsJ_-62fqB5CeYJv9cSA3OmQOtVY_Y2KxmnN2kKq2JK44FAl8OJPEaS0aKX-iCEH4bQQvlNkaNlshuc0jBVmdXR-B8WkgEweGvMIgVmHPotA7R-ybjeC47sKZMfBCmgi0oO-o36eH834sMkpPGTKJN1vXBCL5x3w"/>
+</div>
+<div class="col-span-4 bg-secondary-container rounded-xl p-8 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-on-secondary-container text-4xl" data-icon="auto_awesome">auto_awesome</span>
+<span class="text-on-secondary-container font-black font-headline text-3xl">COMBO</span>
+</div>
+<div>
+<h3 class="text-on-secondary-container font-bold text-xl mb-2 leading-tight">Signature Lunch Box</h3>
+<p class="text-on-secondary-container/70 text-sm mb-6">Any Burger + Large Fries + Shake</p>
+<div class="flex items-end justify-between">
+<span class="text-3xl font-black font-headline text-primary">$12.99</span>
+<button class="bg-primary text-white p-3 rounded-full shadow-lg">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Food Item Grid (Bento Style) -->
+<div class="flex-1 overflow-y-auto no-scrollbar pb-32">
+<div class="flex items-baseline justify-between mb-8">
+<h3 class="text-3xl font-black font-headline text-on-surface">Popular Choice</h3>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+</button>
+<button class="w-10 h-10 rounded-full hover:bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="view_list">view_list</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-8">
+<!-- Item 1 -->
+<div class="bg-surface-container-lowest rounded-xl p-6 relative group transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10">
+<div class="relative h-48 mb-6">
+<img alt="Cheeseburger" class="w-full h-full object-contain absolute -top-12 scale-110 group-hover:scale-125 transition-transform duration-500 drop-shadow-xl" data-alt="A perfectly stacked classic cheeseburger with fresh lettuce, tomato, and glowing melted cheddar on a brioche bun, studio soft box lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdRTfTfVXCSxyRwdQddxUvIfeHB3CkYBA42CbX9OlUCTBNc9iGAaA2b2_DVHM8Cpf0ishKXCeamDyRgUwL21Y81mf6IZ1tMpKR1GItduhjxq8NUvR9-eV2QftScSPvOztCdXiMzc3tsStqaGEPGHXtmVLB7UWqeDgHU0scH8ys99NXqUhY_hb2f2JhmD-nmcvhyh7K0lJXjtG-LNwxrvYhfNCvaHbQm6KMo4cV2mNiYaZM5BbVX_6Qiefg0blBakzZx_STMDqlpMo"/>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-start">
+<h4 class="font-headline font-extrabold text-xl">The Classic Master</h4>
+<div class="flex items-center text-secondary font-bold text-xs">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+                                    4.9
+                                </div>
+</div>
+<p class="text-on-surface-variant text-sm line-clamp-2">Original grass-fed beef, secret HB sauce, house pickles, and melted cheddar.</p>
+<div class="flex items-center justify-between pt-4">
+<span class="text-2xl font-black font-headline text-primary">$8.50</span>
+<div class="flex items-center bg-surface-container rounded-full p-1 gap-4">
+<button class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-lg" data-icon="remove">remove</span>
+</button>
+<span class="font-bold text-on-surface px-1">0</span>
+<button class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-lg" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="bg-surface-container-lowest rounded-xl p-6 relative group transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10">
+<div class="relative h-48 mb-6">
+<img alt="Veggie Burger" class="w-full h-full object-contain absolute -top-12 scale-110 group-hover:scale-125 transition-transform duration-500 drop-shadow-xl" data-alt="Gourmet plant-based burger with avocado slices, purple sprouts, and roasted peppers, bright organic aesthetic, natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3o4yXL-YZGN22CThY0ZR5z45N7gYtpwfIs4vKNjIERMuuWasPo54QevCHYlG9OGjc_1pQeecCo_hYln7nRZi_UtjyzAdHvc_eHq1v6TINtE7SgMH5Da2g4tGEWrj1iCPvMLFtuB9SQmgjJL_Kmw8-lNM82dy73PSFYdaR4TDRGsgguZNI0xEuEvSZopdJ0RFM95voAURNsqOyhIt2iw3TROI67nW-MbzYmVz1AroJ6lbleRpxuYjls2B4GiNEYRQk8e8QYzwan5s"/>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-start">
+<h4 class="font-headline font-extrabold text-xl">Garden Zen</h4>
+<div class="flex items-center text-secondary font-bold text-xs">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+                                    4.7
+                                </div>
+</div>
+<p class="text-on-surface-variant text-sm line-clamp-2">Lentil and chickpea patty, avocado mash, sprouts, and herb aioli.</p>
+<div class="flex items-center justify-between pt-4">
+<span class="text-2xl font-black font-headline text-primary">$9.25</span>
+<div class="flex items-center bg-surface-container rounded-full p-1 gap-4">
+<button class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-lg" data-icon="remove">remove</span>
+</button>
+<span class="font-bold text-on-surface px-1">0</span>
+<button class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-lg" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="bg-surface-container-lowest rounded-xl p-6 relative group transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10">
+<div class="relative h-48 mb-6">
+<img alt="Spicy Burger" class="w-full h-full object-contain absolute -top-12 scale-110 group-hover:scale-125 transition-transform duration-500 drop-shadow-xl" data-alt="Tall stacked spicy crispy chicken burger with dripping buffalo sauce and jalapenos, dynamic high-contrast lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6p18bcxMvgZaW9Xk3D4QUisgCzdrlGMv8kkxd4fFSfAOGN2ft5pGaf5Lq8Fr5T5WaanvRjlh2dbNUJuyaXhwiAd8qxhbWjUQzOFTEpuU4BbJ0HT9FNEmHXn-jfWVdP99xR8ei7ovRU6pGCsCZWrOQ24EGth2ArIqWs8Z3XlXyXagp1vqVi1SCWi0d_S1iWCMm6eztaLm4rHMCVkX0wP8UESgOCnwBh1cYhkt7wpkdvpHIjcDC7IvZzfyv8Hzcivd9X7LmbU6hA1c"/>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-start">
+<h4 class="font-headline font-extrabold text-xl">Firecracker Crispy</h4>
+<div class="flex items-center text-secondary font-bold text-xs">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+                                    4.8
+                                </div>
+</div>
+<p class="text-on-surface-variant text-sm line-clamp-2">Buttermilk fried chicken breast, buffalo drizzle, and pickled jalapeños.</p>
+<div class="flex items-center justify-between pt-4">
+<span class="text-2xl font-black font-headline text-primary">$10.50</span>
+<div class="flex items-center bg-surface-container rounded-full p-1 gap-4">
+<button class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-lg" data-icon="remove">remove</span>
+</button>
+<span class="font-bold text-on-surface px-1">0</span>
+<button class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-lg" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Item 4 (Sides Category Example) -->
+<div class="bg-surface-container-lowest rounded-xl p-6 relative group transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10">
+<div class="relative h-48 mb-6">
+<img alt="Fries" class="w-full h-full object-contain absolute -top-12 scale-110 group-hover:scale-125 transition-transform duration-500 drop-shadow-xl" data-alt="Heap of crispy golden crinkle-cut fries sprinkled with herbs in a red container, bright commercial food photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBhXPYavpEart2vC1O6Ofr2GU0HEjW_W5rY2RxPCOUcd8tAIsfsqKcPGuod_etCSh0huaZYyhycEUCGKGgZgFHNu9X9EwOLMphmln6tMpvDju-hEx64P9DUBK3q9xPdymj4--ga6fzH-UYXBj1wJ5WknwN1l4CSDbt8sWZi8WDpGTuwSAnn2FLhez2Cj7f2Q79m14yo4qpNH2PJTP967dwlX4BC7s4_ok_TLYOy6cXMENc5spODUojN1hxvubpGBJLuxROrgSEKAg"/>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-start">
+<h4 class="font-headline font-extrabold text-xl">Truffle Crinkles</h4>
+<div class="flex items-center text-secondary font-bold text-xs">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+                                    4.6
+                                </div>
+</div>
+<p class="text-on-surface-variant text-sm line-clamp-2">Crinkle-cut fries tossed in white truffle oil and aged parmesan.</p>
+<div class="flex items-center justify-between pt-4">
+<span class="text-2xl font-black font-headline text-primary">$5.50</span>
+<div class="flex items-center bg-surface-container rounded-full p-1 gap-4">
+<button class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-lg" data-icon="remove">remove</span>
+</button>
+<span class="font-bold text-on-surface px-1">0</span>
+<button class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-lg" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Item 5 (Dessert Category Example) -->
+<div class="bg-surface-container-lowest rounded-xl p-6 relative group transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10">
+<div class="relative h-48 mb-6">
+<img alt="Milkshake" class="w-full h-full object-contain absolute -top-12 scale-110 group-hover:scale-125 transition-transform duration-500 drop-shadow-xl" data-alt="Thick chocolate milkshake topped with whipped cream and a cherry, served in a classic glass with a straw, vintage diner style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMymA2MuRRHPjZfS40YkCqIztZ-EwsdnpYM-N5Us4iOVdGI_mfdBteQ_GRiLjPMGbTu_F7ikr0uXFkP332BM2gaJUYFNpbskucR6IHyAD7-7mvzHnEc-WFf7mZCYoykoO8Xq_9672ggfFhH3tqIniaIlzVa7lzS8Y6W4jVJQBknHQIZJ5wUvEDB6l0MNVbBMIRxGRwu7G5PH1z1RUgda-aljJXd_-LGaHVuYege9aqs3oFMB5zCBN6o7plX7yB_S3dPBAE_S2zKSU"/>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-start">
+<h4 class="font-headline font-extrabold text-xl">Cloud Shake</h4>
+<div class="flex items-center text-secondary font-bold text-xs">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+                                    5.0
+                                </div>
+</div>
+<p class="text-on-surface-variant text-sm line-clamp-2">Hand-spun Madagascan vanilla bean shake with cloud-like whipped cream.</p>
+<div class="flex items-center justify-between pt-4">
+<span class="text-2xl font-black font-headline text-primary">$6.75</span>
+<div class="flex items-center bg-surface-container rounded-full p-1 gap-4">
+<button class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-lg" data-icon="remove">remove</span>
+</button>
+<span class="font-bold text-on-surface px-1">0</span>
+<button class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-lg" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Item 6 -->
+<div class="bg-surface-container-lowest rounded-xl p-6 relative group transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10">
+<div class="relative h-48 mb-6">
+<img alt="Salad" class="w-full h-full object-contain absolute -top-12 scale-110 group-hover:scale-125 transition-transform duration-500 drop-shadow-xl" data-alt="Fresh vibrant kale and quinoa salad with roasted pumpkin seeds and pomegranate, overhead professional shot, bright clean colors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDs78HukaZ9nHrESkIhcXRz4it9AtvIBYXc-2wsBqIvdJrLuF5pzRoQQKMGf6WNP53mittijYXYH94KflWFIJG6d_nbUOJBrO0l2F183P1NgLkavFLr6otxoX5eZdDirYhKonV7dcBaY3d9zLVc_JCM1NiCSBOMrSve2aIjWt1-gdIjOTlJGqPAukebpfG6frGw3R4I5LwesvCdOnLLfxi9sF8pRdUtWDGSGpgN8Z9gnrdGRb6QgqoxO6RQfBvi3_uNN-5sG8BWqRA"/>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-start">
+<h4 class="font-headline font-extrabold text-xl">Garden Superbowl</h4>
+<div class="flex items-center text-secondary font-bold text-xs">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+                                    4.5
+                                </div>
+</div>
+<p class="text-on-surface-variant text-sm line-clamp-2">Kale, quinoa, roasted sweet potato, and pumpkin seed vinaigrette.</p>
+<div class="flex items-center justify-between pt-4">
+<span class="text-2xl font-black font-headline text-primary">$11.00</span>
+<div class="flex items-center bg-surface-container rounded-full p-1 gap-4">
+<button class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-lg" data-icon="remove">remove</span>
+</button>
+<span class="font-bold text-on-surface px-1">0</span>
+<button class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-lg" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Floating Order Bar (View Order / Checkout) -->
+<div class="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-4xl px-8 z-50">
+<div class="bg-white/80 dark:bg-stone-900/80 backdrop-blur-xl rounded-full h-24 flex items-center justify-between px-10 shadow-[0_-10px_40px_rgba(77,33,38,0.08)] border border-white/20">
+<div class="flex items-center gap-6">
+<div class="relative">
+<span class="material-symbols-outlined text-primary text-4xl" data-icon="shopping_bag">shopping_bag</span>
+<span class="absolute -top-1 -right-1 bg-primary text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold border-2 border-white">2</span>
+</div>
+<div>
+<p class="text-on-surface-variant text-sm font-medium">Your current order</p>
+<p class="text-on-surface font-headline font-black text-xl">$15.25 <span class="text-sm font-medium text-on-surface-variant ml-2">(2 Items)</span></p>
+</div>
+</div>
+<div class="flex gap-4">
+<button class="bg-surface-container text-primary font-headline font-bold px-8 py-4 rounded-full hover:bg-surface-container-high transition-colors">
+                    Customize
+                </button>
+<button class="bg-primary text-white font-headline font-extrabold px-12 py-4 rounded-full shadow-lg shadow-primary/20 flex items-center gap-3 active:scale-95 transition-all animate-pulse-subtle">
+                    View Order
+                    <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- BottomNavBar for Mobile (Hidden on Desktop) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-6 pb-4 bg-white/80 dark:bg-stone-900/80 backdrop-blur-xl h-24 shadow-[0_-10px_40px_rgba(77,33,38,0.08)] rounded-t-[3rem]">
+<a class="flex flex-col items-center justify-center bg-[#b90905] text-white rounded-[2rem] px-8 py-3 mb-2" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="font-['Plus_Jakarta_Sans'] font-bold text-[12px]">Menu</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#4d2126] dark:text-stone-400" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+<span class="font-['Plus_Jakarta_Sans'] font-bold text-[12px]">Cart</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#4d2126] dark:text-stone-400" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-['Plus_Jakarta_Sans'] font-bold text-[12px]">Promos</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#4d2126] dark:text-stone-400" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-['Plus_Jakarta_Sans'] font-bold text-[12px]">Support</span>
+</a>
+</nav>
+</body></html>
