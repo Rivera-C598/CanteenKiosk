@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Category {
+  id        Int        @id @default(autoincrement())
+  name      String
+  icon      String     @default("restaurant")
+  sortOrder Int        @default(0)
+  active    Boolean    @default(true)
+  items     MenuItem[]
+}
+
+model MenuItem {
+  id          Int              @id @default(autoincrement())
+  categoryId  Int
+  category    Category         @relation(fields: [categoryId], references: [id])
+  name        String
+  description String           @default("")
+  price       Float
+  image       String           @default("")
+  stock       Int              @default(999)
+  available   Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  addons      MenuItemAddon[]
+  orderItems  OrderItem[]
+}
+
+model MenuItemAddon {
+  id         Int              @id @default(autoincrement())
+  menuItemId Int
+  menuItem   MenuItem         @relation(fields: [menuItemId], references: [id])
+  name       String
+  price      Float
+  available  Boolean          @default(true)
+  selections OrderItemAddon[]
+}
+
+model Order {
+  id              Int           @id @default(autoincrement())
+  orderNumber     String        @unique
+  status          String        @default("pending")
+  paymentMethod   String
+  paymentStatus   String        @default("unpaid")
+  totalAmount     Float
+  gcashAccountId  Int?
+  gcashAccount    GCashAccount? @relation(fields: [gcashAccountId], references: [id])
+  confirmedById   Int?
+  confirmedBy     AdminUser?    @relation(fields: [confirmedById], references: [id])
+  notes           String        @default("")
+  items           OrderItem[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model OrderItem {
+  id         Int              @id @default(autoincrement())
+  orderId    Int
+  order      Order            @relation(fields: [orderId], references: [id])
+  menuItemId Int
+  menuItem   MenuItem         @relation(fields: [menuItemId], references: [id])
+  quantity   Int
+  unitPrice  Float
+  subtotal   Float
+  addons     OrderItemAddon[]
+}
+
+model OrderItemAddon {
+  id              Int           @id @default(autoincrement())
+  orderItemId     Int
+  orderItem       OrderItem     @relation(fields: [orderItemId], references: [id])
+  menuItemAddonId Int
+  menuItemAddon   MenuItemAddon @relation(fields: [menuItemAddonId], references: [id])
+  price           Float
+}
+
+model GCashAccount {
+  id               Int      @id @default(autoincrement())
+  accountName      String
+  accountNumber    String
+  qrCodeImage      String   @default("")
+  isActive         Boolean  @default(false)
+  monthlyReceived  Float    @default(0)
+  monthlyLimit     Float    @default(100000)
+  lastReset        DateTime @default(now())
+  orders           Order[]
+}
+
+model AdminUser {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  role         String   @default("staff")
+  createdAt    DateTime @default(now())
+  orders       Order[]
+}
