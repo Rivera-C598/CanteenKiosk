@@ -1,0 +1,8 @@
+{
+  "idleTimeoutSeconds": 60,
+  "gcashPaymentTimeoutMinutes": 5,
+  "receiptFooterMessage": "Thank you for dining at HyperBite!",
+  "alwaysOpen": true,
+  "openTime": "07:00",
+  "closeTime": "20:00"
+}
