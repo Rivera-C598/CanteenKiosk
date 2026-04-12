@@ -15,6 +15,14 @@ interface Order {
   items: OrderItem[]
 }
 
+interface OrderLog {
+  id: number
+  orderId: number
+  action: string
+  snapshot: string
+  createdAt: string
+}
+
 const STATUS_TABS = [
   { key: 'all', label: 'All' },
   { key: 'pending_verification', label: 'Pending GCash' },
@@ -62,6 +70,8 @@ export default function OrdersPage() {
   const [statusTab, setStatusTab] = useState('all')
   const [dateFilter, setDateFilter] = useState('today')
   const [acting, setActing] = useState<number | null>(null)
+  const [logsModal, setLogsModal] = useState<{ orderNumber: string; logs: OrderLog[] } | null>(null)
+  const [loadingLogs, setLoadingLogs] = useState(false)
 
   const load = () => {
     const params = new URLSearchParams({ date: dateFilter })
@@ -98,6 +108,14 @@ export default function OrdersPage() {
       body: JSON.stringify({ status: 'cancelled' }),
     })
     load()
+  }
+
+  const viewLogs = async (order: Order) => {
+    setLoadingLogs(true)
+    const res = await fetch(`/api/orders/logs?orderId=${order.id}`)
+    const logs = await res.json()
+    setLoadingLogs(false)
+    setLogsModal({ orderNumber: order.orderNumber, logs: Array.isArray(logs) ? logs : [] })
   }
 
   const timeAgo = (iso: string) => {
@@ -214,11 +232,89 @@ export default function OrdersPage() {
                         <Icon name="cancel" size={20} />
                       </button>
                     )}
+                    <button
+                      onClick={() => viewLogs(order)}
+                      title="View Order Logs"
+                      className="p-2.5 text-stone-400 hover:text-secondary hover:bg-secondary/10 rounded-xl transition-all"
+                    >
+                      <Icon name="history" size={20} />
+                    </button>
                   </div>
                 </div>
               </div>
             )
           })}
+        </div>
+      )}
+      {logsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-surface rounded-3xl p-8 max-w-lg w-full shadow-2xl max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between mb-6 shrink-0">
+              <div>
+                <h3 className="font-headline font-black text-2xl text-on-surface tracking-tight">Order Logs</h3>
+                <p className="text-stone-500 font-medium text-sm mt-0.5">{logsModal.orderNumber}</p>
+              </div>
+              <button
+                onClick={() => setLogsModal(null)}
+                className="p-2 rounded-xl hover:bg-surface-container transition-colors"
+              >
+                <Icon name="close" size={22} className="text-on-surface-variant" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-3">
+              {logsModal.logs.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-stone-400 gap-3">
+                  <Icon name="history" size={40} />
+                  <p className="font-medium text-sm">No logs for this order.</p>
+                </div>
+              ) : (
+                logsModal.logs.map(log => {
+                  const snap = (() => { try { return JSON.parse(log.snapshot) } catch { return null } })()
+                  const isEdit = log.action === 'edited'
+                  return (
+                    <div key={log.id} className={`rounded-2xl p-5 border ${isEdit ? 'bg-secondary-container/10 border-secondary-container/30' : 'bg-error-container/10 border-error/20'}`}>
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className={`text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full ${isEdit ? 'bg-secondary-container text-on-secondary-container' : 'bg-error-container text-error'}`}>
+                          {log.action}
+                        </span>
+                        <span className="text-xs text-stone-400 font-medium">
+                          {new Date(log.createdAt).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' })}
+                        </span>
+                      </div>
+                      {isEdit && snap?.before && (
+                        <div className="grid grid-cols-2 gap-3 text-xs">
+                          <div className="bg-surface-container-lowest rounded-xl p-3">
+                            <p className="font-bold text-stone-500 mb-1.5 uppercase tracking-wide text-[10px]">Before</p>
+                            {snap.before.items.map((i: { name: string; quantity: number }, idx: number) => (
+                              <p key={idx} className="text-on-surface font-medium">{i.quantity}× {i.name}</p>
+                            ))}
+                            <p className="font-black text-primary mt-1.5">₱{Number(snap.before.total).toFixed(2)}</p>
+                          </div>
+                          <div className="bg-surface-container-lowest rounded-xl p-3">
+                            <p className="font-bold text-stone-500 mb-1.5 uppercase tracking-wide text-[10px]">After</p>
+                            {snap.after.items.map((i: { menuItemId: number; quantity: number; unitPrice: number }, idx: number) => (
+                              <p key={idx} className="text-on-surface font-medium">{i.quantity}× item #{i.menuItemId}</p>
+                            ))}
+                            <p className="font-black text-primary mt-1.5">₱{Number(snap.after.total).toFixed(2)}</p>
+                          </div>
+                        </div>
+                      )}
+                      {!isEdit && snap?.items && (
+                        <div className="text-xs bg-surface-container-lowest rounded-xl p-3">
+                          <p className="font-bold text-stone-500 mb-1.5 uppercase tracking-wide text-[10px]">Order at cancellation</p>
+                          {snap.items.map((i: { name: string; quantity: number }, idx: number) => (
+                            <p key={idx} className="text-on-surface font-medium">{i.quantity}× {i.name}</p>
+                          ))}
+                          <p className="font-black text-primary mt-1.5">₱{Number(snap.total).toFixed(2)}</p>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
