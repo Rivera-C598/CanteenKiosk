@@ -2,8 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Icon } from '@/components/shared/Icon'
+import { useStoreName } from '@/lib/store-context'
 
-interface OrderItem { quantity: number; menuItem: { name: string } }
+interface OrderItem {
+  id: number
+  quantity: number
+  unitPrice: number
+  menuItem: { id: number; name: string }
+}
 interface Order {
   id: number
   orderNumber: string
@@ -66,6 +72,35 @@ export default function KitchenPage() {
   const [acting, setActing] = useState<number | null>(null)
   const prevIdsRef = useRef<Set<number>>(new Set())
   const [completing, setCompleting] = useState<Set<number>>(new Set())
+  const storeName = useStoreName()
+
+  const printOrder = useCallback((order: Order, isRevised = false) => {
+    const time = new Date(order.createdAt).toLocaleString('en-PH', {
+      hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric', year: 'numeric',
+    })
+    const itemLines = order.items
+      .map(item => `  ${String(item.quantity).padEnd(3)} ${item.menuItem.name}`)
+      .join('\n')
+
+    const slot = document.getElementById('print-slot')
+    if (!slot) return
+    slot.innerHTML = `
+      <div class="print-slip">
+        <p class="slip-brand">${storeName}</p>
+        <hr class="slip-rule" />
+        <p class="slip-order">${order.orderNumber}</p>
+        <p class="slip-meta">Time: ${time}</p>
+        <p class="slip-meta">Payment: ${order.paymentMethod === 'gcash' ? 'GCash' : 'Cash'}</p>
+        <hr class="slip-rule" />
+        <pre class="slip-items">${itemLines}</pre>
+        <hr class="slip-rule" />
+        <p class="slip-total">TOTAL: &#8369; ${order.totalAmount.toFixed(2)}</p>
+        ${isRevised ? '<p class="slip-revised">[ REVISED ORDER ]</p>' : ''}
+      </div>
+    `
+    window.print()
+    slot.innerHTML = ''
+  }, [storeName])
 
   const load = useCallback(async () => {
     try {
@@ -216,14 +251,23 @@ export default function KitchenPage() {
 
                     {/* Button */}
                     {action && (
-                      <button
-                        onClick={() => advance(order)}
-                        disabled={acting === order.id}
-                        className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl font-headline font-bold text-base active:scale-95 transition-all disabled:opacity-50 ${order.status === 'ready' ? 'bg-tertiary text-on-tertiary shadow-lg shadow-tertiary/30' : order.status === 'preparing' ? 'bg-secondary text-on-secondary shadow-lg shadow-secondary/30' : 'bg-surface-container-highest text-on-surface hover:bg-stone-300'}`}
-                      >
-                        <Icon name={action.icon} size={22} />
-                        {acting === order.id ? 'Loading…' : action.label}
-                      </button>
+                      <>
+                        <button
+                          onClick={() => advance(order)}
+                          disabled={acting === order.id}
+                          className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl font-headline font-bold text-base active:scale-95 transition-all disabled:opacity-50 ${order.status === 'ready' ? 'bg-tertiary text-on-tertiary shadow-lg shadow-tertiary/30' : order.status === 'preparing' ? 'bg-secondary text-on-secondary shadow-lg shadow-secondary/30' : 'bg-surface-container-highest text-on-surface hover:bg-stone-300'}`}
+                        >
+                          <Icon name={action.icon} size={22} />
+                          {acting === order.id ? 'Loading…' : action.label}
+                        </button>
+                        <button
+                          onClick={() => printOrder(order)}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-headline font-bold text-xs text-stone-500 bg-surface-container hover:bg-stone-200 active:scale-95 transition-all"
+                        >
+                          <Icon name="print" size={16} />
+                          Print Slip
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -232,6 +276,7 @@ export default function KitchenPage() {
           </div>
         )}
       </main>
+      <div id="print-slot" />
     </div>
   )
 }

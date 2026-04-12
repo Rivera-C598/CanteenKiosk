@@ -81,3 +81,65 @@
   user-select: none;
   -webkit-user-select: none;
 }
+
+/* ── Print slip ── */
+#print-slot {
+  display: none;
+}
+
+@media print {
+  body > * {
+    display: none !important;
+  }
+  #print-slot {
+    display: block !important;
+  }
+  .print-slip {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11pt;
+    width: 72mm;
+    padding: 4mm 2mm;
+  }
+  .slip-brand {
+    text-align: center;
+    font-size: 15pt;
+    font-weight: 900;
+    margin-bottom: 2mm;
+  }
+  .slip-order {
+    text-align: center;
+    font-size: 32pt;
+    font-weight: 900;
+    letter-spacing: -1pt;
+    margin: 1mm 0;
+  }
+  .slip-meta {
+    font-size: 9pt;
+    margin: 0.5mm 0;
+  }
+  .slip-rule {
+    border: none;
+    border-top: 1px dashed #000;
+    margin: 3mm 0;
+  }
+  .slip-items {
+    font-size: 11pt;
+    white-space: pre;
+    margin: 2mm 0;
+    font-family: 'Courier New', Courier, monospace;
+  }
+  .slip-total {
+    font-size: 13pt;
+    font-weight: 900;
+    margin-top: 2mm;
+  }
+  .slip-revised {
+    text-align: center;
+    font-weight: 900;
+    font-size: 11pt;
+    margin-top: 3mm;
+    border: 2px solid #000;
+    padding: 2mm;
+    letter-spacing: 1pt;
+  }
+}
