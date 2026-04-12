@@ -56,6 +56,7 @@ model Order {
   items           OrderItem[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+  logs            OrderLog[]
 }
 
 model OrderItem {
@@ -98,4 +99,13 @@ model AdminUser {
   role         String   @default("staff")
   createdAt    DateTime @default(now())
   orders       Order[]
+}
+
+model OrderLog {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+  order     Order    @relation(fields: [orderId], references: [id])
+  action    String
+  snapshot  String   @default("")
+  createdAt DateTime @default(now())
 }
