@@ -4,10 +4,20 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
 import { Icon } from '@/components/shared/Icon'
 
+interface BestSellerItem {
+  id: number
+  name: string
+  price: number
+  image: string
+  totalSold: number
+}
+
 export default function WelcomePage() {
   const router = useRouter()
   const [isIdle, setIsIdle] = useState(false)
   const [time, setTime] = useState('')
+  const [bestSellers, setBestSellers] = useState<BestSellerItem[]>([])
+  const [showBestSellers, setShowBestSellers] = useState(false)
 
   const resetIdle = useCallback(() => {
     setIsIdle(false)
@@ -48,7 +58,19 @@ export default function WelcomePage() {
     }
   }, [])
 
+  useEffect(() => {
+    fetch('/api/orders/best-sellers?days=7')
+      .then(r => r.json())
+      .then(data => setBestSellers(Array.isArray(data) ? data : []))
+      .catch(() => {})
+  }, [])
+
   const handleStart = () => {
+    router.push('/menu')
+  }
+
+  const handleBestSellerItemTap = (itemId: number) => {
+    sessionStorage.setItem('kiosk_preselect_item', String(itemId))
     router.push('/menu')
   }
 
@@ -132,6 +154,65 @@ export default function WelcomePage() {
           </div>
         </div>
       </main>
+
+      {/* Best Sellers Widget */}
+      {bestSellers.length > 0 && (
+        <div className="absolute bottom-28 lg:bottom-24 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
+          {/* Collapsed pill */}
+          {!showBestSellers && (
+            <button
+              onClick={() => setShowBestSellers(true)}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm text-primary font-bold text-sm animate-pulse hover:bg-primary/20 active:scale-95 transition-all"
+            >
+              <Icon name="star" size={16} className="text-primary" />
+              Best Sellers Right Now
+              <Icon name="keyboard_arrow_down" size={16} className="text-primary" />
+            </button>
+          )}
+
+          {/* Expanded carousel */}
+          {showBestSellers && (
+            <>
+              <div className="fixed inset-0 z-30" onClick={() => setShowBestSellers(false)} />
+              <div className="relative z-40 flex flex-col items-center gap-3">
+                <button
+                  onClick={() => setShowBestSellers(false)}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-on-primary font-bold text-sm active:scale-95 transition-all"
+                >
+                  <Icon name="star" size={16} className="text-on-primary" />
+                  Best Sellers Right Now
+                  <Icon name="keyboard_arrow_up" size={16} className="text-on-primary" />
+                </button>
+                <div className="flex gap-3 overflow-x-auto pb-1 max-w-[90vw]">
+                  {bestSellers.map(item => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleBestSellerItemTap(item.id)}
+                      className="shrink-0 w-36 bg-surface/90 backdrop-blur-sm rounded-2xl shadow-lg border border-white/10 overflow-hidden active:scale-95 transition-transform text-left"
+                    >
+                      <div className="w-full h-24 bg-surface-container flex items-center justify-center overflow-hidden">
+                        {item.image ? (
+                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <Icon name="restaurant" size={32} className="text-outline" />
+                        )}
+                      </div>
+                      <div className="p-3">
+                        <p className="font-bold text-on-surface text-xs leading-tight line-clamp-2">
+                          {item.name}
+                        </p>
+                        <p className="font-black text-primary text-sm mt-1">
+                          ₱{item.price.toFixed(0)}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Footer */}
       <div className="absolute bottom-8 left-0 right-0 z-10 px-12 flex justify-between items-end">
