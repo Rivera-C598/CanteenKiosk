@@ -22,6 +22,12 @@ interface Category {
   items: MenuItem[]
 }
 
+interface BestSellerItem extends MenuItem {
+  totalSold: number
+}
+
+const BEST_SELLERS_ID = -1
+
 export default function MenuPage() {
   const router = useRouter()
   const { addItem, totalItems, totalAmount } = useCart()
@@ -29,17 +35,52 @@ export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [addedId, setAddedId] = useState<number | null>(null)
+  const [preselectId, setPreselectId] = useState<number | null>(null)
+  const [highlightId, setHighlightId] = useState<number | null>(null)
 
   useEffect(() => {
-    fetch('/api/categories')
-      .then(r => r.json())
-      .then(data => {
-        setCategories(data)
-        if (data.length > 0) setActiveCategory(data[0].id)
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
+    const rawPreselect = sessionStorage.getItem('kiosk_preselect_item')
+    if (rawPreselect) {
+      sessionStorage.removeItem('kiosk_preselect_item')
+      setPreselectId(parseInt(rawPreselect))
+    }
+    const preselectItemId = rawPreselect ? parseInt(rawPreselect) : null
+
+    Promise.all([
+      fetch('/api/categories').then(r => r.json()),
+      fetch('/api/orders/best-sellers?days=7').then(r => r.json()).catch(() => []),
+    ]).then(([cats, sellers]: [Category[], BestSellerItem[]]) => {
+      const sellerItems = Array.isArray(sellers) ? sellers : []
+      let allCats: Category[] = cats
+
+      if (sellerItems.length > 0) {
+        const bsCat: Category = {
+          id: BEST_SELLERS_ID,
+          name: 'Best Sellers',
+          icon: 'star',
+          items: sellerItems,
+        }
+        allCats = [bsCat, ...cats]
+      }
+
+      setCategories(allCats)
+
+      if (preselectItemId) {
+        const catWithItem = allCats.find(c => c.items.some(i => i.id === preselectItemId))
+        setActiveCategory(catWithItem?.id ?? allCats[0]?.id ?? null)
+      } else {
+        setActiveCategory(allCats[0]?.id ?? null)
+      }
+      setLoading(false)
+    }).catch(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    if (!preselectId) return
+    setHighlightId(preselectId)
+    const timer = setTimeout(() => setHighlightId(null), 1500)
+    return () => clearTimeout(timer)
+  }, [preselectId])
 
   const activeItems = categories.find(c => c.id === activeCategory)?.items ?? []
 
@@ -91,7 +132,7 @@ export default function MenuPage() {
               }`}
               style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
             >
-              <Icon name={cat.icon || 'restaurant'} size={18} filled={activeCategory === cat.id} className={activeCategory === cat.id ? 'text-on-primary' : 'text-on-surface-variant'} />
+              <Icon name={cat.id === BEST_SELLERS_ID ? 'star' : (cat.icon || 'restaurant')} size={18} filled={activeCategory === cat.id} className={activeCategory === cat.id ? 'text-on-primary' : 'text-on-surface-variant'} />
               {cat.name}
             </button>
           ))}
@@ -110,7 +151,7 @@ export default function MenuPage() {
             {activeItems.map(item => (
               <div
                 key={item.id}
-                className={`food-card relative flex flex-col ${!item.available || item.stock === 0 ? 'opacity-50' : ''}`}
+                className={`food-card relative flex flex-col ${!item.available || item.stock === 0 ? 'opacity-50' : ''} ${item.id === highlightId ? 'ring-4 ring-primary ring-offset-2' : ''}`}
               >
                 {/* Placeholder image area */}
                 <div className="w-full aspect-square bg-surface-container flex items-center justify-center rounded-t-xl overflow-hidden">
