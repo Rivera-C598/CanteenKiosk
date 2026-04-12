@@ -6,6 +6,7 @@ import { Icon } from '@/components/shared/Icon'
 import { useLanguage } from '@/lib/language-context'
 import { HelpModal } from '@/components/kiosk/HelpModal'
 import { useStoreName } from '@/lib/store-context'
+import { useCart } from '@/lib/cart-context'
 
 interface BestSellerItem {
   id: number
@@ -19,6 +20,7 @@ export default function WelcomePage() {
   const router = useRouter()
   const { language, setLanguage, t } = useLanguage()
   const storeName = useStoreName()
+  const { addItem } = useCart()
   const [isIdle, setIsIdle] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
   const [time, setTime] = useState('')
@@ -75,9 +77,9 @@ export default function WelcomePage() {
     router.push('/menu')
   }
 
-  const handleBestSellerItemTap = (itemId: number) => {
-    sessionStorage.setItem('kiosk_preselect_item', String(itemId))
-    router.push('/menu')
+  const handleBestSellerItemTap = (item: BestSellerItem) => {
+    addItem({ id: item.id, name: item.name, price: item.price, image: item.image })
+    router.push('/cart')
   }
 
   return (
@@ -155,9 +157,17 @@ export default function WelcomePage() {
         </div>
       </main>
 
+      {/* Best Sellers full-page backdrop — must be outside the widget to avoid transform clipping */}
+      {showBestSellers && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 backdrop-blur-md"
+          onClick={() => setShowBestSellers(false)}
+        />
+      )}
+
       {/* Best Sellers Widget */}
       {bestSellers.length > 0 && (
-        <div className="absolute bottom-28 lg:bottom-24 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
+        <div className="absolute bottom-28 lg:bottom-24 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center">
           {/* Collapsed pill */}
           {!showBestSellers && (
             <button
@@ -172,44 +182,41 @@ export default function WelcomePage() {
 
           {/* Expanded carousel */}
           {showBestSellers && (
-            <>
-              <div className="fixed inset-0 z-30" onClick={() => setShowBestSellers(false)} />
-              <div className="relative z-40 flex flex-col items-center gap-3">
-                <button
-                  onClick={() => setShowBestSellers(false)}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-on-primary font-bold text-sm active:scale-95 transition-all"
-                >
-                  <Icon name="star" size={16} className="text-on-primary" />
-                  Best Sellers Right Now
-                  <Icon name="keyboard_arrow_up" size={16} className="text-on-primary" />
-                </button>
-                <div className="flex gap-3 overflow-x-auto pb-1 max-w-[90vw]">
-                  {bestSellers.map(item => (
-                    <button
-                      key={item.id}
-                      onClick={() => handleBestSellerItemTap(item.id)}
-                      className="shrink-0 w-36 bg-surface/90 backdrop-blur-sm rounded-2xl shadow-lg border border-white/10 overflow-hidden active:scale-95 transition-transform text-left"
-                    >
-                      <div className="w-full h-24 bg-surface-container flex items-center justify-center overflow-hidden">
-                        {item.image ? (
-                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <Icon name="restaurant" size={32} className="text-outline" />
-                        )}
-                      </div>
-                      <div className="p-3">
-                        <p className="font-bold text-on-surface text-xs leading-tight line-clamp-2">
-                          {item.name}
-                        </p>
-                        <p className="font-black text-primary text-sm mt-1">
-                          ₱{item.price.toFixed(0)}
-                        </p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+            <div className="flex flex-col items-center gap-3">
+              <button
+                onClick={() => setShowBestSellers(false)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-on-primary font-bold text-sm active:scale-95 transition-all"
+              >
+                <Icon name="star" size={16} className="text-on-primary" />
+                Best Sellers Right Now
+                <Icon name="keyboard_arrow_up" size={16} className="text-on-primary" />
+              </button>
+              <div className="flex gap-3 overflow-x-auto pb-1 max-w-[90vw]">
+                {bestSellers.map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleBestSellerItemTap(item)}
+                    className="shrink-0 w-36 bg-surface rounded-2xl shadow-lg border border-white/10 overflow-hidden active:scale-95 transition-transform text-left"
+                  >
+                    <div className="w-full h-24 bg-surface-container flex items-center justify-center overflow-hidden">
+                      {item.image ? (
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <Icon name="restaurant" size={32} className="text-outline" />
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <p className="font-bold text-on-surface text-xs leading-tight line-clamp-2">
+                        {item.name}
+                      </p>
+                      <p className="font-black text-primary text-sm mt-1">
+                        ₱{item.price.toFixed(0)}
+                      </p>
+                    </div>
+                  </button>
+                ))}
               </div>
-            </>
+            </div>
           )}
         </div>
       )}
@@ -241,6 +248,16 @@ export default function WelcomePage() {
             CEBUANO
           </button>
         </div>
+        {/* Order status check */}
+        <button
+          onClick={() => router.push('/status')}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-full text-on-surface-variant/70 hover:text-on-surface-variant glass-panel text-xs font-bold transition-colors active:scale-95"
+          style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+        >
+          <Icon name="search" size={14} />
+          Check Order Status
+        </button>
+
         {/* Support */}
         <button onClick={() => setShowHelp(true)} className="glass-panel p-4 rounded-xl flex items-center gap-3 shadow-ambient hover:bg-surface-container-low transition-colors text-left active:scale-95">
           <div className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center shrink-0">
