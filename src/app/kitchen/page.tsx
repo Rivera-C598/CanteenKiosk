@@ -190,7 +190,7 @@ export default function KitchenPage() {
     if (action.nextStatus !== 'completed') load()
   }
 
-  const doCancel = async (order: Order) => {
+  const doCancel = async (order: Order, reason: string) => {
     setCancelTarget(null)
     setCompleting(prev => new Set(prev).add(order.id))
     setTimeout(() => {
@@ -201,7 +201,7 @@ export default function KitchenPage() {
     await fetch(`/api/orders/${order.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'cancelled' }),
+      body: JSON.stringify({ status: 'cancelled', cancelReason: reason }),
     })
   }
 
@@ -210,6 +210,8 @@ export default function KitchenPage() {
     if (!existing) { setEditingOrder(null); return }
     const full: Order = { ...existing, totalAmount: updatedOrder.totalAmount, items: updatedOrder.items }
     setOrders(prev => prev.map(o => o.id !== full.id ? o : full))
+    // Reset checked state — items changed, staff must re-verify each one
+    setCheckedItems(prev => { const next = new Map(prev); next.delete(full.id); return next })
     setEditingOrder(null)
     printOrder(full, true)
   }
@@ -318,20 +320,21 @@ export default function KitchenPage() {
                       <>
                         <button
                           onClick={() => advance(order)}
-                          disabled={acting === order.id || (requireAllChecked && !allItemsChecked(order))}
+                          disabled={acting === order.id || (requireAllChecked && order.status === 'preparing' && !allItemsChecked(order))}
                           className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl font-headline font-bold text-base active:scale-95 transition-all disabled:opacity-50 ${order.status === 'ready' ? 'bg-tertiary text-on-tertiary shadow-lg shadow-tertiary/30' : order.status === 'preparing' ? 'bg-secondary text-on-secondary shadow-lg shadow-secondary/30' : 'bg-surface-container-highest text-on-surface hover:bg-stone-300'}`}
                         >
                           <Icon name={action.icon} size={22} />
                           {acting === order.id ? 'Loading…' : action.label}
                         </button>
-                        {requireAllChecked && !allItemsChecked(order) && (
+                        {requireAllChecked && order.status === 'preparing' && !allItemsChecked(order) && (
                           <p className="text-xs text-center text-stone-400 font-medium">
                             Check all items first
                           </p>
                         )}
                         <button
                           onClick={() => printOrder(order)}
-                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-headline font-bold text-xs text-stone-500 bg-surface-container hover:bg-stone-200 active:scale-95 transition-all"
+                          disabled={order.status === 'ready'}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-headline font-bold text-xs text-stone-500 bg-surface-container hover:bg-stone-200 active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none"
                         >
                           <Icon name="print" size={16} />
                           Print Slip
@@ -339,14 +342,16 @@ export default function KitchenPage() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => setEditingOrder(order)}
-                            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-headline font-bold text-xs text-secondary bg-secondary-container/30 hover:bg-secondary-container/50 active:scale-95 transition-all"
+                            disabled={order.status === 'ready'}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-headline font-bold text-xs text-secondary bg-secondary-container/30 hover:bg-secondary-container/50 active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none"
                           >
                             <Icon name="edit" size={15} />
                             Edit
                           </button>
                           <button
                             onClick={() => setCancelTarget(order)}
-                            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-headline font-bold text-xs text-error bg-error-container/20 hover:bg-error-container/40 active:scale-95 transition-all"
+                            disabled={order.status === 'ready'}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-headline font-bold text-xs text-error bg-error-container/20 hover:bg-error-container/40 active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none"
                           >
                             <Icon name="cancel" size={15} />
                             Cancel
@@ -363,31 +368,40 @@ export default function KitchenPage() {
       </main>
       <div id="print-slot" />
 
-      {/* Cancel confirmation dialog */}
+      {/* Cancel reason picker */}
       {cancelTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-surface rounded-3xl p-8 max-w-sm w-full shadow-2xl">
             <div className="w-12 h-12 bg-error/10 rounded-full flex items-center justify-center mb-4 mx-auto">
               <Icon name="cancel" size={24} className="text-error" />
             </div>
-            <h3 className="font-headline font-black text-2xl text-center text-on-surface mb-2 tracking-tight">Cancel Order?</h3>
+            <h3 className="font-headline font-black text-2xl text-center text-on-surface mb-1 tracking-tight">
+              Cancel Order?
+            </h3>
             <p className="text-center text-on-surface-variant text-sm font-medium mb-6">
-              Order <span className="font-black text-on-surface">{cancelTarget.orderNumber}</span> will be cancelled. This cannot be undone.
+              Order <span className="font-black text-on-surface">{cancelTarget.orderNumber}</span> — why are you cancelling?
             </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setCancelTarget(null)}
-                className="flex-1 py-3.5 rounded-xl font-headline font-bold text-sm bg-surface-container-low hover:bg-surface-container active:scale-95 transition-all"
-              >
-                Keep Order
-              </button>
-              <button
-                onClick={() => doCancel(cancelTarget)}
-                className="flex-1 py-3.5 rounded-xl font-headline font-bold text-sm bg-error text-white shadow-lg shadow-error/20 active:scale-95 transition-all"
-              >
-                Yes, Cancel
-              </button>
+            <div className="flex flex-col gap-2 mb-3">
+              {[
+                { key: 'customer_request', label: 'Customer Request' },
+                { key: 'out_of_stock', label: 'Out of Stock' },
+                { key: 'duplicate', label: 'Duplicate Order' },
+              ].map(reason => (
+                <button
+                  key={reason.key}
+                  onClick={() => doCancel(cancelTarget, reason.key)}
+                  className="w-full py-3.5 rounded-xl font-headline font-bold text-sm bg-error/10 text-error hover:bg-error hover:text-white active:scale-95 transition-all"
+                >
+                  {reason.label}
+                </button>
+              ))}
             </div>
+            <button
+              onClick={() => setCancelTarget(null)}
+              className="w-full py-3.5 rounded-xl font-headline font-bold text-sm bg-surface-container-low hover:bg-surface-container active:scale-95 transition-all text-on-surface"
+            >
+              Oops, go back
+            </button>
           </div>
         </div>
       )}
