@@ -12,6 +12,8 @@ interface Order {
   paymentStatus: string
   totalAmount: number
   createdAt: string
+  cancelReason: string
+  refundStatus: string
   items: OrderItem[]
 }
 
@@ -109,6 +111,21 @@ export default function OrdersPage() {
     load()
   }
 
+  const deleteOrder = async (id: number, orderNumber: string) => {
+    if (!confirm(`Permanently delete order ${orderNumber} and all its records? This cannot be undone.`)) return
+    await fetch(`/api/orders/${id}`, { method: 'DELETE' })
+    load()
+  }
+
+  const markRefunded = async (id: number) => {
+    await fetch(`/api/orders/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refundStatus: 'completed' }),
+    })
+    load()
+  }
+
   const viewLogs = async (order: Order) => {
     try {
       const res = await fetch(`/api/orders/logs?orderId=${order.id}`)
@@ -163,6 +180,16 @@ export default function OrdersPage() {
         </div>
       </div>
 
+      {/* Pending refunds banner */}
+      {orders.some(o => o.refundStatus === 'pending') && (
+        <div className="mb-6 bg-error-container/30 border border-error/20 rounded-xl px-5 py-3 flex items-center gap-3">
+          <Icon name="warning" size={20} className="text-error shrink-0" />
+          <p className="text-sm font-bold text-error flex-1">
+            {orders.filter(o => o.refundStatus === 'pending').length} GCash refund{orders.filter(o => o.refundStatus === 'pending').length > 1 ? 's' : ''} pending — students are waiting for their money back.
+          </p>
+        </div>
+      )}
+
       {/* Orders list */}
       {loading ? (
         <div className="flex items-center justify-center py-24">
@@ -194,6 +221,16 @@ export default function OrdersPage() {
                       <span className={`text-[10px] uppercase font-bold px-3 py-1 rounded-full tracking-wider ${STATUS_BADGE[order.status] ?? 'bg-surface-container text-stone-500'}`}>
                         {STATUS_LABEL[order.status] ?? order.status}
                       </span>
+                      {order.refundStatus === 'pending' && (
+                        <span className="text-[10px] uppercase font-bold px-3 py-1 rounded-full bg-error/10 text-error tracking-wider">
+                          Refund Pending
+                        </span>
+                      )}
+                      {order.refundStatus === 'completed' && (
+                        <span className="text-[10px] uppercase font-bold px-3 py-1 rounded-full bg-surface-container text-stone-400 tracking-wider">
+                          Refunded
+                        </span>
+                      )}
                       <span className="text-xs font-medium text-stone-400 flex items-center gap-1">
                         <Icon name="schedule" size={14} />
                         {timeAgo(order.createdAt)}
@@ -214,7 +251,15 @@ export default function OrdersPage() {
                     </p>
                   </div>
                   
-                  <div className="flex items-center gap-2 ml-auto sm:ml-0">
+                  <div className="flex items-center gap-2 ml-auto sm:ml-0 flex-wrap justify-end">
+                    {order.refundStatus === 'pending' && (
+                      <button
+                        onClick={() => markRefunded(order.id)}
+                        className="px-4 py-2 text-xs font-bold bg-tertiary text-on-tertiary rounded-xl active:scale-95 transition-transform shadow-sm"
+                      >
+                        Mark Refunded
+                      </button>
+                    )}
                     {action && (
                       <button
                         onClick={() => advanceOrder(order)}
@@ -231,6 +276,15 @@ export default function OrdersPage() {
                         className="p-2.5 text-stone-400 hover:text-error hover:bg-error/10 rounded-xl transition-all"
                       >
                         <Icon name="cancel" size={20} />
+                      </button>
+                    )}
+                    {['completed', 'cancelled'].includes(order.status) && (
+                      <button
+                        onClick={() => deleteOrder(order.id, order.orderNumber)}
+                        title="Permanently Delete"
+                        className="p-2.5 text-stone-400 hover:text-error hover:bg-error/10 rounded-xl transition-all"
+                      >
+                        <Icon name="delete_forever" size={20} />
                       </button>
                     )}
                     <button
