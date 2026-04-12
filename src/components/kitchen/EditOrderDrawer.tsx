@@ -108,6 +108,7 @@ export function EditOrderDrawer({ order, onClose, onSaved }: EditOrderDrawerProp
       if (!res.ok) throw new Error('Save failed')
       const updated = await res.json()
       onSaved(updated)
+      setSaving(false)
     } catch {
       setSaveError('Failed to save. Please try again.')
       setSaving(false)
