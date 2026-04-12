@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Icon } from '@/components/shared/Icon'
 import { useStoreName } from '@/lib/store-context'
+import { EditOrderDrawer } from '@/components/kitchen/EditOrderDrawer'
 
 interface OrderItem {
   id: number
@@ -75,6 +76,8 @@ export default function KitchenPage() {
   const [requireAllChecked, setRequireAllChecked] = useState(false)
   const [checkedItems, setCheckedItems] = useState<Map<number, Set<number>>>(new Map())
   const storeName = useStoreName()
+  const [cancelTarget, setCancelTarget] = useState<Order | null>(null)
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null)
 
   const toggleItem = (orderId: number, idx: number) => {
     setCheckedItems(prev => {
@@ -185,6 +188,31 @@ export default function KitchenPage() {
     })
     setActing(null)
     if (action.nextStatus !== 'completed') load()
+  }
+
+  const doCancel = async (order: Order) => {
+    setCancelTarget(null)
+    setCompleting(prev => new Set(prev).add(order.id))
+    setTimeout(() => {
+      setOrders(prev => prev.filter(o => o.id !== order.id))
+      setCompleting(prev => { const s = new Set(prev); s.delete(order.id); return s })
+      setCheckedItems(prev => { const next = new Map(prev); next.delete(order.id); return next })
+    }, 600)
+    await fetch(`/api/orders/${order.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'cancelled' }),
+    })
+  }
+
+  const handleEditSaved = (updatedOrder: { id: number; orderNumber: string; totalAmount: number; items: OrderItem[] }) => {
+    setOrders(prev => prev.map(o => {
+      if (o.id !== updatedOrder.id) return o
+      return { ...o, totalAmount: updatedOrder.totalAmount, items: updatedOrder.items }
+    }))
+    setEditingOrder(null)
+    const merged = orders.find(o => o.id === updatedOrder.id)
+    if (merged) printOrder({ ...merged, totalAmount: updatedOrder.totalAmount, items: updatedOrder.items }, true)
   }
 
   return (
@@ -309,6 +337,22 @@ export default function KitchenPage() {
                           <Icon name="print" size={16} />
                           Print Slip
                         </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setEditingOrder(order)}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-headline font-bold text-xs text-secondary bg-secondary-container/30 hover:bg-secondary-container/50 active:scale-95 transition-all"
+                          >
+                            <Icon name="edit" size={15} />
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => setCancelTarget(order)}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-headline font-bold text-xs text-error bg-error-container/20 hover:bg-error-container/40 active:scale-95 transition-all"
+                          >
+                            <Icon name="cancel" size={15} />
+                            Cancel
+                          </button>
+                        </div>
                       </>
                     )}
                   </div>
@@ -319,6 +363,42 @@ export default function KitchenPage() {
         )}
       </main>
       <div id="print-slot" />
+
+      {/* Cancel confirmation dialog */}
+      {cancelTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-surface rounded-3xl p-8 max-w-sm w-full shadow-2xl">
+            <div className="w-12 h-12 bg-error/10 rounded-full flex items-center justify-center mb-4 mx-auto">
+              <Icon name="cancel" size={24} className="text-error" />
+            </div>
+            <h3 className="font-headline font-black text-2xl text-center text-on-surface mb-2 tracking-tight">Cancel Order?</h3>
+            <p className="text-center text-on-surface-variant text-sm font-medium mb-6">
+              Order <span className="font-black text-on-surface">{cancelTarget.orderNumber}</span> will be cancelled. This cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setCancelTarget(null)}
+                className="flex-1 py-3.5 rounded-xl font-headline font-bold text-sm bg-surface-container-low hover:bg-surface-container active:scale-95 transition-all"
+              >
+                Keep Order
+              </button>
+              <button
+                onClick={() => doCancel(cancelTarget)}
+                className="flex-1 py-3.5 rounded-xl font-headline font-bold text-sm bg-error text-white shadow-lg shadow-error/20 active:scale-95 transition-all"
+              >
+                Yes, Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit order drawer */}
+      <EditOrderDrawer
+        order={editingOrder}
+        onClose={() => setEditingOrder(null)}
+        onSaved={handleEditSaved}
+      />
     </div>
   )
 }
