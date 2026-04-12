@@ -206,13 +206,12 @@ export default function KitchenPage() {
   }
 
   const handleEditSaved = (updatedOrder: { id: number; orderNumber: string; totalAmount: number; items: OrderItem[] }) => {
-    setOrders(prev => prev.map(o => {
-      if (o.id !== updatedOrder.id) return o
-      return { ...o, totalAmount: updatedOrder.totalAmount, items: updatedOrder.items }
-    }))
+    const existing = orders.find(o => o.id === updatedOrder.id)
+    if (!existing) { setEditingOrder(null); return }
+    const full: Order = { ...existing, totalAmount: updatedOrder.totalAmount, items: updatedOrder.items }
+    setOrders(prev => prev.map(o => o.id !== full.id ? o : full))
     setEditingOrder(null)
-    const merged = orders.find(o => o.id === updatedOrder.id)
-    if (merged) printOrder({ ...merged, totalAmount: updatedOrder.totalAmount, items: updatedOrder.items }, true)
+    printOrder(full, true)
   }
 
   return (
