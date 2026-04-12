@@ -53,6 +53,8 @@ model Order {
   confirmedById   Int?
   confirmedBy     AdminUser?    @relation(fields: [confirmedById], references: [id])
   notes           String        @default("")
+  cancelReason    String        @default("")
+  refundStatus    String        @default("")
   items           OrderItem[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
