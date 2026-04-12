@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 
+const MAX_BYTES = 5 * 1024 * 1024 // 5 MB
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
@@ -15,6 +17,10 @@ export async function POST(request: NextRequest) {
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
+
+    if (buffer.length > MAX_BYTES) {
+      return NextResponse.json({ error: 'File too large. Max 5 MB.' }, { status: 400 })
+    }
 
     const uploadDir = join(process.cwd(), 'public', 'images', 'menu')
     await mkdir(uploadDir, { recursive: true })

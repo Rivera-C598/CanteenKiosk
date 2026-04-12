@@ -24,6 +24,7 @@ export default function MenuPage() {
   const [itemForm, setItemForm] = useState(EMPTY_ITEM)
   const [catForm, setCatForm] = useState(EMPTY_CAT)
   const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
   const [saving, setSaving] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -75,13 +76,22 @@ export default function MenuPage() {
   const closeDrawer = () => { setDrawerOpen(false); setEditingItem(null); setEditingCat(null) }
 
   const handleUpload = async (file: File) => {
+    setUploadError('')
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError('Image too large. Max 5 MB.')
+      return
+    }
     setUploading(true)
     const fd = new FormData()
     fd.append('file', file)
     const res = await fetch('/api/upload', { method: 'POST', body: fd })
     const data = await res.json()
     setUploading(false)
-    if (data.url) setItemForm(f => ({ ...f, image: data.url }))
+    if (data.url) {
+      setItemForm(f => ({ ...f, image: data.url }))
+    } else {
+      setUploadError(data.error ?? 'Upload failed.')
+    }
   }
 
   const saveItem = async () => {
@@ -390,6 +400,9 @@ export default function MenuPage() {
                 )}
               </div>
               <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(f) }} />
+              {uploadError && (
+                <p className="text-xs text-error font-bold mt-1">{uploadError}</p>
+              )}
             </div>
 
             {[
