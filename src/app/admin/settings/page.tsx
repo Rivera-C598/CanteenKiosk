@@ -10,6 +10,7 @@ interface Settings {
   alwaysOpen: boolean
   openTime: string
   closeTime: string
+  requireAllItemsChecked: boolean
 }
 
 export default function SettingsPage() {
@@ -136,6 +137,30 @@ export default function SettingsPage() {
               placeholder="e.g. Thank you for eating at the Canteen!"
               className="w-full bg-surface-container-low/50 border border-outline-variant/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
+          </div>
+        </section>
+
+        {/* Operator Behavior */}
+        <section className="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/10 p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-surface-container flex justify-center items-center rounded-xl text-stone-500">
+              <Icon name="rule" size={20} />
+            </div>
+            <h3 className="font-headline font-bold text-on-surface text-xl">Operator Behavior</h3>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex-1 pr-8">
+              <p className="font-bold text-sm text-on-surface">Require All Items Checked</p>
+              <p className="text-xs text-stone-400 font-medium mt-1">
+                When enabled, canteen staff must check off every item in an order before they can confirm it.
+              </p>
+            </div>
+            <button
+              onClick={() => setForm(f => f ? { ...f, requireAllItemsChecked: !f.requireAllItemsChecked } : f)}
+              className={`w-14 h-8 rounded-full transition-colors relative shadow-inner shadow-black/10 flex items-center shrink-0 ${form.requireAllItemsChecked ? 'bg-tertiary' : 'bg-stone-300'}`}
+            >
+              <span className={`absolute left-0 w-6 h-6 rounded-full bg-white transition-transform shadow-md ${form.requireAllItemsChecked ? 'translate-x-7' : 'translate-x-1'}`} />
+            </button>
           </div>
         </section>
 
