@@ -269,7 +269,7 @@ export default function MenuPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 font-headline font-bold text-on-surface">
-                        ${item.price.toFixed(2)}
+                        ₱{item.price.toFixed(0)}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
