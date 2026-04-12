@@ -68,6 +68,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         where: { id: orderId },
         include: { items: { include: { menuItem: true } } },
       })
+      if (!current) return NextResponse.json({ error: 'Order not found' }, { status: 404 })
 
       const order = await prisma.$transaction(async (tx) => {
         const updated = await tx.order.update({
