@@ -88,11 +88,17 @@
 }
 
 @media print {
-  body > * {
-    display: none !important;
+  body * {
+    visibility: hidden;
+  }
+  #print-slot,
+  #print-slot * {
+    visibility: visible;
   }
   #print-slot {
-    display: block !important;
+    position: absolute;
+    top: 0;
+    left: 0;
   }
   .print-slip {
     font-family: 'Courier New', Courier, monospace;
