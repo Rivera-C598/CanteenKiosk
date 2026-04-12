@@ -70,12 +70,12 @@ function elapsedColor(iso: string) {
 export default function KitchenPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [time, setTime] = useState(new Date())
+  const storeName = useStoreName()
   const [acting, setActing] = useState<number | null>(null)
   const prevIdsRef = useRef<Set<number>>(new Set())
   const [completing, setCompleting] = useState<Set<number>>(new Set())
   const [requireAllChecked, setRequireAllChecked] = useState(false)
   const [checkedItems, setCheckedItems] = useState<Map<number, Set<number>>>(new Map())
-  const storeName = useStoreName()
   const [cancelTarget, setCancelTarget] = useState<Order | null>(null)
   const [editingOrder, setEditingOrder] = useState<Order | null>(null)
 
@@ -224,7 +224,7 @@ export default function KitchenPage() {
           </div>
           <div>
             <h1 className="font-headline font-black text-on-surface text-2xl tracking-tight">Kitchen Display</h1>
-            <p className="text-stone-500 text-sm font-medium tracking-wider uppercase">HyperBite Operator</p>
+            <p className="text-stone-500 text-sm font-medium tracking-wider uppercase">{storeName} Operator</p>
           </div>
         </div>
         <div className="flex items-center gap-6">

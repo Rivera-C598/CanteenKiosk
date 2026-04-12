@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Icon } from '@/components/shared/Icon'
 import { useCart } from '@/lib/cart-context'
+import { useLanguage } from '@/lib/language-context'
+import { useStoreName } from '@/lib/store-context'
 
 interface MenuItem {
   id: number
@@ -31,6 +33,8 @@ const BEST_SELLERS_ID = -1
 export default function MenuPage() {
   const router = useRouter()
   const { addItem, totalItems, totalAmount } = useCart()
+  const { t } = useLanguage()
+  const storeName = useStoreName()
   const [categories, setCategories] = useState<Category[]>([])
   const [activeCategory, setActiveCategory] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
@@ -95,7 +99,7 @@ export default function MenuPage() {
       <div className="h-screen w-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <Icon name="restaurant" className="text-primary animate-pulse" size={48} />
-          <p className="font-headline font-bold text-on-surface-variant" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Loading menu…</p>
+          <p className="font-headline font-bold text-on-surface-variant" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>{t('menu.loading')}</p>
         </div>
       </div>
     )
@@ -110,10 +114,10 @@ export default function MenuPage() {
           className="flex items-center gap-2 text-on-surface-variant active:scale-95 transition-transform"
         >
           <Icon name="arrow_back" className="text-on-surface-variant" size={24} />
-          <span className="font-body text-sm font-medium">Back</span>
+          <span className="font-body text-sm font-medium">{t('menu.back')}</span>
         </button>
-        <div className="text-2xl font-black italic text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-          HyperBite
+        <div className="text-2xl font-black italic text-primary truncate max-w-[50%]" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+          {storeName}
         </div>
         <div className="w-20" />
       </header>
@@ -144,7 +148,7 @@ export default function MenuPage() {
         {activeItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-on-surface-variant">
             <Icon name="restaurant_menu" size={48} />
-            <p className="font-headline font-bold" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>No items in this category</p>
+            <p className="font-headline font-bold" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>{t('menu.empty')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
@@ -164,7 +168,7 @@ export default function MenuPage() {
                 {/* Sold-out overlay */}
                 {(!item.available || item.stock === 0) && (
                   <div className="absolute inset-0 bg-surface/60 rounded-xl flex items-center justify-center">
-                    <span className="bg-error text-on-error text-xs font-bold px-3 py-1 rounded-full" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>SOLD OUT</span>
+                    <span className="bg-error text-on-error text-xs font-bold px-3 py-1 rounded-full" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>{t('menu.soldout')}</span>
                   </div>
                 )}
                 {/* Card body */}
@@ -209,7 +213,7 @@ export default function MenuPage() {
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                 <span className="font-headline font-black text-sm">{totalItems}</span>
               </div>
-              <span className="font-headline font-bold text-base" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>View Order</span>
+              <span className="font-headline font-bold text-base" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>{t('menu.view_order')}</span>
             </div>
             <span className="font-headline font-black text-xl" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>₱{totalAmount.toFixed(0)}</span>
           </button>

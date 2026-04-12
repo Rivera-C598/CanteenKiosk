@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { Icon } from '@/components/shared/Icon'
+import { useStoreName } from '@/lib/store-context'
 
 interface Order {
   id: number
@@ -11,6 +12,7 @@ interface Order {
 }
 
 export default function QueuePage() {
+  const storeName = useStoreName()
   const [preparing, setPreparing] = useState<Order[]>([])
   const [ready, setReady] = useState<Order[]>([])
   const [time, setTime] = useState(new Date())
@@ -46,6 +48,15 @@ export default function QueuePage() {
           osc.stop(ctx.currentTime + 0.5)
         } catch {}
         
+        try {
+          const numbers = Array.from(newIds).map(id => rdy.find(o => o.id === id)?.orderNumber).filter(Boolean)
+          const text = `Order ${numbers.join(' and ')}, is ready for pickup!`
+          const utterance = new SpeechSynthesisUtterance(text)
+          utterance.rate = 0.95
+          utterance.pitch = 1.1
+          window.speechSynthesis.speak(utterance)
+        } catch {}
+        
         setTimeout(() => setNewlyReady(new Set()), 3000)
       }
       setPrevReadyIds(rdyIds)
@@ -66,7 +77,7 @@ export default function QueuePage() {
       {/* Header */}
       <header className="bg-surface-container-lowest px-12 py-6 flex items-center justify-between border-b shadow-sm shrink-0 z-10 sticky top-0">
         <h1 className="font-headline font-black text-4xl text-primary tracking-tight">
-          HyperBite
+          {storeName}
         </h1>
         <p className="font-headline font-black text-on-surface text-3xl">
           {time.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}

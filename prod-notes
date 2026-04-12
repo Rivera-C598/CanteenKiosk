@@ -1,0 +1,6 @@
+the command for kiosk mode
+C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --kiosk-printing http://localhost:3000
+
+to get out of kiosk mode press:
+alt+f4
+

@@ -10,7 +10,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       data: body,
     })
     return NextResponse.json(category)
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to update category' }, { status: 500 })
   }
 }
@@ -20,7 +20,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const { id } = await params
     await prisma.category.delete({ where: { id: parseInt(id) } })
     return NextResponse.json({ ok: true })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to delete category' }, { status: 500 })
   }
 }

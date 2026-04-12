@@ -3,10 +3,12 @@
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useEffect, useState, Suspense } from 'react'
 import { Icon } from '@/components/shared/Icon'
+import { useLanguage } from '@/lib/language-context'
 
 function GCashContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { t } = useLanguage()
   const orderNumber = searchParams.get('order') ?? 'A-001'
   const amount = searchParams.get('amount') ?? '0'
   const [timeLeft, setTimeLeft] = useState(600) // 10 minutes
@@ -54,10 +56,10 @@ function GCashContent() {
           className="flex items-center gap-2 text-on-surface-variant active:scale-95 transition-transform"
         >
           <Icon name="close" size={24} />
-          <span className="font-body text-sm font-medium">Cancel</span>
+          <span className="font-body text-sm font-medium">{t('gcash.cancel')}</span>
         </button>
         <div className="text-2xl font-black italic text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-          GCash Payment
+          {t('gcash.title')}
         </div>
         {/* Countdown */}
         <div className={`flex items-center gap-2 px-4 py-2 rounded-full font-headline font-black text-lg ${
@@ -72,27 +74,27 @@ function GCashContent() {
         <div className="flex-1 flex flex-col items-center justify-center gap-6 px-8">
           <Icon name="timer_off" size={64} className="text-error" />
           <h2 className="font-headline font-black text-2xl text-on-surface text-center" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-            Payment Time Expired
+            {t('gcash.expired')}
           </h2>
           <p className="text-on-surface-variant text-center max-w-sm">
-            Your order has been cancelled. Please start a new order.
+            {t('gcash.expired_desc')}
           </p>
           <button
             onClick={() => router.push('/')}
             className="btn-primary"
           >
-            Start New Order
+            {t('gcash.new_order')}
           </button>
         </div>
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center px-8 gap-6 overflow-y-auto py-4">
           {/* Amount */}
           <div className="text-center">
-            <p className="text-on-surface-variant font-medium mb-1">Send exactly</p>
+            <p className="text-on-surface-variant font-medium mb-1">{t('gcash.send_exactly')}</p>
             <p className="font-headline font-black text-6xl text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
               ₱{parseFloat(amount).toFixed(0)}
             </p>
-            <p className="text-on-surface-variant text-sm mt-1">Order {orderNumber}</p>
+            <p className="text-on-surface-variant text-sm mt-1">{t('gcash.order')} {orderNumber}</p>
           </div>
 
           {/* QR Code area */}
@@ -107,7 +109,7 @@ function GCashContent() {
               <div className="w-48 h-48 bg-surface-container rounded-xl flex flex-col items-center justify-center gap-3">
                 <Icon name="qr_code" size={64} className="text-on-surface-variant" />
                 <p className="text-xs text-on-surface-variant text-center px-4">
-                  QR code will be set up by admin
+                  {t('gcash.setup_admin')}
                 </p>
               </div>
             )}
@@ -124,13 +126,13 @@ function GCashContent() {
           {/* Steps */}
           <div className="w-full max-w-sm bg-secondary-container rounded-xl p-4">
             <p className="font-headline font-bold text-on-secondary-container text-sm mb-3" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-              How to pay:
+              {t('gcash.how_to')}
             </p>
             {[
-              { icon: 'smartphone', text: 'Open your GCash app' },
-              { icon: 'qr_code_scanner', text: 'Tap "Pay QR" and scan the code above' },
-              { icon: 'payments', text: `Enter ₱${parseFloat(amount).toFixed(0)} exactly` },
-              { icon: 'send', text: 'Confirm and send payment' },
+              { icon: 'smartphone', text: t('gcash.step1') },
+              { icon: 'qr_code_scanner', text: t('gcash.step2') },
+              { icon: 'payments', text: `${t('gcash.step3')} ₱${parseFloat(amount).toFixed(0)}` },
+              { icon: 'send', text: t('gcash.step4') },
             ].map((step, i) => (
               <div key={i} className="flex items-center gap-3 mb-2 last:mb-0">
                 <div className="w-6 h-6 rounded-full bg-secondary-fixed-dim flex items-center justify-center shrink-0">
@@ -148,7 +150,7 @@ function GCashContent() {
             style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
           >
             <Icon name="check_circle" size={24} className="text-on-primary" filled />
-            I&apos;ve Sent Payment
+            {t('gcash.sent')}
           </button>
         </div>
       )}

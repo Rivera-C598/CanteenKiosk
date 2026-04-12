@@ -17,6 +17,7 @@ interface Stats {
     createdAt: string
     items: Array<{ quantity: number; menuItem: { name: string } }>
   }>
+  popularItems: Array<{ name: string; quantity: number }>
 }
 
 const statusColors: Record<string, string> = {
@@ -112,8 +113,48 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent orders */}
-      <div className="bg-surface-container-lowest rounded-xl shadow-ambient overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Popular Items Chart */}
+        <div className="bg-surface-container-lowest rounded-xl shadow-ambient overflow-hidden flex flex-col h-[500px]">
+          <div className="px-6 py-4 border-b border-surface-container flex items-center gap-3 shrink-0">
+            <Icon name="trending_up" size={20} className="text-primary" />
+            <h3 className="font-headline font-bold text-on-surface" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+              Top Selling Items Today
+            </h3>
+          </div>
+          <div className="p-6 flex-1 overflow-y-auto w-full">
+            {(stats?.popularItems?.length ?? 0) === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-on-surface-variant gap-3">
+                <Icon name="analytics" size={40} className="opacity-50" />
+                <p className="font-medium">No sales data yet</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-5 h-full pt-2">
+                {stats?.popularItems.map((item, idx) => {
+                  const maxQty = stats.popularItems[0].quantity || 1
+                  const percentage = Math.max(5, (item.quantity / maxQty) * 100)
+                  return (
+                    <div key={idx} className="flex flex-col gap-1 w-full relative">
+                      <div className="flex justify-between text-xs font-bold font-headline mb-0.5">
+                        <span className="text-on-surface truncate">{item.name}</span>
+                        <span className="text-primary">{item.quantity} orders</span>
+                      </div>
+                      <div className="w-full bg-surface-container rounded-full h-3 overflow-hidden shadow-inner">
+                        <div 
+                          className="bg-primary h-full rounded-full transition-all duration-1000 ease-out" 
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Recent orders */}
+        <div className="bg-surface-container-lowest rounded-xl shadow-ambient overflow-hidden flex flex-col h-[500px]">
         <div className="px-6 py-4 flex items-center justify-between border-b border-surface-container">
           <h3 className="font-headline font-bold text-on-surface" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
             Recent Orders
@@ -158,6 +199,7 @@ export default function DashboardPage() {
             ))}
           </div>
         )}
+      </div>
       </div>
     </div>
   )

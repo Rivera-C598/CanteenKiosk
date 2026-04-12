@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Icon } from '@/components/shared/Icon'
+import { useStoreName } from '@/lib/store-context'
 
 export default function AdminLoginPage() {
   const router = useRouter()
+  const storeName = useStoreName()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -51,7 +53,7 @@ export default function AdminLoginPage() {
             <Icon name="restaurant" size={36} className="text-surface" />
           </div>
           <h1 className="font-headline font-black text-4xl text-surface tracking-tighter mb-1">
-            HyperBite Admin
+            {storeName} Admin
           </h1>
           <p className="text-surface/80 font-medium text-sm">Centralized Canteen Management System</p>
         </div>
@@ -157,7 +159,7 @@ export default function AdminLoginPage() {
             <div className="flex gap-4 text-xs text-on-surface-variant/60 font-medium">
               <span>v2.4.0-Stable</span>
               <span>•</span>
-              <span>St. Jude Campus</span>
+              <span>CTU - Danao Campus</span>
             </div>
           </div>
         </div>

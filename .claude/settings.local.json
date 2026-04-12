@@ -22,7 +22,13 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git show:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git -C \"C:/Users/user/Documents/me/App/CanteenKiosk/.worktrees/feature-batch\" show main:src/lib/store-context.tsx)",
+      "Bash(git -C \"C:/Users/user/Documents/me/App/CanteenKiosk/.worktrees/feature-batch\" log --oneline -10)",
+      "Bash(git -C \"C:/Users/user/Documents/me/App/CanteenKiosk/.worktrees/feature-batch\" show --stat HEAD~1..HEAD)",
+      "Bash(npx next:*)",
+      "Bash(grep -n \"catch \\(error\\)\" src/app/api/categories/\\\\\\\\[id\\\\\\\\]/route.ts src/app/api/gcash/route.ts src/app/api/menu-items/\\\\\\\\[id\\\\\\\\]/route.ts src/app/api/orders/metrics/route.ts)"
     ]
   }
 }

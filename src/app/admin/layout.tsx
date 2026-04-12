@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { Icon } from '@/components/shared/Icon'
+import { useStoreName } from '@/lib/store-context'
 
 const navItems = [
   { href: '/admin/dashboard', icon: 'dashboard', label: 'Dashboard' },
@@ -14,6 +15,7 @@ const navItems = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
+  const storeName = useStoreName()
 
   // Don't show sidebar on login page
   if (pathname === '/admin/login') {
@@ -31,8 +33,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className="w-60 bg-surface-container-lowest shadow-ambient flex flex-col shrink-0">
         {/* Brand */}
         <div className="px-6 py-5 border-b border-surface-container">
-          <h1 className="text-2xl font-black italic text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-            HyperBite
+          <h1 className="text-2xl font-black italic text-primary truncate" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+            {storeName}
           </h1>
           <p className="text-xs text-on-surface-variant font-medium mt-0.5">Admin Panel</p>
         </div>

@@ -1,13 +1,16 @@
 'use client'
 
 import { useState } from 'react'
+
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/lib/cart-context'
 import { Icon } from '@/components/shared/Icon'
+import { useLanguage } from '@/lib/language-context'
 
 export default function PaymentPage() {
   const router = useRouter()
   const { items, totalAmount, clearCart } = useCart()
+  const { t } = useLanguage()
   const [selected, setSelected] = useState<'cash' | 'gcash' | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -37,7 +40,7 @@ export default function PaymentPage() {
         router.push(`/confirmed?order=${order.orderNumber}&method=${selected}`)
       }
     } catch {
-      setError('Something went wrong. Please try again.')
+      setError(t('payment.error'))
       setLoading(false)
     }
   }
@@ -51,10 +54,10 @@ export default function PaymentPage() {
           className="flex items-center gap-2 text-on-surface-variant active:scale-95 transition-transform"
         >
           <Icon name="arrow_back" size={24} />
-          <span className="font-body text-sm font-medium">Back</span>
+          <span className="font-body text-sm font-medium">{t('payment.back')}</span>
         </button>
         <div className="text-2xl font-black italic text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-          Payment
+          {t('payment.title')}
         </div>
         <div className="w-20" />
       </header>
@@ -62,7 +65,7 @@ export default function PaymentPage() {
       <div className="flex-1 flex flex-col items-center justify-center px-8 gap-8">
         {/* Total */}
         <div className="text-center">
-          <p className="text-on-surface-variant font-medium mb-1">Order Total</p>
+          <p className="text-on-surface-variant font-medium mb-1">{t('payment.total')}</p>
           <p className="font-headline font-black text-6xl text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
             ₱{totalAmount.toFixed(0)}
           </p>
@@ -81,8 +84,8 @@ export default function PaymentPage() {
           >
             <Icon name="payments" size={48} className={selected === 'cash' ? 'text-on-primary' : 'text-primary'} filled={selected === 'cash'} />
             <div className="text-center">
-              <p className="font-headline font-black text-xl" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Cash</p>
-              <p className="text-sm opacity-70 mt-1">Pay at the counter</p>
+              <p className="font-headline font-black text-xl" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>{t('payment.cash')}</p>
+              <p className="text-sm opacity-70 mt-1">{t('payment.cash_desc')}</p>
             </div>
           </button>
 
@@ -97,28 +100,26 @@ export default function PaymentPage() {
           >
             <Icon name="qr_code_scanner" size={48} className={selected === 'gcash' ? 'text-on-primary' : 'text-primary'} filled={selected === 'gcash'} />
             <div className="text-center">
-              <p className="font-headline font-black text-xl" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>GCash</p>
-              <p className="text-sm opacity-70 mt-1">Scan QR to pay</p>
+              <p className="font-headline font-black text-xl" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>{t('payment.gcash')}</p>
+              <p className="text-sm opacity-70 mt-1">{t('payment.gcash_desc')}</p>
             </div>
           </button>
         </div>
 
-        {/* GCash instructions */}
         {selected === 'gcash' && (
           <div className="w-full max-w-lg bg-secondary-container rounded-xl p-4 flex items-start gap-3 animate-slide-up">
             <Icon name="info" size={20} className="text-on-secondary-container shrink-0 mt-0.5" />
             <p className="text-on-secondary-container text-sm font-medium">
-              A QR code will be shown after you place your order. Scan with GCash app and send the exact amount. Staff will confirm your payment.
+              {t('payment.gcash_info')}
             </p>
           </div>
         )}
 
-        {/* Cash instructions */}
         {selected === 'cash' && (
           <div className="w-full max-w-lg bg-secondary-container rounded-xl p-4 flex items-start gap-3 animate-slide-up">
             <Icon name="info" size={20} className="text-on-secondary-container shrink-0 mt-0.5" />
             <p className="text-on-secondary-container text-sm font-medium">
-              Your order will be placed and you&apos;ll get an order number. Bring it to the counter and pay ₱{totalAmount.toFixed(0)} in cash.
+              {t('payment.cash_info')}
             </p>
           </div>
         )}
@@ -137,12 +138,12 @@ export default function PaymentPage() {
           {loading ? (
             <>
               <Icon name="hourglass_empty" size={24} className="text-on-primary animate-spin" />
-              Placing Order…
+              {t('payment.loading')}
             </>
           ) : (
             <>
               <Icon name="check_circle" size={24} className="text-on-primary" filled />
-              Place Order
+              {t('payment.button')}
             </>
           )}
         </button>

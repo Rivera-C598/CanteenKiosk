@@ -5,12 +5,18 @@ import { Icon } from '@/components/shared/Icon'
 import { DrawerPanel } from '@/components/admin/DrawerPanel'
 
 interface Category { id: number; name: string; icon: string; sortOrder: number; active: boolean; items: MenuItem[] }
-interface MenuItem { id: number; name: string; categoryId: number; price: number; description: string; image: string; stock: number; available: boolean }
+interface MenuItem { id: number; name: string; categoryId: number; price: number; description: string; image: string; stock: number; available: boolean; categoryName?: string }
 
 type Tab = 'items' | 'categories'
 
 const EMPTY_ITEM = { name: '', categoryId: 0, price: '', description: '', image: '', stock: '999', available: true }
 const EMPTY_CAT = { name: '', icon: 'restaurant', sortOrder: 0 }
+
+const COMMON_ICONS = [
+  'restaurant', 'lunch_dining', 'bakery_dining', 'local_pizza', 'fastfood',
+  'ramen_dining', 'icecream', 'cake', 'local_cafe', 'local_drink', 'liquor',
+  'egg_alt', 'kebab_dining', 'cookie', 'set_meal', 'coffee'
+]
 
 export default function MenuPage() {
   const [tab, setTab] = useState<Tab>('items')
@@ -259,13 +265,13 @@ export default function MenuPage() {
                           </div>
                           <div>
                             <p className="font-bold text-on-surface text-sm">{item.name}</p>
-                            <p className="text-xs text-stone-400">SKU: HB-{(item as any).categoryName.substring(0,3).toUpperCase()}-{String(item.id).padStart(3,'0')}</p>
+                            <p className="text-xs text-stone-400">SKU: HB-{(item.categoryName ?? '').substring(0,3).toUpperCase()}-{String(item.id).padStart(3,'0')}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <span className="px-3 py-1 bg-surface-container-highest/30 text-on-surface-variant text-[10px] font-bold rounded-full uppercase">
-                          {(item as any).categoryName}
+                          {item.categoryName}
                         </span>
                       </td>
                       <td className="px-6 py-4 font-headline font-bold text-on-surface">
@@ -286,7 +292,7 @@ export default function MenuPage() {
                           onClick={() => toggleItemAvailable(item)}
                           className={`w-10 h-6 rounded-full transition-colors relative ${item.available ? 'bg-tertiary' : 'bg-stone-300'}`}
                         >
-                          <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${item.available ? 'translate-x-5' : 'translate-x-1'}`} />
+                          <span className={`absolute left-0 top-1 w-4 h-4 rounded-full bg-white transition-transform ${item.available ? 'translate-x-5' : 'translate-x-1'}`} />
                         </button>
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -344,7 +350,7 @@ export default function MenuPage() {
                         onClick={() => toggleCatActive(cat)}
                         className={`w-10 h-6 rounded-full transition-colors relative ${cat.active ? 'bg-tertiary' : 'bg-stone-300'}`}
                       >
-                        <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${cat.active ? 'translate-x-5' : 'translate-x-1'}`} />
+                        <span className={`absolute left-0 top-1 w-4 h-4 rounded-full bg-white transition-transform ${cat.active ? 'translate-x-5' : 'translate-x-1'}`} />
                       </button>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -407,7 +413,7 @@ export default function MenuPage() {
 
             {[
               { label: 'Name', key: 'name', type: 'text', placeholder: 'e.g. Classic Deluxe Burger' },
-              { label: 'Price ($)', key: 'price', type: 'number', placeholder: '0.00' },
+              { label: 'Price (₱)', key: 'price', type: 'number', placeholder: '0.00' },
               { label: 'Stock Level', key: 'stock', type: 'number', placeholder: '999' },
             ].map(field => (
               <div key={field.key}>
@@ -415,7 +421,7 @@ export default function MenuPage() {
                 <input
                   type={field.type}
                   placeholder={field.placeholder}
-                  value={(itemForm as any)[field.key]}
+                  value={itemForm[field.key as keyof typeof itemForm] as string}
                   onChange={e => setItemForm(f => ({ ...f, [field.key]: e.target.value }))}
                   className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
@@ -453,7 +459,7 @@ export default function MenuPage() {
                 onClick={() => setItemForm(f => ({ ...f, available: !f.available }))}
                 className={`w-12 h-7 rounded-full transition-colors relative ${itemForm.available ? 'bg-tertiary' : 'bg-stone-300'}`}
               >
-                <span className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-transform shadow ${itemForm.available ? 'translate-x-6' : 'translate-x-1'}`} />
+                <span className={`absolute left-0 top-1 w-5 h-5 rounded-full bg-white transition-transform shadow ${itemForm.available ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
 
@@ -489,8 +495,23 @@ export default function MenuPage() {
                   onChange={e => setCatForm(f => ({ ...f, icon: e.target.value }))}
                   className="flex-1 bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
-                <div className="w-12 h-12 bg-surface-container rounded-xl flex items-center justify-center shrink-0">
-                  <Icon name={catForm.icon || 'restaurant'} size={24} className="text-on-surface-variant" />
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                  <Icon name={catForm.icon || 'restaurant'} size={24} className="text-primary" />
+                </div>
+              </div>
+              <div className="mt-4">
+                <p className="text-xs font-bold text-on-surface-variant mb-2">Or select from popular icons:</p>
+                <div className="flex flex-wrap gap-2">
+                  {COMMON_ICONS.map(i => (
+                    <button
+                      key={i}
+                      onClick={() => setCatForm(f => ({ ...f, icon: i }))}
+                      className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors border ${catForm.icon === i ? 'bg-primary text-on-primary border-primary shadow-md' : 'bg-surface-container-lowest text-stone-500 hover:bg-surface-container border-outline-variant/30'}`}
+                      title={i}
+                    >
+                      <Icon name={i} size={20} />
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>

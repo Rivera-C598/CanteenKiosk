@@ -71,7 +71,6 @@ export default function OrdersPage() {
   const [dateFilter, setDateFilter] = useState('today')
   const [acting, setActing] = useState<number | null>(null)
   const [logsModal, setLogsModal] = useState<{ orderNumber: string; logs: OrderLog[] } | null>(null)
-  const [loadingLogs, setLoadingLogs] = useState(false)
 
   const load = () => {
     const params = new URLSearchParams({ date: dateFilter })
@@ -111,15 +110,12 @@ export default function OrdersPage() {
   }
 
   const viewLogs = async (order: Order) => {
-    setLoadingLogs(true)
     try {
       const res = await fetch(`/api/orders/logs?orderId=${order.id}`)
       const logs = await res.json()
       setLogsModal({ orderNumber: order.orderNumber, logs: Array.isArray(logs) ? logs : [] })
     } catch {
       setLogsModal({ orderNumber: order.orderNumber, logs: [] })
-    } finally {
-      setLoadingLogs(false)
     }
   }
 

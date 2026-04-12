@@ -243,7 +243,7 @@ export default function GCashPage() {
               <ul className="text-sm text-stone-500 space-y-3 font-medium">
                 <li className="flex gap-2.5">
                   <span className="text-tertiary mt-0.5">•</span>
-                  Configure multiple backup accounts to ensure student payments don't bounce.
+                  Configure multiple backup accounts to ensure student payments don&apos;t bounce.
                 </li>
                 <li className="flex gap-2.5">
                   <span className="text-tertiary mt-0.5">•</span>
@@ -298,7 +298,7 @@ export default function GCashPage() {
               <input
                 type={field.type}
                 placeholder={field.placeholder}
-                value={(form as any)[field.key]}
+                value={form[field.key as keyof typeof form]}
                 onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
                 className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
               />

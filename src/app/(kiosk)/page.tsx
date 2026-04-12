@@ -3,6 +3,9 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
 import { Icon } from '@/components/shared/Icon'
+import { useLanguage } from '@/lib/language-context'
+import { HelpModal } from '@/components/kiosk/HelpModal'
+import { useStoreName } from '@/lib/store-context'
 
 interface BestSellerItem {
   id: number
@@ -14,7 +17,10 @@ interface BestSellerItem {
 
 export default function WelcomePage() {
   const router = useRouter()
+  const { language, setLanguage, t } = useLanguage()
+  const storeName = useStoreName()
   const [isIdle, setIsIdle] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
   const [time, setTime] = useState('')
   const [bestSellers, setBestSellers] = useState<BestSellerItem[]>([])
   const [showBestSellers, setShowBestSellers] = useState(false)
@@ -92,16 +98,16 @@ export default function WelcomePage() {
       />
 
       {/* Header */}
-      <header className="relative z-10 flex items-center justify-between px-8 py-5">
-        <div className="text-3xl font-black italic text-primary tracking-tighter" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-          HyperBite
+      <header className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-0 px-4 lg:px-8 py-5">
+        <div className="text-3xl font-black italic text-primary tracking-tighter truncate lg:max-w-[40%] text-center lg:text-left" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+          {storeName}
         </div>
         <div className="glass-panel flex items-center gap-3 px-5 py-2 rounded-full">
           <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center">
             <Icon name="school" className="text-white" size={16} />
           </div>
           <span className="font-headline font-bold text-on-surface text-sm tracking-wide" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-            UNIVERSITY CAMPUS KIOSK
+            CTU - DANAO CAMPUS
           </span>
         </div>
         <div className="text-xl font-headline font-bold text-on-surface-variant" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
@@ -110,28 +116,26 @@ export default function WelcomePage() {
       </header>
 
       {/* Main content */}
-      <main className="relative z-10 flex items-center justify-center h-[calc(100vh-160px)] px-12">
-        <div className="w-full max-w-6xl grid grid-cols-12 gap-8 items-center">
+      <main className="relative z-10 flex items-center justify-center h-[calc(100vh-160px)] px-4 lg:px-12 pb-24 lg:pb-0">
+        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center justify-items-center lg:justify-items-stretch">
           {/* Left: Hero text */}
-          <div className="col-span-7 flex flex-col gap-5">
+          <div className="col-span-1 lg:col-span-7 flex flex-col gap-5 items-center lg:items-start text-center lg:text-left">
             <div className="inline-flex">
               <div className="bg-primary px-5 py-1.5 rounded-full">
                 <span className="text-on-primary font-headline font-extrabold text-base uppercase tracking-widest italic" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-                  Student Favorites
+                  {t('welcome.favorites')}
                 </span>
               </div>
             </div>
             <h1 className="font-headline font-black leading-[0.9] tracking-tighter" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: 'clamp(4rem, 10vw, 8rem)' }}>
-              FUEL YOUR <br />
-              <span className="text-primary italic">STRENGTH.</span>
+              {t('welcome.fuel')} <br />
+              <span className="text-primary italic">{t('welcome.strength')}</span>
             </h1>
-            <p className="text-on-surface-variant font-medium text-xl max-w-md leading-relaxed mt-2">
-              The ultimate campus dining experience. Freshly made, lightning fast, and student-budget friendly.
-            </p>
+            <p className="text-on-surface-variant font-medium text-lg lg:text-xl max-w-md leading-relaxed mt-2" dangerouslySetInnerHTML={{ __html: t('welcome.desc') }} />
           </div>
 
           {/* Right: Tap to start */}
-          <div className="col-span-5 flex flex-col items-center">
+          <div className="col-span-1 lg:col-span-5 flex flex-col items-center mt-6 lg:mt-0">
             <div className="relative">
               <button
                 onClick={handleStart}
@@ -141,15 +145,11 @@ export default function WelcomePage() {
                 <div className="absolute inset-0 rounded-full border-[10px] border-primary-container opacity-50 animate-pulse-ring" />
                 <div className="relative flex flex-col items-center gap-3">
                   <Icon name="touch_app" className="text-on-primary" size={64} filled />
-                  <span className="font-headline font-black text-2xl text-center leading-tight tracking-tight px-8" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-                    TAP HERE <br /> TO START
-                  </span>
+                  <span className="font-headline font-black text-2xl text-center leading-tight tracking-tight px-8" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }} dangerouslySetInnerHTML={{ __html: t('welcome.tap') }} />
                 </div>
               </button>
               {/* Decorative badge */}
-              <div className="absolute -bottom-3 -right-3 bg-secondary-container text-on-secondary-container px-5 py-2 rounded-full font-headline font-bold text-sm shadow-ambient">
-                STUDENT BUDGET FRIENDLY
-              </div>
+              <div className="absolute -bottom-3 -right-3 bg-secondary-container text-on-secondary-container px-5 py-2 rounded-full font-headline font-bold text-sm shadow-ambient" dangerouslySetInnerHTML={{ __html: t('welcome.budget') }} />
             </div>
           </div>
         </div>
@@ -215,27 +215,42 @@ export default function WelcomePage() {
       )}
 
       {/* Footer */}
-      <div className="absolute bottom-8 left-0 right-0 z-10 px-12 flex justify-between items-end">
+      <div className="absolute bottom-4 lg:bottom-8 left-0 right-0 z-10 px-4 lg:px-12 flex flex-col lg:flex-row gap-6 lg:gap-0 justify-between items-center lg:items-end">
         {/* Language */}
-        <div className="flex gap-3">
-          <button className="glass-panel px-6 py-3 rounded-full font-headline font-bold text-on-surface shadow-ambient flex items-center gap-2 active:scale-95 transition-transform duration-150" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-            <Icon name="language" className="text-primary" size={20} />
+        <div className="flex flex-wrap justify-center lg:justify-start gap-3">
+          <button 
+            onClick={() => setLanguage('en')}
+            className={`glass-panel px-6 py-3 rounded-full font-headline font-bold shadow-ambient flex items-center gap-2 active:scale-95 transition-transform duration-150 ${language === 'en' ? 'bg-primary/10 text-primary border-primary/20' : 'text-on-surface'}`} 
+            style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+          >
+            <Icon name="language" className={language === 'en' ? 'text-primary' : 'text-on-surface-variant'} size={20} />
             ENGLISH
           </button>
-          <button className="glass-panel px-6 py-3 rounded-full font-headline font-bold text-on-surface shadow-ambient active:scale-95 transition-transform duration-150" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+          <button 
+            onClick={() => setLanguage('fil')}
+            className={`glass-panel px-6 py-3 rounded-full font-headline font-bold shadow-ambient active:scale-95 transition-transform duration-150 ${language === 'fil' ? 'bg-primary/10 text-primary border-primary/20' : 'text-on-surface'}`} 
+            style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+          >
             FILIPINO
+          </button>
+          <button 
+            onClick={() => setLanguage('ceb')}
+            className={`glass-panel px-6 py-3 rounded-full font-headline font-bold shadow-ambient active:scale-95 transition-transform duration-150 ${language === 'ceb' ? 'bg-primary/10 text-primary border-primary/20' : 'text-on-surface'}`} 
+            style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+          >
+            CEBUANO
           </button>
         </div>
         {/* Support */}
-        <div className="glass-panel p-4 rounded-xl flex items-center gap-3 shadow-ambient">
-          <div className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center">
+        <button onClick={() => setShowHelp(true)} className="glass-panel p-4 rounded-xl flex items-center gap-3 shadow-ambient hover:bg-surface-container-low transition-colors text-left active:scale-95">
+          <div className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center shrink-0">
             <Icon name="contact_support" className="text-primary" size={22} />
           </div>
           <div>
-            <p className="font-headline font-bold text-sm text-on-surface" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Need help ordering?</p>
-            <p className="text-xs text-on-surface-variant">Touch for assistance</p>
+            <p className="font-headline font-bold text-sm text-on-surface" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>{t('welcome.help')}</p>
+            <p className="text-xs text-on-surface-variant">{t('welcome.help_desc')}</p>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Screensaver overlay */}
@@ -246,17 +261,17 @@ export default function WelcomePage() {
           onClick={resetIdle}
         >
           <div className="flex flex-col items-center gap-8 animate-fade-in">
-            <div className="text-6xl font-black italic text-white tracking-tighter" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-              HyperBite
+            <div className="text-6xl font-black italic text-white tracking-tighter truncate px-12" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+              {storeName}
             </div>
             <div className="w-32 h-1 bg-white/30 rounded-full" />
-            <p className="text-white/80 text-2xl font-medium animate-pulse">
-              Tap anywhere to order
-            </p>
+            <p className="text-white/80 text-2xl font-medium animate-pulse" dangerouslySetInnerHTML={{ __html: t('welcome.screensaver') }} />
             <Icon name="touch_app" className="text-white/60 mt-4" size={64} filled />
           </div>
         </div>
       )}
+
+      <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
     </div>
   )
 }

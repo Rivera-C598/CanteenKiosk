@@ -59,8 +59,8 @@ async function main() {
     }
   })
 
-  // Admin user (password: admin123)
-  const hash = await bcrypt.hash('admin123', 10)
+  // Admin user (password: admin)
+  const hash = await bcrypt.hash('admin', 10)
   await prisma.adminUser.create({
     data: {
       username: 'admin',

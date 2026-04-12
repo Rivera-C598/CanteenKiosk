@@ -3,23 +3,25 @@
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/lib/cart-context'
 import { Icon } from '@/components/shared/Icon'
+import { useLanguage } from '@/lib/language-context'
 
 export default function CartPage() {
   const router = useRouter()
   const { items, updateQuantity, totalItems, totalAmount } = useCart()
+  const { t } = useLanguage()
 
   if (items.length === 0) {
     return (
       <div className="h-screen w-screen flex flex-col items-center justify-center bg-background gap-6">
         <Icon name="shopping_cart" className="text-outline" size={64} />
         <p className="font-headline font-bold text-on-surface-variant text-xl" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-          Your cart is empty
+          {t('cart.empty')}
         </p>
         <button
           onClick={() => router.push('/menu')}
           className="btn-primary"
         >
-          Browse Menu
+          {t('cart.browse')}
         </button>
       </div>
     )
@@ -34,10 +36,10 @@ export default function CartPage() {
           className="flex items-center gap-2 text-on-surface-variant active:scale-95 transition-transform"
         >
           <Icon name="arrow_back" size={24} />
-          <span className="font-body text-sm font-medium">Back to Menu</span>
+          <span className="font-body text-sm font-medium">{t('cart.back')}</span>
         </button>
         <div className="text-2xl font-black italic text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-          Your Order
+          {t('cart.title')}
         </div>
         <div className="w-24" />
       </header>
@@ -87,9 +89,9 @@ export default function CartPage() {
       {/* Footer summary */}
       <div className="shrink-0 bg-surface-container-low px-6 py-5">
         <div className="flex items-center justify-between mb-4">
-          <span className="font-body text-on-surface-variant font-medium">{totalItems} item{totalItems > 1 ? 's' : ''}</span>
+          <span className="font-body text-on-surface-variant font-medium">{totalItems} {totalItems > 1 ? t('cart.items_plural') : t('cart.items')}</span>
           <div className="flex items-center gap-2">
-            <span className="font-body text-on-surface-variant text-sm">Total</span>
+            <span className="font-body text-on-surface-variant text-sm">{t('cart.total')}</span>
             <span className="font-headline font-black text-2xl text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>₱{totalAmount.toFixed(0)}</span>
           </div>
         </div>
@@ -99,7 +101,7 @@ export default function CartPage() {
           style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
         >
           <Icon name="payment" size={24} className="text-on-primary" />
-          Proceed to Payment
+          {t('cart.proceed')}
         </button>
       </div>
     </div>

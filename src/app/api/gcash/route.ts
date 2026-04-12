@@ -7,7 +7,7 @@ export async function GET() {
       orderBy: { id: 'asc' },
     })
     return NextResponse.json(accounts)
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch GCash accounts' }, { status: 500 })
   }
 }
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       data: { accountName, accountNumber, qrCodeImage, monthlyLimit, isActive: false },
     })
     return NextResponse.json(account, { status: 201 })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to create GCash account' }, { status: 500 })
   }
 }
