@@ -72,7 +72,22 @@ export default function KitchenPage() {
   const [acting, setActing] = useState<number | null>(null)
   const prevIdsRef = useRef<Set<number>>(new Set())
   const [completing, setCompleting] = useState<Set<number>>(new Set())
+  const [requireAllChecked, setRequireAllChecked] = useState(false)
+  const [checkedItems, setCheckedItems] = useState<Map<number, Set<number>>>(new Map())
   const storeName = useStoreName()
+
+  const toggleItem = (orderId: number, idx: number) => {
+    setCheckedItems(prev => {
+      const next = new Map(prev)
+      const set = new Set(next.get(orderId) ?? [])
+      if (set.has(idx)) set.delete(idx); else set.add(idx)
+      next.set(orderId, set)
+      return next
+    })
+  }
+
+  const allItemsChecked = (order: Order) =>
+    order.items.every((_, i) => checkedItems.get(order.id)?.has(i))
 
   const printOrder = useCallback((order: Order, isRevised = false) => {
     const time = new Date(order.createdAt).toLocaleString('en-PH', {
@@ -134,6 +149,18 @@ export default function KitchenPage() {
     return () => { clearInterval(poll); clearInterval(tick) }
   }, [load])
 
+  useEffect(() => {
+    const fetchSettings = () => {
+      fetch('/api/settings')
+        .then(r => r.json())
+        .then(s => setRequireAllChecked(s.requireAllItemsChecked ?? false))
+        .catch(() => {})
+    }
+    fetchSettings()
+    const poll = setInterval(fetchSettings, 30000)
+    return () => clearInterval(poll)
+  }, [])
+
   const advance = async (order: Order) => {
     const action = NEXT_ACTION[order.status]
     if (!action) return
@@ -141,6 +168,7 @@ export default function KitchenPage() {
 
     if (action.nextStatus === 'completed') {
       setCompleting(prev => new Set(prev).add(order.id))
+      setCheckedItems(prev => { const next = new Map(prev); next.delete(order.id); return next })
       setTimeout(() => {
         setOrders(prev => prev.filter(o => o.id !== order.id))
         setCompleting(prev => { const s = new Set(prev); s.delete(order.id); return s })
@@ -231,14 +259,23 @@ export default function KitchenPage() {
 
                   {/* Items */}
                   <div className="flex-1 space-y-2.5 py-4 border-y border-black/5">
-                    {order.items.map((item, i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <span className="w-8 h-8 shrink-0 bg-on-surface text-surface rounded-full flex items-center justify-center text-sm font-black shadow-sm">
-                          {item.quantity}
-                        </span>
-                        <span className={`font-bold ${order.status === 'ready' ? 'line-through text-stone-400' : 'text-on-surface text-lg leading-tight'}`}>{item.menuItem.name}</span>
-                      </div>
-                    ))}
+                    {order.items.map((item, i) => {
+                      const isChecked = checkedItems.get(order.id)?.has(i) ?? false
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => toggleItem(order.id, i)}
+                          className="flex items-center gap-3 w-full text-left active:opacity-70 transition-opacity"
+                        >
+                          <span className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-sm font-black shadow-sm transition-colors ${isChecked ? 'bg-tertiary text-on-tertiary' : 'bg-on-surface text-surface'}`}>
+                            {isChecked ? <Icon name="check" size={16} /> : item.quantity}
+                          </span>
+                          <span className={`font-bold text-lg leading-tight transition-all ${isChecked ? 'line-through text-stone-400' : order.status === 'ready' ? 'line-through text-stone-400' : 'text-on-surface'}`}>
+                            {item.menuItem.name}
+                          </span>
+                        </button>
+                      )
+                    })}
                   </div>
 
                   {/* Actions Area */}
@@ -254,12 +291,17 @@ export default function KitchenPage() {
                       <>
                         <button
                           onClick={() => advance(order)}
-                          disabled={acting === order.id}
+                          disabled={acting === order.id || (requireAllChecked && !allItemsChecked(order))}
                           className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl font-headline font-bold text-base active:scale-95 transition-all disabled:opacity-50 ${order.status === 'ready' ? 'bg-tertiary text-on-tertiary shadow-lg shadow-tertiary/30' : order.status === 'preparing' ? 'bg-secondary text-on-secondary shadow-lg shadow-secondary/30' : 'bg-surface-container-highest text-on-surface hover:bg-stone-300'}`}
                         >
                           <Icon name={action.icon} size={22} />
                           {acting === order.id ? 'Loading…' : action.label}
                         </button>
+                        {requireAllChecked && !allItemsChecked(order) && (
+                          <p className="text-xs text-center text-stone-400 font-medium">
+                            Check all items first
+                          </p>
+                        )}
                         <button
                           onClick={() => printOrder(order)}
                           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-headline font-bold text-xs text-stone-500 bg-surface-container hover:bg-stone-200 active:scale-95 transition-all"
