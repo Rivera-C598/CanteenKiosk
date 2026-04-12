@@ -112,10 +112,15 @@ export default function OrdersPage() {
 
   const viewLogs = async (order: Order) => {
     setLoadingLogs(true)
-    const res = await fetch(`/api/orders/logs?orderId=${order.id}`)
-    const logs = await res.json()
-    setLoadingLogs(false)
-    setLogsModal({ orderNumber: order.orderNumber, logs: Array.isArray(logs) ? logs : [] })
+    try {
+      const res = await fetch(`/api/orders/logs?orderId=${order.id}`)
+      const logs = await res.json()
+      setLogsModal({ orderNumber: order.orderNumber, logs: Array.isArray(logs) ? logs : [] })
+    } catch {
+      setLogsModal({ orderNumber: order.orderNumber, logs: [] })
+    } finally {
+      setLoadingLogs(false)
+    }
   }
 
   const timeAgo = (iso: string) => {
@@ -293,8 +298,8 @@ export default function OrdersPage() {
                           </div>
                           <div className="bg-surface-container-lowest rounded-xl p-3">
                             <p className="font-bold text-stone-500 mb-1.5 uppercase tracking-wide text-[10px]">After</p>
-                            {snap.after.items.map((i: { menuItemId: number; quantity: number; unitPrice: number }, idx: number) => (
-                              <p key={idx} className="text-on-surface font-medium">{i.quantity}× item #{i.menuItemId}</p>
+                            {snap.after.items.map((i: { menuItemId: number; name?: string; quantity: number; unitPrice: number }, idx: number) => (
+                              <p key={idx} className="text-on-surface font-medium">{i.quantity}× {i.name ?? `item #${i.menuItemId}`}</p>
                             ))}
                             <p className="font-black text-primary mt-1.5">₱{Number(snap.after.total).toFixed(2)}</p>
                           </div>

@@ -6,6 +6,7 @@ const VALID_PAYMENT_STATUSES = ['unpaid', 'paid', 'refunded']
 
 interface EditItem {
   menuItemId: number
+  name: string
   quantity: number
   unitPrice: number
 }
@@ -30,7 +31,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         total: current.totalAmount,
       }
       const afterSnapshot = {
-        items: (items as EditItem[]).map(i => ({ menuItemId: i.menuItemId, quantity: i.quantity, unitPrice: i.unitPrice })),
+        items: (items as EditItem[]).map(i => ({ menuItemId: i.menuItemId, name: i.name, quantity: i.quantity, unitPrice: i.unitPrice })),
         total: totalAmount,
       }
 
