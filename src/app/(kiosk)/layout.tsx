@@ -5,7 +5,7 @@ export default function KioskLayout({ children }: { children: React.ReactNode })
   return (
     <LanguageProvider>
       <CartProvider>
-        <div className="h-screen w-screen overflow-hidden select-none">
+        <div className="min-h-[100dvh] w-screen overflow-hidden select-none">
           {children}
         </div>
       </CartProvider>

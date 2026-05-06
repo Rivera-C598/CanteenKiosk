@@ -83,7 +83,7 @@ export default function WelcomePage() {
   }
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-surface select-none">
+    <div className="relative min-h-[100dvh] w-screen overflow-hidden bg-surface select-none">
       {/* Background gradient */}
       <div
         className="absolute inset-0 z-0"
@@ -100,11 +100,11 @@ export default function WelcomePage() {
       />
 
       {/* Header */}
-      <header className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-0 px-4 lg:px-8 py-5">
-        <div className="text-3xl font-black italic text-primary tracking-tighter truncate lg:max-w-[40%] text-center lg:text-left" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+      <header className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-3 px-4 lg:px-8 py-4 lg:py-5">
+        <div className="text-2xl sm:text-3xl font-black italic text-primary tracking-tighter truncate max-w-full sm:max-w-[34%] text-center sm:text-left" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
           {storeName}
         </div>
-        <div className="glass-panel flex items-center gap-3 px-5 py-2 rounded-full">
+        <div className="glass-panel flex items-center gap-2 sm:gap-3 px-4 sm:px-5 py-2 rounded-full">
           <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center">
             <Icon name="school" className="text-white" size={16} />
           </div>
@@ -112,14 +112,14 @@ export default function WelcomePage() {
             CTU - DANAO CAMPUS
           </span>
         </div>
-        <div className="text-xl font-headline font-bold text-on-surface-variant" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+        <div className="text-lg sm:text-xl font-headline font-bold text-on-surface-variant" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
           {time}
         </div>
       </header>
 
       {/* Main content */}
-      <main className="relative z-10 flex items-center justify-center h-[calc(100vh-160px)] px-4 lg:px-12 pb-24 lg:pb-0">
-        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center justify-items-center lg:justify-items-stretch">
+      <main className="relative z-10 flex items-center justify-center min-h-[calc(100dvh-230px)] sm:min-h-[calc(100dvh-150px)] px-4 lg:px-12 pb-48 sm:pb-28 lg:pb-16">
+        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-7 lg:gap-8 items-center justify-items-center lg:justify-items-stretch">
           {/* Left: Hero text */}
           <div className="col-span-1 lg:col-span-7 flex flex-col gap-5 items-center lg:items-start text-center lg:text-left">
             <div className="inline-flex">
@@ -129,7 +129,7 @@ export default function WelcomePage() {
                 </span>
               </div>
             </div>
-            <h1 className="font-headline font-black leading-[0.9] tracking-tighter" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: 'clamp(4rem, 10vw, 8rem)' }}>
+            <h1 className="font-headline font-black leading-[0.9] tracking-tighter" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: 'clamp(3.2rem, 10vw, 8rem)' }}>
               {t('welcome.fuel')} <br />
               <span className="text-primary italic">{t('welcome.strength')}</span>
             </h1>
@@ -141,13 +141,13 @@ export default function WelcomePage() {
             <div className="relative">
               <button
                 onClick={handleStart}
-                className="relative flex flex-col items-center justify-center w-72 h-72 bg-primary text-on-primary rounded-full shadow-primary-glow active:scale-95 transition-transform duration-150"
+                className="relative flex flex-col items-center justify-center w-56 h-56 sm:w-72 sm:h-72 bg-primary text-on-primary rounded-full shadow-primary-glow active:scale-95 transition-transform duration-150"
               >
                 {/* Pulse ring */}
                 <div className="absolute inset-0 rounded-full border-[10px] border-primary-container opacity-50 animate-pulse-ring" />
                 <div className="relative flex flex-col items-center gap-3">
-                  <Icon name="touch_app" className="text-on-primary" size={64} filled />
-                  <span className="font-headline font-black text-2xl text-center leading-tight tracking-tight px-8" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }} dangerouslySetInnerHTML={{ __html: t('welcome.tap') }} />
+                  <Icon name="touch_app" className="text-on-primary" size={56} filled />
+                  <span className="font-headline font-black text-xl sm:text-2xl text-center leading-tight tracking-tight px-7 sm:px-8" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }} dangerouslySetInnerHTML={{ __html: t('welcome.tap') }} />
                 </div>
               </button>
               {/* Decorative badge */}
@@ -167,7 +167,7 @@ export default function WelcomePage() {
 
       {/* Best Sellers Widget */}
       {bestSellers.length > 0 && (
-        <div className="absolute bottom-28 lg:bottom-24 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center">
+        <div className="absolute bottom-32 sm:bottom-28 lg:bottom-24 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center">
           {/* Collapsed pill */}
           {!showBestSellers && (
             <button
@@ -222,12 +222,12 @@ export default function WelcomePage() {
       )}
 
       {/* Footer */}
-      <div className="absolute bottom-4 lg:bottom-8 left-0 right-0 z-10 px-4 lg:px-12 flex flex-col lg:flex-row gap-6 lg:gap-0 justify-between items-center lg:items-end">
+      <div className="absolute bottom-4 lg:bottom-8 left-0 right-0 z-10 px-4 lg:px-12 flex flex-col sm:flex-row gap-3 lg:gap-0 justify-between items-center sm:items-end">
         {/* Language */}
-        <div className="flex flex-wrap justify-center lg:justify-start gap-3">
+        <div className="flex flex-wrap justify-center sm:justify-start gap-2 sm:gap-3">
           <button 
             onClick={() => setLanguage('en')}
-            className={`glass-panel px-6 py-3 rounded-full font-headline font-bold shadow-ambient flex items-center gap-2 active:scale-95 transition-transform duration-150 ${language === 'en' ? 'bg-primary/10 text-primary border-primary/20' : 'text-on-surface'}`} 
+            className={`glass-panel px-4 sm:px-6 py-3 rounded-full font-headline font-bold shadow-ambient flex items-center gap-2 active:scale-95 transition-transform duration-150 text-xs sm:text-sm ${language === 'en' ? 'bg-primary/10 text-primary border-primary/20' : 'text-on-surface'}`} 
             style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
           >
             <Icon name="language" className={language === 'en' ? 'text-primary' : 'text-on-surface-variant'} size={20} />
@@ -235,14 +235,14 @@ export default function WelcomePage() {
           </button>
           <button 
             onClick={() => setLanguage('fil')}
-            className={`glass-panel px-6 py-3 rounded-full font-headline font-bold shadow-ambient active:scale-95 transition-transform duration-150 ${language === 'fil' ? 'bg-primary/10 text-primary border-primary/20' : 'text-on-surface'}`} 
+            className={`glass-panel px-4 sm:px-6 py-3 rounded-full font-headline font-bold shadow-ambient active:scale-95 transition-transform duration-150 text-xs sm:text-sm ${language === 'fil' ? 'bg-primary/10 text-primary border-primary/20' : 'text-on-surface'}`} 
             style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
           >
             FILIPINO
           </button>
           <button 
             onClick={() => setLanguage('ceb')}
-            className={`glass-panel px-6 py-3 rounded-full font-headline font-bold shadow-ambient active:scale-95 transition-transform duration-150 ${language === 'ceb' ? 'bg-primary/10 text-primary border-primary/20' : 'text-on-surface'}`} 
+            className={`glass-panel px-4 sm:px-6 py-3 rounded-full font-headline font-bold shadow-ambient active:scale-95 transition-transform duration-150 text-xs sm:text-sm ${language === 'ceb' ? 'bg-primary/10 text-primary border-primary/20' : 'text-on-surface'}`} 
             style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
           >
             CEBUANO
@@ -259,7 +259,7 @@ export default function WelcomePage() {
         </button>
 
         {/* Support */}
-        <button onClick={() => setShowHelp(true)} className="glass-panel p-4 rounded-xl flex items-center gap-3 shadow-ambient hover:bg-surface-container-low transition-colors text-left active:scale-95">
+        <button onClick={() => setShowHelp(true)} className="glass-panel p-3 sm:p-4 rounded-xl flex items-center gap-3 shadow-ambient hover:bg-surface-container-low transition-colors text-left active:scale-95">
           <div className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center shrink-0">
             <Icon name="contact_support" className="text-primary" size={22} />
           </div>

@@ -46,9 +46,9 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-background overflow-hidden">
+    <div className="h-[100dvh] w-screen flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <header className="flex items-center justify-between px-8 py-4 bg-surface-container-low shrink-0">
+      <header className="flex items-center justify-between gap-3 px-4 sm:px-8 py-3 sm:py-4 bg-surface-container-low shrink-0">
         <button
           onClick={() => router.push('/cart')}
           className="flex items-center gap-2 text-on-surface-variant active:scale-95 transition-transform"
@@ -56,27 +56,27 @@ export default function PaymentPage() {
           <Icon name="arrow_back" size={24} />
           <span className="font-body text-sm font-medium">{t('payment.back')}</span>
         </button>
-        <div className="text-2xl font-black italic text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+        <div className="text-xl sm:text-2xl font-black italic text-primary truncate" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
           {t('payment.title')}
         </div>
-        <div className="w-20" />
+        <div className="w-12 sm:w-20 shrink-0" />
       </header>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-8 gap-8">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-8 gap-5 sm:gap-8 overflow-y-auto py-5">
         {/* Total */}
         <div className="text-center">
           <p className="text-on-surface-variant font-medium mb-1">{t('payment.total')}</p>
-          <p className="font-headline font-black text-6xl text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+          <p className="font-headline font-black text-5xl sm:text-6xl text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
             ₱{totalAmount.toFixed(0)}
           </p>
         </div>
 
         {/* Payment options */}
-        <div className="w-full max-w-lg grid grid-cols-2 gap-4">
+        <div className="w-full max-w-lg grid grid-cols-1 min-[420px]:grid-cols-2 gap-3 sm:gap-4">
           {/* Cash */}
           <button
             onClick={() => setSelected('cash')}
-            className={`flex flex-col items-center gap-4 p-8 rounded-xl transition-all duration-150 active:scale-95 ${
+            className={`flex flex-col items-center gap-3 sm:gap-4 p-5 sm:p-8 rounded-xl transition-all duration-150 active:scale-95 ${
               selected === 'cash'
                 ? 'bg-primary text-on-primary shadow-primary-glow'
                 : 'bg-surface-container-lowest text-on-surface shadow-ambient'
@@ -92,7 +92,7 @@ export default function PaymentPage() {
           {/* GCash */}
           <button
             onClick={() => setSelected('gcash')}
-            className={`flex flex-col items-center gap-4 p-8 rounded-xl transition-all duration-150 active:scale-95 ${
+            className={`flex flex-col items-center gap-3 sm:gap-4 p-5 sm:p-8 rounded-xl transition-all duration-150 active:scale-95 ${
               selected === 'gcash'
                 ? 'bg-primary text-on-primary shadow-primary-glow'
                 : 'bg-surface-container-lowest text-on-surface shadow-ambient'

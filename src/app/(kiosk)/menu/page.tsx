@@ -106,9 +106,9 @@ export default function MenuPage() {
   }
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-background overflow-hidden">
+    <div className="h-[100dvh] w-screen flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <header className="flex items-center justify-between px-8 py-4 bg-surface-container-low shrink-0">
+      <header className="flex items-center justify-between gap-3 px-4 sm:px-8 py-3 sm:py-4 bg-surface-container-low shrink-0">
         <button
           onClick={() => router.push('/')}
           className="flex items-center gap-2 text-on-surface-variant active:scale-95 transition-transform"
@@ -116,20 +116,20 @@ export default function MenuPage() {
           <Icon name="arrow_back" className="text-on-surface-variant" size={24} />
           <span className="font-body text-sm font-medium">{t('menu.back')}</span>
         </button>
-        <div className="text-2xl font-black italic text-primary truncate max-w-[50%]" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+        <div className="text-xl sm:text-2xl font-black italic text-primary truncate max-w-[52%]" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
           {storeName}
         </div>
-        <div className="w-20" />
+        <div className="w-12 sm:w-20 shrink-0" />
       </header>
 
       {/* Category tabs */}
-      <div className="shrink-0 px-6 py-3 overflow-x-auto flex gap-3 scrollbar-none bg-surface-container-low border-b-0">
-        <div className="flex gap-3">
+      <div className="shrink-0 px-4 sm:px-6 py-3 overflow-x-auto flex gap-3 scrollbar-none bg-surface-container-low border-b-0">
+        <div className="flex gap-2 sm:gap-3">
           {categories.map(cat => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-headline font-bold text-sm whitespace-nowrap active:scale-95 transition-all duration-150 ${
+              className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full font-headline font-bold text-xs sm:text-sm whitespace-nowrap active:scale-95 transition-all duration-150 ${
                 activeCategory === cat.id
                   ? 'bg-primary text-on-primary shadow-primary-glow'
                   : 'bg-surface-container-lowest text-on-surface-variant shadow-ambient'
@@ -144,14 +144,14 @@ export default function MenuPage() {
       </div>
 
       {/* Item grid */}
-      <div className="flex-1 overflow-y-auto px-6 py-5 pb-28">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 pb-28">
         {activeItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-on-surface-variant">
             <Icon name="restaurant_menu" size={48} />
             <p className="font-headline font-bold" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>{t('menu.empty')}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
             {activeItems.map(item => (
               <div
                 key={item.id}
@@ -173,20 +173,20 @@ export default function MenuPage() {
                 )}
                 {/* Card body */}
                 <div className="p-3 flex flex-col gap-2 flex-1">
-                  <h3 className="font-headline font-bold text-on-surface text-sm leading-tight" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+                  <h3 className="font-headline font-bold text-on-surface text-xs sm:text-sm leading-tight" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
                     {item.name}
                   </h3>
                   {item.description && (
                     <p className="text-xs text-on-surface-variant line-clamp-2">{item.description}</p>
                   )}
                   <div className="flex items-center justify-between mt-auto pt-1">
-                    <span className="font-headline font-black text-primary text-lg" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+                    <span className="font-headline font-black text-primary text-base sm:text-lg" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
                       ₱{item.price.toFixed(0)}
                     </span>
                     <button
                       onClick={() => handleAdd(item)}
                       disabled={!item.available || item.stock === 0}
-                      className={`w-9 h-9 rounded-full flex items-center justify-center active:scale-90 transition-all duration-150 ${
+                      className={`w-10 h-10 sm:w-9 sm:h-9 rounded-full flex items-center justify-center active:scale-90 transition-all duration-150 ${
                         addedId === item.id
                           ? 'bg-tertiary text-on-tertiary'
                           : 'bg-primary text-on-primary shadow-primary-glow'
@@ -204,10 +204,10 @@ export default function MenuPage() {
 
       {/* Floating cart bar */}
       {totalItems > 0 && (
-        <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
+        <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 z-20">
           <button
             onClick={() => router.push('/cart')}
-            className="w-full bg-primary text-on-primary rounded-xl px-6 py-4 flex items-center justify-between shadow-primary-glow active:scale-[0.98] transition-transform duration-150"
+            className="w-full bg-primary text-on-primary rounded-xl px-4 sm:px-6 py-4 flex items-center justify-between gap-3 shadow-primary-glow active:scale-[0.98] transition-transform duration-150"
           >
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">

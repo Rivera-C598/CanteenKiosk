@@ -251,33 +251,33 @@ export default function KitchenPage() {
 
   return (
     <>
-    <div className="kitchen-screen min-h-screen bg-surface-container-low flex flex-col font-body">
+    <div className="kitchen-screen min-h-[100dvh] bg-surface-container-low flex flex-col font-body">
       {/* Header */}
-      <header className="bg-surface-container-lowest px-8 py-4 flex items-center justify-between border-b shadow-sm sticky top-0 z-10 shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
-            <Icon name="kitchen" size={28} className="text-on-primary" />
+      <header className="bg-surface-container-lowest px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b shadow-sm sticky top-0 z-10 shrink-0">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-xl flex items-center justify-center shrink-0">
+            <Icon name="kitchen" size={24} className="text-on-primary" />
           </div>
-          <div>
-            <h1 className="font-headline font-black text-on-surface text-2xl tracking-tight">Kitchen Display</h1>
-            <p className="text-stone-500 text-sm font-medium tracking-wider uppercase">{storeName} Operator</p>
+          <div className="min-w-0">
+            <h1 className="font-headline font-black text-on-surface text-xl sm:text-2xl tracking-tight truncate">Kitchen Display</h1>
+            <p className="text-stone-500 text-xs sm:text-sm font-medium tracking-wider uppercase truncate">{storeName} Operator</p>
           </div>
         </div>
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2 bg-secondary-container/20 border border-secondary-container/50 rounded-full px-5 py-2">
+        <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6">
+          <div className="flex items-center gap-2 bg-secondary-container/20 border border-secondary-container/50 rounded-full px-4 sm:px-5 py-2">
             <Icon name="receipt_long" size={18} className="text-secondary" />
             <span className="font-headline font-bold text-secondary text-sm">
               <span className="text-lg mr-1">{orders.length}</span> Active Tasks
             </span>
           </div>
-          <p className="font-headline font-black text-on-surface text-3xl">
+          <p className="font-headline font-black text-on-surface text-2xl sm:text-3xl shrink-0">
             {time.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
       </header>
 
       {/* Grid */}
-      <main className="p-6 flex-1 overflow-y-auto">
+      <main className="p-3 sm:p-5 lg:p-6 flex-1 overflow-y-auto">
         {orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-stone-400 gap-5 py-20">
             <div className="w-32 h-32 bg-surface-container-lowest rounded-full flex items-center justify-center shadow-inner">
@@ -287,7 +287,7 @@ export default function KitchenPage() {
             <p className="text-lg font-medium">No active orders in the queue.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 content-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-5 lg:gap-6 content-start">
             {orders.map(order => {
               const cfg = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.preparing
               const action = NEXT_ACTION[order.status]
@@ -296,15 +296,15 @@ export default function KitchenPage() {
               return (
                 <div
                   key={order.id}
-                  className={`${cfg.cardBg} rounded-3xl p-6 flex flex-col gap-4 transition-all duration-500 overflow-hidden relative ${isCompleting ? 'opacity-0 scale-90 translate-y-4 shadow-none' : 'opacity-100 scale-100'}`}
+                  className={`${cfg.cardBg} rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex flex-col gap-3 sm:gap-4 transition-all duration-500 overflow-hidden relative ${isCompleting ? 'opacity-0 scale-90 translate-y-4 shadow-none' : 'opacity-100 scale-100'}`}
                 >
                   {order.status === 'ready' && <div className="absolute top-0 left-0 w-full h-1.5 bg-tertiary" />}
                   {order.status === 'preparing' && <div className="absolute top-0 left-0 w-full h-1.5 bg-secondary" />}
                   
                   {/* Order number + status */}
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-headline font-black text-4xl text-on-surface tracking-tight mb-0.5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-headline font-black text-3xl sm:text-4xl text-on-surface tracking-tight mb-0.5 truncate">
                         {order.orderNumber}
                       </p>
                       <span className={`text-xs font-bold uppercase tracking-wider ${cfg.color}`}>{cfg.label}</span>
@@ -321,19 +321,19 @@ export default function KitchenPage() {
                   </div>
 
                   {/* Items */}
-                  <div className="flex-1 space-y-2.5 py-4 border-y border-black/5">
+                  <div className="flex-1 space-y-2.5 py-3 sm:py-4 border-y border-black/5">
                     {order.items.map((item, i) => {
                       const isChecked = checkedItems.get(order.id)?.has(i) ?? false
                       return (
                         <button
                           key={i}
                           onClick={() => toggleItem(order.id, i)}
-                          className="flex items-center gap-3 w-full text-left active:opacity-70 transition-opacity"
+                          className="flex items-center gap-3 w-full text-left active:opacity-70 transition-opacity min-h-10"
                         >
                           <span className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-sm font-black shadow-sm transition-colors ${isChecked ? 'bg-tertiary text-on-tertiary' : 'bg-on-surface text-surface'}`}>
                             {isChecked ? <Icon name="check" size={16} /> : item.quantity}
                           </span>
-                          <span className={`font-bold text-lg leading-tight transition-all ${isChecked ? 'line-through text-stone-400' : order.status === 'ready' ? 'line-through text-stone-400' : 'text-on-surface'}`}>
+                          <span className={`font-bold text-base sm:text-lg leading-tight transition-all break-words ${isChecked ? 'line-through text-stone-400' : order.status === 'ready' ? 'line-through text-stone-400' : 'text-on-surface'}`}>
                             {item.menuItem.name}
                           </span>
                         </button>
@@ -355,7 +355,7 @@ export default function KitchenPage() {
                         <button
                           onClick={() => advance(order)}
                           disabled={acting === order.id || (requireAllChecked && order.status === 'preparing' && !allItemsChecked(order))}
-                          className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl font-headline font-bold text-base active:scale-95 transition-all disabled:opacity-50 ${order.status === 'ready' ? 'bg-tertiary text-on-tertiary shadow-lg shadow-tertiary/30' : order.status === 'preparing' ? 'bg-secondary text-on-secondary shadow-lg shadow-secondary/30' : 'bg-surface-container-highest text-on-surface hover:bg-stone-300'}`}
+                          className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl font-headline font-bold text-sm sm:text-base active:scale-95 transition-all disabled:opacity-50 ${order.status === 'ready' ? 'bg-tertiary text-on-tertiary shadow-lg shadow-tertiary/30' : order.status === 'preparing' ? 'bg-secondary text-on-secondary shadow-lg shadow-secondary/30' : 'bg-surface-container-highest text-on-surface hover:bg-stone-300'}`}
                         >
                           <Icon name={action.icon} size={22} />
                           {acting === order.id ? 'Loading…' : action.label}

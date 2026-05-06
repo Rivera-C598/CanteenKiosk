@@ -12,7 +12,7 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-background gap-6">
+      <div className="min-h-[100dvh] w-screen flex flex-col items-center justify-center bg-background gap-6 px-4">
         <Icon name="shopping_cart" className="text-outline" size={64} />
         <p className="font-headline font-bold text-on-surface-variant text-xl" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
           {t('cart.empty')}
@@ -28,9 +28,9 @@ export default function CartPage() {
   }
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-background overflow-hidden">
+    <div className="h-[100dvh] w-screen flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <header className="flex items-center justify-between px-8 py-4 bg-surface-container-low shrink-0">
+      <header className="flex items-center justify-between gap-3 px-4 sm:px-8 py-3 sm:py-4 bg-surface-container-low shrink-0">
         <button
           onClick={() => router.push('/menu')}
           className="flex items-center gap-2 text-on-surface-variant active:scale-95 transition-transform"
@@ -38,18 +38,18 @@ export default function CartPage() {
           <Icon name="arrow_back" size={24} />
           <span className="font-body text-sm font-medium">{t('cart.back')}</span>
         </button>
-        <div className="text-2xl font-black italic text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+        <div className="text-xl sm:text-2xl font-black italic text-primary truncate" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
           {t('cart.title')}
         </div>
-        <div className="w-24" />
+        <div className="w-12 sm:w-24 shrink-0" />
       </header>
 
       {/* Order items */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3">
         {items.map(item => (
-          <div key={item.id} className="bg-surface-container-lowest rounded-xl p-4 flex items-center gap-4 shadow-ambient">
+          <div key={item.id} className="bg-surface-container-lowest rounded-xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4 shadow-ambient">
             {/* Placeholder or image */}
-            <div className="w-16 h-16 bg-surface-container rounded-xl flex items-center justify-center shrink-0">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-surface-container rounded-xl flex items-center justify-center shrink-0">
               {item.image ? (
                 <img src={item.image} alt={item.name} className="w-full h-full object-cover rounded-xl" />
               ) : (
@@ -68,7 +68,7 @@ export default function CartPage() {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center active:scale-90 transition-transform"
+                className="w-10 h-10 sm:w-8 sm:h-8 rounded-full bg-surface-container flex items-center justify-center active:scale-90 transition-transform"
               >
                 <Icon name={item.quantity === 1 ? 'delete' : 'remove'} size={16} className="text-on-surface-variant" />
               </button>
@@ -77,7 +77,7 @@ export default function CartPage() {
               </span>
               <button
                 onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                className="w-8 h-8 rounded-full bg-primary flex items-center justify-center active:scale-90 transition-transform"
+                className="w-10 h-10 sm:w-8 sm:h-8 rounded-full bg-primary flex items-center justify-center active:scale-90 transition-transform"
               >
                 <Icon name="add" size={16} className="text-on-primary" />
               </button>
@@ -87,8 +87,8 @@ export default function CartPage() {
       </div>
 
       {/* Footer summary */}
-      <div className="shrink-0 bg-surface-container-low px-6 py-5">
-        <div className="flex items-center justify-between mb-4">
+      <div className="shrink-0 bg-surface-container-low px-4 sm:px-6 py-4 sm:py-5">
+        <div className="flex items-center justify-between gap-3 mb-4">
           <span className="font-body text-on-surface-variant font-medium">{totalItems} {totalItems > 1 ? t('cart.items_plural') : t('cart.items')}</span>
           <div className="flex items-center gap-2">
             <span className="font-body text-on-surface-variant text-sm">{t('cart.total')}</span>

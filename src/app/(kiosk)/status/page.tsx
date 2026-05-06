@@ -66,9 +66,9 @@ export default function StatusPage() {
   const cfg = result ? (STATUS_DISPLAY[result.status] ?? STATUS_DISPLAY.preparing) : null
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-background">
+    <div className="min-h-[100dvh] w-screen flex flex-col bg-background">
       {/* Header */}
-      <header className="flex items-center gap-3 px-8 py-4 bg-surface-container-low shrink-0">
+      <header className="flex items-center gap-3 px-4 sm:px-8 py-3 sm:py-4 bg-surface-container-low shrink-0">
         <button
           onClick={() => router.push('/')}
           className="flex items-center gap-2 text-on-surface-variant active:scale-95 transition-transform"
@@ -78,7 +78,7 @@ export default function StatusPage() {
         <h1 className="font-headline font-black text-xl text-on-surface">Check Order Status</h1>
       </header>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-8 gap-6">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-8 gap-5 sm:gap-6 py-5">
         {/* Input */}
         <div className="w-full max-w-sm flex flex-col gap-3">
           <p className="text-on-surface-variant font-medium text-center text-sm">
@@ -93,13 +93,13 @@ export default function StatusPage() {
               placeholder="A-001"
               inputMode="none"
               readOnly
-              className="flex-1 bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-5 py-4 text-2xl font-headline font-black text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-primary/30 uppercase caret-transparent"
+              className="flex-1 min-w-0 bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 sm:px-5 py-4 text-2xl font-headline font-black text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-primary/30 uppercase caret-transparent"
               autoFocus
             />
             <button
               onClick={lookup}
               disabled={loading || !input.trim()}
-              className="bg-primary text-on-primary px-6 py-4 rounded-xl font-headline font-bold text-lg shadow-primary-glow active:scale-95 transition-all disabled:opacity-40"
+              className="bg-primary text-on-primary px-5 sm:px-6 py-4 rounded-xl font-headline font-bold text-lg shadow-primary-glow active:scale-95 transition-all disabled:opacity-40"
             >
               {loading
                 ? <Icon name="hourglass_empty" size={24} className="animate-spin" />
@@ -114,7 +114,7 @@ export default function StatusPage() {
                 key={key}
                 type="button"
                 onClick={() => tapKey(key)}
-                className="h-16 rounded-xl bg-surface-container-lowest border border-outline-variant/30 text-on-surface font-headline font-black text-2xl active:scale-95 transition-transform"
+                className="h-14 sm:h-16 rounded-xl bg-surface-container-lowest border border-outline-variant/30 text-on-surface font-headline font-black text-2xl active:scale-95 transition-transform"
               >
                 {key}
               </button>
