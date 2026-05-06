@@ -16,6 +16,10 @@ npx prisma db seed
 5. Run 
 npm run dev
 
+Connect the computer and tablet to the same Wi-Fi.
+On the computer, run the app:
+npm run dev -- -H 0.0.0.0
+
 kiosk mode oh yeah
 "C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --kiosk-printing http://localhost:3000
 
@@ -31,3 +35,41 @@ h 127mm
 "C:\Program Files\Google\Chrome\Application\chrome.exe" --user-data-dir="C:\KioskChromeProfile" --kiosk --kiosk-printing http://localhost:3000
 
 
+iPad / iPhone: Guided Access
+
+Open Settings.
+Go to Accessibility.
+Open Guided Access.
+Turn Guided Access on.
+Set a Passcode Settings passcode.
+Open Safari or Chrome.
+Go to your kiosk URL, for example:
+http://192.168.1.25:3000
+Triple-click the Side button or Home button.
+Tap Start.
+To exit Guided Access:
+
+Triple-click the Side/Home button.
+Enter the passcode.
+Tap End.
+Android: Screen Pinning
+The exact names vary, but usually:
+
+Open Settings.
+Go to Security or Security & privacy.
+Find Screen pinning or App pinning.
+Turn it on.
+Also enable Ask for PIN before unpinning, if available.
+Open Chrome.
+Go to your kiosk URL:
+http://192.168.1.25:3000
+Open the recent apps screen.
+Tap the Chrome app icon or menu.
+Tap Pin.
+To exit screen pinning:
+
+Hold Back + Recent Apps
+or on gesture navigation:
+
+Swipe up and hold, then unpin
+Then enter the tablet PIN/password.
