@@ -8,6 +8,8 @@ node_modules/
 out/
 
 # database
+*.db
+*.db-journal
 prisma/*.db
 prisma/*.db-journal
 
@@ -23,6 +25,15 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# local only
+prod-notes
+stitch/
+.claude/
+*.md
+!README.md
+public/images/menu/*
+!public/images/menu/.gitkeep
+
 # misc
 .DS_Store
 *.pem
@@ -32,3 +43,5 @@ yarn-error.log*
 
 # worktrees
 .worktrees/
+
+implementation_plan.md

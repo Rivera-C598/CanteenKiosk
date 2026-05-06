@@ -40,7 +40,7 @@ function GCashContent() {
   const isUrgent = timeLeft <= 60
 
   const handlePaid = () => {
-    router.push(`/confirmed?order=${orderNumber}&method=gcash`)
+    router.push(`/confirmed?order=${orderNumber}&method=gcash&amount=${amount}`)
   }
 
   const handleCancel = () => {

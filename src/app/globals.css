@@ -88,64 +88,116 @@
 }
 
 @media print {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    height: auto;
+  }
   body * {
     visibility: hidden;
+  }
+  .kitchen-screen {
+    display: none !important;
   }
   #print-slot,
   #print-slot * {
     visibility: visible;
   }
   #print-slot {
-    position: absolute;
+    display: block !important;
+    position: static;
     top: 0;
     left: 0;
+    width: 72mm;
+    margin: 0;
+    padding: 0;
   }
   .print-slip {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 11pt;
+    color: #000;
+    background: #fff;
+    font-size: 10pt;
+    line-height: 1.2;
     width: 72mm;
-    padding: 4mm 2mm;
+    padding: 4mm 3mm;
+    text-align: center;
   }
   .slip-brand {
-    text-align: center;
-    font-size: 15pt;
+    font-size: 18pt;
     font-weight: 900;
-    margin-bottom: 2mm;
+    font-style: italic;
+    margin: 2mm 0 1mm;
+  }
+  .slip-campus {
+    font-size: 8pt;
+    font-weight: 700;
+    margin: 0 0 4mm;
   }
   .slip-order {
-    text-align: center;
-    font-size: 32pt;
+    font-size: 42pt;
     font-weight: 900;
-    letter-spacing: -1pt;
-    margin: 1mm 0;
+    line-height: 1;
+    letter-spacing: -2pt;
+    margin: 1mm 0 2mm;
   }
   .slip-meta {
-    font-size: 9pt;
-    margin: 0.5mm 0;
+    font-size: 8pt;
+    margin: 7mm 0 2mm;
+    opacity: 0.65;
+  }
+  .slip-payment-label {
+    font-size: 8pt;
+    text-transform: uppercase;
+    font-weight: 900;
+    letter-spacing: 1.5pt;
+    margin: 0;
   }
   .slip-rule {
     border: none;
     border-top: 1px dashed #000;
-    margin: 3mm 0;
+    margin: 4mm 0;
   }
   .slip-items {
-    font-size: 11pt;
-    white-space: pre;
+    font-size: 10pt;
     margin: 2mm 0;
     font-family: 'Courier New', Courier, monospace;
+    text-align: left;
+  }
+  .slip-item {
+    display: flex;
+    gap: 2mm;
+    margin: 1.5mm 0;
+  }
+  .slip-item-qty {
+    width: 9mm;
+    flex: 0 0 9mm;
+    font-weight: 900;
+  }
+  .slip-item-name {
+    flex: 1;
+    font-weight: 700;
+    overflow-wrap: anywhere;
   }
   .slip-total {
-    font-size: 13pt;
+    font-size: 20pt;
     font-weight: 900;
-    margin-top: 2mm;
+    margin: 0 0 1mm;
   }
   .slip-revised {
-    text-align: center;
     font-weight: 900;
-    font-size: 11pt;
+    font-size: 10pt;
     margin-top: 3mm;
     border: 2px solid #000;
     padding: 2mm;
     letter-spacing: 1pt;
+  }
+  .slip-payment {
+    font-size: 10pt;
+    font-weight: 700;
+    margin-top: 2mm;
+    padding: 2mm;
+    border: 1px solid #000;
+    text-align: center;
   }
 }

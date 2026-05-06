@@ -48,7 +48,12 @@ export async function POST(request: Request) {
     const todayOrderCount = await prisma.order.count({
       where: { createdAt: { gte: todayStart } }
     })
-    const orderNumber = `A-${String(todayOrderCount + 1).padStart(3, '0')}`
+    let seq = todayOrderCount + 1
+    let orderNumber = `A-${String(seq).padStart(3, '0')}`
+    while (await prisma.order.findUnique({ where: { orderNumber } })) {
+      seq++
+      orderNumber = `A-${String(seq).padStart(3, '0')}`
+    }
 
     let gcashAccountId: number | undefined
     if (paymentMethod === 'gcash') {

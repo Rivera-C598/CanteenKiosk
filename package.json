@@ -2,6 +2,7 @@
   "name": "hyperbite",
   "version": "0.1.0",
   "private": true,
+  "author": "charlieshane57",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

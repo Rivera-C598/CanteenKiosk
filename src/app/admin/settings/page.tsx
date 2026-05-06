@@ -8,6 +8,8 @@ interface Settings {
   idleTimeoutSeconds: number
   gcashPaymentTimeoutMinutes: number
   receiptFooterMessage: string
+  autoPrintCustomerReceipts: boolean
+  autoPrintKitchenReceipts: boolean
   alwaysOpen: boolean
   openTime: string
   closeTime: string
@@ -21,7 +23,13 @@ export default function SettingsPage() {
   const [resetModal, setResetModal] = useState<{ isOpen: boolean; action: 'clear' | 'seed' | null; input: string; error: string; success?: boolean }>({ isOpen: false, action: null, input: '', error: '' })
 
   useEffect(() => {
-    fetch('/api/settings').then(r => r.json()).then(setForm)
+    fetch('/api/settings').then(r => r.json()).then(data => {
+      setForm({
+        ...data,
+        autoPrintCustomerReceipts: data.autoPrintCustomerReceipts ?? false,
+        autoPrintKitchenReceipts: data.autoPrintKitchenReceipts ?? false,
+      })
+    })
   }, [])
 
   const save = async () => {
@@ -183,7 +191,8 @@ export default function SettingsPage() {
             </div>
             <h3 className="font-headline font-bold text-on-surface text-xl">Receipt Formatting</h3>
           </div>
-          <div>
+          <div className="space-y-6">
+            <div>
             <label className="text-sm font-bold text-on-surface-variant mb-1.5 block">Footer Message</label>
             <p className="text-xs text-stone-400 mb-3 font-medium">Text printed at the bottom of thermal receipts given to students.</p>
             <input
@@ -193,6 +202,37 @@ export default function SettingsPage() {
               placeholder="e.g. Thank you for eating at the Canteen!"
               className="w-full bg-surface-container-low/50 border border-outline-variant/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
+            </div>
+            <div className="border-t border-outline-variant/10 pt-6 space-y-5">
+              <div className="flex items-center justify-between gap-6">
+                <div>
+                  <p className="font-bold text-sm text-on-surface">Auto-print Customer Receipt</p>
+                  <p className="text-xs text-stone-400 font-medium mt-1">
+                    Automatically opens printing on the customer confirmation screen after cash or GCash checkout.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setForm(f => f ? { ...f, autoPrintCustomerReceipts: !f.autoPrintCustomerReceipts } : f)}
+                  className={`w-14 h-8 rounded-full transition-colors relative shadow-inner shadow-black/10 flex items-center shrink-0 ${form.autoPrintCustomerReceipts ? 'bg-tertiary' : 'bg-stone-300'}`}
+                >
+                  <span className={`absolute left-0 w-6 h-6 rounded-full bg-white transition-transform shadow-md ${form.autoPrintCustomerReceipts ? 'translate-x-7' : 'translate-x-1'}`} />
+                </button>
+              </div>
+              <div className="flex items-center justify-between gap-6">
+                <div>
+                  <p className="font-bold text-sm text-on-surface">Auto-print Kitchen Slip</p>
+                  <p className="text-xs text-stone-400 font-medium mt-1">
+                    Automatically prints a kitchen slip when a new order arrives on the kitchen display.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setForm(f => f ? { ...f, autoPrintKitchenReceipts: !f.autoPrintKitchenReceipts } : f)}
+                  className={`w-14 h-8 rounded-full transition-colors relative shadow-inner shadow-black/10 flex items-center shrink-0 ${form.autoPrintKitchenReceipts ? 'bg-tertiary' : 'bg-stone-300'}`}
+                >
+                  <span className={`absolute left-0 w-6 h-6 rounded-full bg-white transition-transform shadow-md ${form.autoPrintKitchenReceipts ? 'translate-x-7' : 'translate-x-1'}`} />
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 

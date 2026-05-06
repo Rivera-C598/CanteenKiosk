@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Icon } from '@/components/shared/Icon'
-import { useStoreName } from '@/lib/store-context'
+import { useAutoPrintKitchenReceipts, useStoreName } from '@/lib/store-context'
 import { EditOrderDrawer } from '@/components/kitchen/EditOrderDrawer'
 
 interface OrderItem {
@@ -67,14 +67,25 @@ function elapsedColor(iso: string) {
   return 'text-stone-400'
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
 export default function KitchenPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [time, setTime] = useState(new Date())
   const storeName = useStoreName()
+  const initialAutoPrintKitchenReceipts = useAutoPrintKitchenReceipts()
   const [acting, setActing] = useState<number | null>(null)
   const prevIdsRef = useRef<Set<number>>(new Set())
   const [completing, setCompleting] = useState<Set<number>>(new Set())
   const [requireAllChecked, setRequireAllChecked] = useState(false)
+  const [autoPrintKitchenReceipts, setAutoPrintKitchenReceipts] = useState(initialAutoPrintKitchenReceipts)
   const [checkedItems, setCheckedItems] = useState<Map<number, Set<number>>>(new Map())
   const [cancelTarget, setCancelTarget] = useState<Order | null>(null)
   const [editingOrder, setEditingOrder] = useState<Order | null>(null)
@@ -96,24 +107,31 @@ export default function KitchenPage() {
     const time = new Date(order.createdAt).toLocaleString('en-PH', {
       hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric', year: 'numeric',
     })
-    const itemLines = order.items
-      .map(item => `  ${String(item.quantity).padEnd(3)} ${item.menuItem.name}`)
-      .join('\n')
+    const itemRows = order.items
+      .map(item => `
+        <div class="slip-item">
+          <span class="slip-item-qty">${item.quantity}x</span>
+          <span class="slip-item-name">${escapeHtml(item.menuItem.name)}</span>
+        </div>
+      `)
+      .join('')
+    const paymentLabel = order.paymentMethod === 'gcash' ? 'GCASH PAYMENT' : 'CASH PAYMENT'
 
     const slot = document.getElementById('print-slot')
     if (!slot) return
     slot.innerHTML = `
       <div class="print-slip">
-        <p class="slip-brand">${storeName}</p>
+        <h1 class="slip-brand">${escapeHtml(storeName)}</h1>
+        <p class="slip-campus">CTU - Danao Campus</p>
         <hr class="slip-rule" />
         <p class="slip-order">${order.orderNumber}</p>
-        <p class="slip-meta">Time: ${time}</p>
-        <p class="slip-meta">Payment: ${order.paymentMethod === 'gcash' ? 'GCash' : 'Cash'}</p>
+        <p class="slip-payment-label">${paymentLabel}</p>
         <hr class="slip-rule" />
-        <pre class="slip-items">${itemLines}</pre>
+        <div class="slip-items">${itemRows}</div>
         <hr class="slip-rule" />
-        <p class="slip-total">TOTAL: &#8369; ${order.totalAmount.toFixed(2)}</p>
+        <p class="slip-total">&#8369;${order.totalAmount.toFixed(2)}</p>
         ${isRevised ? '<p class="slip-revised">[ REVISED ORDER ]</p>' : ''}
+        <p class="slip-meta">Date: ${time}</p>
       </div>
     `
     window.print()
@@ -125,12 +143,20 @@ export default function KitchenPage() {
       const res = await fetch(`/api/orders?date=today&status=${ACTIVE_STATUSES}`)
       const data: Order[] = await res.json()
       const newIds = new Set(data.map(o => o.id))
+      const previousIds = prevIdsRef.current
 
       // Detect new orders and beep
-      const isFirstLoad = prevIdsRef.current.size === 0 && data.length > 0
+      const isFirstLoad = previousIds.size === 0 && data.length > 0
       if (!isFirstLoad) {
-        for (const id of Array.from(newIds)) {
-          if (!prevIdsRef.current.has(id)) { playBeep(); break }
+        const newOrders = data
+          .filter(order => !previousIds.has(order.id))
+          .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+
+        if (newOrders.length > 0) {
+          playBeep()
+          if (autoPrintKitchenReceipts) {
+            newOrders.forEach(order => printOrder(order))
+          }
         }
       }
       prevIdsRef.current = newIds
@@ -143,7 +169,7 @@ export default function KitchenPage() {
       })
       setOrders(sorted)
     } catch {}
-  }, [])
+  }, [autoPrintKitchenReceipts, printOrder])
 
   useEffect(() => {
     load()
@@ -156,13 +182,20 @@ export default function KitchenPage() {
     const fetchSettings = () => {
       fetch('/api/settings')
         .then(r => r.json())
-        .then(s => setRequireAllChecked(s.requireAllItemsChecked ?? false))
+        .then(s => {
+          setRequireAllChecked(s.requireAllItemsChecked ?? false)
+          setAutoPrintKitchenReceipts(s.autoPrintKitchenReceipts ?? false)
+        })
         .catch(() => {})
     }
     fetchSettings()
     const poll = setInterval(fetchSettings, 30000)
     return () => clearInterval(poll)
   }, [])
+
+  useEffect(() => {
+    setAutoPrintKitchenReceipts(initialAutoPrintKitchenReceipts)
+  }, [initialAutoPrintKitchenReceipts])
 
   const advance = async (order: Order) => {
     const action = NEXT_ACTION[order.status]
@@ -217,7 +250,8 @@ export default function KitchenPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface-container-low flex flex-col font-body">
+    <>
+    <div className="kitchen-screen min-h-screen bg-surface-container-low flex flex-col font-body">
       {/* Header */}
       <header className="bg-surface-container-lowest px-8 py-4 flex items-center justify-between border-b shadow-sm sticky top-0 z-10 shrink-0">
         <div className="flex items-center gap-4">
@@ -366,8 +400,6 @@ export default function KitchenPage() {
           </div>
         )}
       </main>
-      <div id="print-slot" />
-
       {/* Cancel reason picker */}
       {cancelTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -413,5 +445,7 @@ export default function KitchenPage() {
         onSaved={handleEditSaved}
       />
     </div>
+    <div id="print-slot" />
+    </>
   )
 }

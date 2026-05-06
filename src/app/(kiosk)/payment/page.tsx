@@ -37,7 +37,7 @@ export default function PaymentPage() {
       if (selected === 'gcash') {
         router.push(`/payment/gcash?order=${order.orderNumber}&amount=${totalAmount}`)
       } else {
-        router.push(`/confirmed?order=${order.orderNumber}&method=${selected}`)
+        router.push(`/confirmed?order=${order.orderNumber}&method=${selected}&amount=${totalAmount}`)
       }
     } catch {
       setError(t('payment.error'))

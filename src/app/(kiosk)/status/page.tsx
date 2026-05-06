@@ -29,6 +29,20 @@ export default function StatusPage() {
   const [notFound, setNotFound] = useState(false)
   const [loading, setLoading] = useState(false)
 
+  const updateInput = (value: string) => {
+    setInput(value.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 8))
+    setResult(null)
+    setNotFound(false)
+  }
+
+  const tapKey = (key: string) => {
+    updateInput(`${input}${key}`)
+  }
+
+  const deleteKey = () => {
+    updateInput(input.slice(0, -1))
+  }
+
   const lookup = async () => {
     const q = input.trim().toUpperCase()
     if (!q) return
@@ -74,10 +88,12 @@ export default function StatusPage() {
             <input
               type="text"
               value={input}
-              onChange={e => setInput(e.target.value.toUpperCase())}
+              onChange={e => updateInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && lookup()}
               placeholder="A-001"
-              className="flex-1 bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-5 py-4 text-2xl font-headline font-black text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-primary/30 uppercase"
+              inputMode="none"
+              readOnly
+              className="flex-1 bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-5 py-4 text-2xl font-headline font-black text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-primary/30 uppercase caret-transparent"
               autoFocus
             />
             <button
@@ -89,6 +105,38 @@ export default function StatusPage() {
                 ? <Icon name="hourglass_empty" size={24} className="animate-spin" />
                 : <Icon name="search" size={24} />
               }
+            </button>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 pt-2">
+            {['A', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].map(key => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => tapKey(key)}
+                className="h-16 rounded-xl bg-surface-container-lowest border border-outline-variant/30 text-on-surface font-headline font-black text-2xl active:scale-95 transition-transform"
+              >
+                {key}
+              </button>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={deleteKey}
+              disabled={!input}
+              className="h-16 rounded-xl bg-surface-container text-on-surface font-headline font-black text-2xl active:scale-95 transition-transform disabled:opacity-40"
+              aria-label="Delete last character"
+            >
+              <Icon name="backspace" size={26} />
+            </button>
+            <button
+              type="button"
+              onClick={() => updateInput('')}
+              disabled={!input}
+              className="h-14 rounded-xl bg-surface-container text-on-surface-variant font-headline font-bold active:scale-95 transition-transform disabled:opacity-40"
+            >
+              Clear
             </button>
           </div>
         </div>

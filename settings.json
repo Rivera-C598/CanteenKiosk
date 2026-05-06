@@ -3,8 +3,10 @@
   "idleTimeoutSeconds": 60,
   "gcashPaymentTimeoutMinutes": 5,
   "receiptFooterMessage": "Thank you for dining at HyperBite!",
+  "autoPrintCustomerReceipts": false,
+  "autoPrintKitchenReceipts": false,
   "alwaysOpen": true,
   "openTime": "07:00",
   "closeTime": "20:00",
-  "requireAllItemsChecked": false
+  "requireAllItemsChecked": true
 }

@@ -17,6 +17,201 @@ interface GCashAccount {
 
 const EMPTY_FORM = { accountName: '', accountNumber: '', qrCodeImage: '', monthlyLimit: '100000' }
 
+const CROP_W = 480
+const CROP_H = 340
+
+function CropModal({
+  source,
+  onConfirm,
+  onUseFullImage,
+  onCancel,
+}: {
+  source: { url: string; file: File }
+  onConfirm: (blob: Blob) => void
+  onUseFullImage: () => void
+  onCancel: () => void
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null)
+  const [cropRect, setCropRect] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
+  const [hasCrop, setHasCrop] = useState(false)
+  const [working, setWorking] = useState(false)
+  const dragging = useRef(false)
+  const startPos = useRef({ x: 0, y: 0 })
+
+  useEffect(() => {
+    const img = new Image()
+    img.onload = () => setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight })
+    img.src = source.url
+  }, [source.url])
+
+  const getPos = (e: React.MouseEvent) => {
+    const r = containerRef.current!.getBoundingClientRect()
+    return {
+      x: Math.max(0, Math.min(CROP_W, e.clientX - r.left)),
+      y: Math.max(0, Math.min(CROP_H, e.clientY - r.top)),
+    }
+  }
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    const p = getPos(e)
+    startPos.current = p
+    dragging.current = true
+    setCropRect({ x: p.x, y: p.y, w: 0, h: 0 })
+    setHasCrop(false)
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!dragging.current) return
+    const p = getPos(e)
+    setCropRect({
+      x: Math.min(startPos.current.x, p.x),
+      y: Math.min(startPos.current.y, p.y),
+      w: Math.abs(p.x - startPos.current.x),
+      h: Math.abs(p.y - startPos.current.y),
+    })
+  }
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    dragging.current = false
+    const p = getPos(e)
+    const w = Math.abs(p.x - startPos.current.x)
+    const h = Math.abs(p.y - startPos.current.y)
+    setHasCrop(w > 10 && h > 10)
+  }
+
+  const getRenderedBounds = () => {
+    if (!naturalSize) return null
+    const aspect = naturalSize.w / naturalSize.h
+    const containerAspect = CROP_W / CROP_H
+    let rendW: number, rendH: number, offX: number, offY: number
+    if (aspect > containerAspect) {
+      rendW = CROP_W; rendH = CROP_W / aspect
+      offX = 0; offY = (CROP_H - rendH) / 2
+    } else {
+      rendH = CROP_H; rendW = CROP_H * aspect
+      offX = (CROP_W - rendW) / 2; offY = 0
+    }
+    return { rendW, rendH, offX, offY }
+  }
+
+  const handleCrop = async () => {
+    if (!cropRect || !naturalSize || !hasCrop) return
+    setWorking(true)
+
+    const bounds = getRenderedBounds()!
+    const scaleX = naturalSize.w / bounds.rendW
+    const scaleY = naturalSize.h / bounds.rendH
+
+    const srcX = Math.max(0, (cropRect.x - bounds.offX) * scaleX)
+    const srcY = Math.max(0, (cropRect.y - bounds.offY) * scaleY)
+    const srcW = Math.min(naturalSize.w - srcX, cropRect.w * scaleX)
+    const srcH = Math.min(naturalSize.h - srcY, cropRect.h * scaleY)
+
+    const img = new Image()
+    img.src = source.url
+    await new Promise<void>(resolve => {
+      if (img.complete) resolve()
+      else img.onload = () => resolve()
+    })
+
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.max(1, Math.round(srcW))
+    canvas.height = Math.max(1, Math.round(srcH))
+    canvas.getContext('2d')!.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH)
+
+    canvas.toBlob(blob => {
+      setWorking(false)
+      if (blob) onConfirm(blob)
+    }, 'image/png')
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+      <div className="bg-surface rounded-2xl shadow-2xl overflow-hidden" style={{ maxWidth: CROP_W }}>
+        <div className="px-6 pt-5 pb-3">
+          <h3 className="font-headline font-bold text-on-surface text-lg">Crop QR Code</h3>
+          <p className="text-sm text-stone-500 mt-0.5">Click and drag to select just the QR code area.</p>
+        </div>
+
+        {/* Image + crop interaction area */}
+        <div
+          ref={containerRef}
+          className="relative bg-stone-900 select-none cursor-crosshair"
+          style={{ width: CROP_W, height: CROP_H }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={() => { dragging.current = false }}
+        >
+          <img
+            src={source.url}
+            alt="Crop source"
+            className="w-full h-full object-contain pointer-events-none"
+            draggable={false}
+          />
+
+          {cropRect && cropRect.w > 2 && cropRect.h > 2 && (
+            <>
+              {/* Four dim overlays forming a cutout */}
+              <div className="absolute inset-x-0 top-0 bg-black/60 pointer-events-none" style={{ height: cropRect.y }} />
+              <div className="absolute inset-x-0 bg-black/60 pointer-events-none" style={{ top: cropRect.y + cropRect.h, bottom: 0 }} />
+              <div className="absolute bg-black/60 pointer-events-none" style={{ left: 0, top: cropRect.y, width: cropRect.x, height: cropRect.h }} />
+              <div className="absolute bg-black/60 pointer-events-none" style={{ left: cropRect.x + cropRect.w, top: cropRect.y, right: 0, height: cropRect.h }} />
+
+              {/* Selection border + corner handles */}
+              <div
+                className="absolute border-2 border-white pointer-events-none"
+                style={{ left: cropRect.x, top: cropRect.y, width: cropRect.w, height: cropRect.h }}
+              >
+                {(['top-0 left-0', 'top-0 right-0', 'bottom-0 left-0', 'bottom-0 right-0'] as const).map((pos, i) => (
+                  <div key={i} className={`absolute ${pos} w-3 h-3 bg-white -m-1.5`} />
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Instruction hint */}
+          {!cropRect && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="bg-black/50 text-white text-xs font-medium px-3 py-1.5 rounded-full">
+                Drag to select the QR code
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="px-6 py-4 flex gap-3 justify-end border-t border-outline-variant/20">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2.5 text-sm font-bold text-stone-500 hover:text-stone-700 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onUseFullImage}
+            className="px-4 py-2.5 text-sm font-bold bg-surface-container text-on-surface rounded-xl active:scale-95 transition-transform"
+          >
+            Use Full Image
+          </button>
+          <button
+            onClick={handleCrop}
+            disabled={!hasCrop || working}
+            className="px-5 py-2.5 text-sm font-bold bg-primary text-on-primary rounded-xl disabled:opacity-40 active:scale-95 transition-transform flex items-center gap-2"
+          >
+            {working
+              ? <Icon name="hourglass_empty" size={16} className="animate-spin" />
+              : <Icon name="crop" size={16} />
+            }
+            Crop &amp; Use
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function GCashPage() {
   const [accounts, setAccounts] = useState<GCashAccount[]>([])
   const [loading, setLoading] = useState(true)
@@ -25,6 +220,7 @@ export default function GCashPage() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [cropSource, setCropSource] = useState<{ url: string; file: File } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const load = () => {
@@ -44,14 +240,22 @@ export default function GCashPage() {
   }
   const closeDrawer = () => { setDrawerOpen(false); setEditing(null) }
 
-  const handleUpload = async (file: File) => {
+  const handleFileSelect = (file: File) => {
+    const url = URL.createObjectURL(file)
+    setCropSource({ url, file })
+  }
+
+  const handleUpload = async (blob: Blob) => {
     setUploading(true)
+    setCropSource(null)
     const fd = new FormData()
-    fd.append('file', file)
+    fd.append('file', blob, 'qr.png')
     const res = await fetch('/api/upload', { method: 'POST', body: fd })
     const data = await res.json()
     setUploading(false)
     if (data.url) setForm(f => ({ ...f, qrCodeImage: data.url }))
+    // Reset file input so same file can be re-selected
+    if (fileRef.current) fileRef.current.value = ''
   }
 
   const save = async () => {
@@ -91,6 +295,19 @@ export default function GCashPage() {
 
   return (
     <div className="p-8">
+      {cropSource && (
+        <CropModal
+          source={cropSource}
+          onConfirm={blob => handleUpload(blob)}
+          onUseFullImage={() => handleUpload(cropSource.file)}
+          onCancel={() => {
+            URL.revokeObjectURL(cropSource.url)
+            setCropSource(null)
+            if (fileRef.current) fileRef.current.value = ''
+          }}
+        />
+      )}
+
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
           <h2 className="text-4xl font-headline font-extrabold text-on-surface tracking-tight">GCash Configuration</h2>
@@ -118,15 +335,13 @@ export default function GCashPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
+
           <div className="lg:col-span-8 flex flex-col gap-6">
-            {/* Active Accounts Header */}
             <h3 className="font-headline font-bold text-on-surface text-xl flex items-center gap-2">
               <Icon name="verified" size={24} className="text-tertiary" />
               Active Account
             </h3>
 
-            {/* Active account details */}
             {active ? (
               <div className="bg-gradient-to-br from-[#006a2f] to-[#005d28] rounded-3xl p-8 text-white shadow-xl shadow-tertiary/20 relative overflow-hidden group">
                 <div className="relative z-10 flex flex-col sm:flex-row items-start justify-between gap-8 w-full">
@@ -137,8 +352,7 @@ export default function GCashPage() {
                     </div>
                     <h3 className="font-headline font-extrabold text-4xl mt-3 mb-1 tracking-tight">{active.accountName}</h3>
                     <p className="text-white/80 font-medium font-mono text-lg">{active.accountNumber}</p>
-                    
-                    {/* Usage bar */}
+
                     <div className="mt-8 bg-black/10 p-5 rounded-2xl backdrop-blur-md border border-white/10">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-bold text-white/90">Monthly Receiving Limit</span>
@@ -167,8 +381,7 @@ export default function GCashPage() {
                     </div>
                   )}
                 </div>
-                
-                {/* Decorative background element matching GCash vibes mildly */}
+
                 <Icon name="qr_code" size={300} className="absolute -bottom-10 -right-10 opacity-5 rotate-12 transition-transform duration-700 group-hover:rotate-0 pointer-events-none" />
               </div>
             ) : (
@@ -181,13 +394,12 @@ export default function GCashPage() {
               </div>
             )}
 
-            {/* Inactive Backup Accounts */}
             <div className="mt-4 border-t border-surface-container pt-8">
               <h3 className="font-headline font-bold text-on-surface text-xl mb-4 flex items-center gap-2">
                 <Icon name="cloud_sync" size={24} className="text-stone-400" />
                 Backup Accounts <span className="bg-surface-container-high text-stone-500 text-xs px-2 py-0.5 rounded-full ml-1">{inactive.length}</span>
               </h3>
-              
+
               <div className="grid grid-cols-1 gap-4">
                 {inactive.map(acc => (
                   <div key={acc.id} className="bg-surface-container-lowest rounded-2xl border border-outline-variant/10 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center gap-5 hover:shadow-ambient transition-shadow group">
@@ -230,7 +442,7 @@ export default function GCashPage() {
               </div>
             </div>
           </div>
-          
+
           <div className="lg:col-span-4">
             <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/10 shadow-sm p-6 sticky top-24">
               <div className="w-12 h-12 bg-secondary-container/20 text-secondary rounded-2xl flex items-center justify-center mb-4">
@@ -275,17 +487,29 @@ export default function GCashPage() {
               ) : (
                 <>
                   <Icon name="qr_code_scanner" size={40} className="text-stone-400" />
-                  <span className="text-xs text-stone-500 mt-2 font-medium block">Click to upload saved QR code</span>
-                  <span className="text-[10px] text-stone-400 block mt-1">Accepts JPG, PNG</span>
+                  <span className="text-xs text-stone-500 mt-2 font-medium block">Click to upload QR code</span>
+                  <span className="text-[10px] text-stone-400 block mt-1">You can crop after selecting — JPG, PNG</span>
                 </>
               )}
               {form.qrCodeImage && (
-                <button onClick={e => { e.stopPropagation(); setForm(f => ({ ...f, qrCodeImage: '' })) }} className="absolute top-3 right-3 w-8 h-8 bg-surface/80 backdrop-blur rounded-full flex items-center justify-center shadow-sm">
+                <button
+                  onClick={e => { e.stopPropagation(); setForm(f => ({ ...f, qrCodeImage: '' })) }}
+                  className="absolute top-3 right-3 w-8 h-8 bg-surface/80 backdrop-blur rounded-full flex items-center justify-center shadow-sm"
+                >
                   <Icon name="close" size={16} className="text-on-surface" />
                 </button>
               )}
             </div>
-            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(f) }} />
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={e => {
+                const f = e.target.files?.[0]
+                if (f) handleFileSelect(f)
+              }}
+            />
           </div>
 
           {[

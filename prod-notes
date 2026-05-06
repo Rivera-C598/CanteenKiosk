@@ -1,6 +1,30 @@
-the command for kiosk mode
-C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --kiosk-printing http://localhost:3000
+Prerequisites:
+node.js
+
+Setup:
+1. create a .env file in the project root:
+DATABASE_URL="file:./dev.db"
+2. Install dependencies
+npm install
+3. Set up the database
+npx prisma migrate deploy
+4. Seed the database (load default data, skip if u want fresh db)
+npx prisma db seed
+5. Run 
+npm run dev
+
+kiosk mode oh yeah
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --kiosk-printing http://localhost:3000
+
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --kiosk-printing http://localhost:3000/kitchen
 
 to get out of kiosk mode press:
 alt+f4
+
+set paper size
+w 80mm
+h 127mm
+
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --user-data-dir="C:\KioskChromeProfile" --kiosk --kiosk-printing http://localhost:3000
+
 

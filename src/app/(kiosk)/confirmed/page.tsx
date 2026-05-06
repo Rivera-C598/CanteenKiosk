@@ -1,20 +1,24 @@
 'use client'
 
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useRef, useState, Suspense } from 'react'
 import { Icon } from '@/components/shared/Icon'
 import { useLanguage } from '@/lib/language-context'
-import { useStoreName } from '@/lib/store-context'
+import { useAutoPrintCustomerReceipts, useReceiptFooterMessage, useStoreName } from '@/lib/store-context'
 
 function ConfirmedContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { t } = useLanguage()
   const storeName = useStoreName()
+  const receiptFooterMessage = useReceiptFooterMessage()
+  const autoPrintCustomerReceipts = useAutoPrintCustomerReceipts()
   const orderNumber = searchParams.get('order') ?? 'A-001'
   const method = searchParams.get('method') ?? 'cash'
+  const amount = parseFloat(searchParams.get('amount') ?? '0')
   const [countdown, setCountdown] = useState(15)
   const [waitTime, setWaitTime] = useState('Calculating...')
+  const autoPrintedRef = useRef(false)
 
   useEffect(() => {
     fetch('/api/orders/metrics').then(r => r.json()).then(data => {
@@ -37,6 +41,13 @@ function ConfirmedContent() {
     }, 1000)
     return () => clearInterval(timer)
   }, [router])
+
+  useEffect(() => {
+    if (!autoPrintCustomerReceipts || autoPrintedRef.current) return
+    autoPrintedRef.current = true
+    const timer = setTimeout(() => window.print(), 400)
+    return () => clearTimeout(timer)
+  }, [autoPrintCustomerReceipts])
 
   return (
     <div className="h-screen w-screen flex flex-col items-center justify-center bg-background gap-8 px-8">
@@ -108,10 +119,20 @@ function ConfirmedContent() {
          <p className="mb-4 text-xs font-bold">CTU - Danao Campus</p>
          <div className="border-t border-black border-dashed my-4"></div>
          <p className="text-6xl font-black mb-2">{orderNumber}</p>
-         <p className="text-[10px] uppercase font-bold tracking-widest">{method === 'cash' ? 'CASH PAYMENT' : 'GCASH (Pending)'}</p>
+         <p className="text-[10px] uppercase font-bold tracking-widest">{method === 'cash' ? 'CASH PAYMENT' : 'GCASH PAYMENT'}</p>
          <div className="border-t border-black border-dashed my-4"></div>
-         <p className="text-sm font-bold mb-6 tracking-wide">Please present this ticket<br/>to claim your order.</p>
-         <p className="text-[10px] mt-8 opacity-50 mb-4 tracking-widest">Date: {new Date().toLocaleString('en-PH')}</p>
+         {amount > 0 && (
+           <p className="text-2xl font-black mb-1">&#8369;{amount.toFixed(2)}</p>
+         )}
+         {method === 'cash' ? (
+           <p className="text-sm font-bold mb-4">Please pay this amount<br/>to the cashier.</p>
+         ) : (
+           <p className="text-sm font-bold mb-4">Show your GCash receipt<br/>to the cashier for confirmation.</p>
+         )}
+         {receiptFooterMessage && (
+           <p className="text-xs font-bold mt-6 mb-2">{receiptFooterMessage}</p>
+         )}
+         <p className="text-[10px] mt-6 opacity-50 mb-4 tracking-widest">Date: {new Date().toLocaleString('en-PH')}</p>
       </div>
     </div>
   )
