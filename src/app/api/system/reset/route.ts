@@ -24,13 +24,16 @@ export async function POST(request: NextRequest) {
 
   if (action === 'clear' || action === 'seed') {
     try {
-      // Clear data
-      await prisma.orderItemAddon.deleteMany()
-      await prisma.orderItem.deleteMany()
-      await prisma.order.deleteMany()
-      await prisma.menuItemAddon.deleteMany()
-      await prisma.menuItem.deleteMany()
-      await prisma.category.deleteMany()
+      // Clear dependent records before their parents to satisfy foreign keys.
+      await prisma.$transaction([
+        prisma.orderItemAddon.deleteMany(),
+        prisma.orderItem.deleteMany(),
+        prisma.orderLog.deleteMany(),
+        prisma.order.deleteMany(),
+        prisma.menuItemAddon.deleteMany(),
+        prisma.menuItem.deleteMany(),
+        prisma.category.deleteMany(),
+      ])
 
       if (action === 'clear') {
         return NextResponse.json({ ok: true, message: 'Database cleared' })
