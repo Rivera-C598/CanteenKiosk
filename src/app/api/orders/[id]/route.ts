@@ -141,17 +141,29 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return NextResponse.json({ error: 'Invalid refundStatus' }, { status: 400 })
     }
 
-    const order = await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        ...(status ? { status } : {}),
-        ...(paymentStatus ? { paymentStatus } : {}),
-        ...(refundStatus !== undefined ? { refundStatus } : {}),
-      },
-      include: {
-        items: { include: { menuItem: true } },
-        gcashAccount: true,
-      },
+    // Credit GCash monthlyReceived when confirming GCash payment
+    const current = await prisma.order.findUnique({ where: { id: orderId } })
+    const isGCashConfirm = current?.paymentMethod === 'gcash'
+      && paymentStatus === 'paid'
+      && current?.paymentStatus !== 'paid'
+      && current?.gcashAccountId
+
+    const order = await prisma.$transaction(async (tx) => {
+      if (isGCashConfirm && current?.gcashAccountId) {
+        await tx.gCashAccount.update({
+          where: { id: current.gcashAccountId },
+          data: { monthlyReceived: { increment: current.totalAmount } },
+        })
+      }
+      return tx.order.update({
+        where: { id: orderId },
+        data: {
+          ...(status ? { status } : {}),
+          ...(paymentStatus ? { paymentStatus } : {}),
+          ...(refundStatus !== undefined ? { refundStatus } : {}),
+        },
+        include: { items: { include: { menuItem: true } }, gcashAccount: true },
+      })
     })
     return NextResponse.json(order)
   } catch (error: unknown) {

@@ -365,6 +365,9 @@ export default function GCashPage() {
                         <Icon name="info" size={14} />
                         Resets automatically on the first day of the month
                       </p>
+                      <p className="text-xs text-white/50 mt-1.5 leading-relaxed">
+                        This figure only tracks GCash payments confirmed through this kiosk system. Any other transactions on this GCash number are not recorded here — treat this as an approximation.
+                      </p>
                     </div>
 
                     <div className="flex gap-3 mt-6">
