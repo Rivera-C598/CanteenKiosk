@@ -14,7 +14,8 @@ export async function middleware(request: NextRequest) {
   const isKioskRoute = ['/', '/menu', '/cart', '/payment', '/confirmed', '/status'].some(
     p => pathname === p || pathname.startsWith(p + '/')
   )
-  if (isKioskRoute && kioskIp && clientIp !== kioskIp) {
+  const isLocalhost = clientIp === '127.0.0.1' || clientIp === '::1'
+  if (isKioskRoute && kioskIp && clientIp !== kioskIp && !isLocalhost) {
     return NextResponse.json({ error: 'Access restricted to kiosk device' }, { status: 403 })
   }
 
