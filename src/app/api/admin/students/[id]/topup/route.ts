@@ -11,6 +11,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (amount === undefined || amount === null || amount === 0) {
     return NextResponse.json({ error: 'Amount cannot be zero' }, { status: 400 })
   }
+  if (!note || !String(note).trim()) {
+    return NextResponse.json({ error: 'Reference note is required' }, { status: 400 })
+  }
 
   const cookieStore = await cookies()
   const session = await getIronSession<SessionData>(cookieStore, sessionOptions)

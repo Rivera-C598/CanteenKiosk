@@ -57,6 +57,14 @@ export default function StudentsPage() {
           <Icon name="person_add" size={18} />
           New Account
         </button>
+        <button
+          onClick={() => router.push('/admin/students/topups')}
+          className="flex items-center gap-2 bg-surface-container text-on-surface px-4 py-2.5 rounded-xl font-bold text-sm active:scale-95 transition-transform"
+          style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+        >
+          <Icon name="receipt_long" size={18} />
+          Top-up Audit
+        </button>
       </div>
 
       {/* Filters */}

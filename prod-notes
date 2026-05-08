@@ -1,75 +1,399 @@
-Prerequisites:
-node.js
+================================================================================
+  HYPERBITE CANTEEN KIOSK — PRODUCTION NOTES
+  Development of an ID QR Code-Based Cashless Payment System
+  for Enhanced Canteen Transactions
+================================================================================
 
-Setup:
-1. create a .env file in the project root:
-DATABASE_URL="file:./dev.db"
-2. Install dependencies
-npm install
-3. Set up the database
-npx prisma generate
-npx prisma migrate deploy
---resolve
-cmd /c npx prisma migrate resolve --applied 20260412072940_add_order_log
-4. Seed the database (load default data, skip if u want fresh db)
-npx prisma db seed
-5. Run 
-npm run dev
+PREREQUISITES
+─────────────
+- Node.js (v18 or later)
+- Git
+- Google Chrome (for kiosk mode and QR scanning — required, not optional)
 
-Connect the computer and tablet to the same Wi-Fi.
-On the computer, run the app:
-npm run dev -- -H 0.0.0.0
+--------------------------------------------------------------------------------
+TECH STACK
+--------------------------------------------------------------------------------
 
-kiosk mode oh yeah
-"C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --kiosk-printing http://localhost:3000
+Frontend:
+  Next.js 14 (App Router)          Pages, routing, server components
+  React 18                         UI components
+  Tailwind CSS                     Styling + design system tokens
+  Plus Jakarta Sans                Primary font (headlines)
 
-"C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --kiosk-printing http://localhost:3000/kitchen
+Backend:
+  Next.js API Routes               All REST endpoints at /api/*
+  Prisma ORM                       Database access layer
+  SQLite (dev.db)                  Local file-based database
 
-to get out of kiosk mode press:
-alt+f4
+Auth & Sessions:
+  iron-session                     Encrypted cookie sessions
+                                   Admin: hyperbite-admin-session (8hr)
+                                   Student: hyperbite-student-session (2hr, UI enforces 3-min inactivity)
 
-set paper size
-w 80mm
-h 127mm
+Security:
+  bcryptjs                         Password + PIN hashing (cost factor 10)
 
-"C:\Program Files\Google\Chrome\Application\chrome.exe" --user-data-dir="C:\KioskChromeProfile" --kiosk --kiosk-printing http://localhost:3000
+QR Code:
+  qrcode (npm)                     Server-side QR SVG generation for student cards
+  jsQR (npm)                       Browser-based QR decoding via canvas (kiosk camera)
+  getUserMedia (browser API)       Camera access for kiosk QR scanning
 
+Other:
+  html5-qrcode (npm)               Installed but replaced by jsQR — can remove
 
-iPad / iPhone: Guided Access
+--------------------------------------------------------------------------------
+FIRST-TIME SETUP
+--------------------------------------------------------------------------------
 
-Open Settings.
-Go to Accessibility.
-Open Guided Access.
-Turn Guided Access on.
-Set a Passcode Settings passcode.
-Open Safari or Chrome.
-Go to your kiosk URL, for example:
-http://192.168.1.25:3000
-Triple-click the Side button or Home button.
-Tap Start.
-To exit Guided Access:
+1. Create .env file in project root:
 
-Triple-click the Side/Home button.
-Enter the passcode.
-Tap End.
-Android: Screen Pinning
-The exact names vary, but usually:
+   DATABASE_URL="file:./dev.db"
+   SESSION_SECRET="change-this-to-a-long-random-string-in-production"
+   KIOSK_IP=          ← tablet/device IP that runs the kiosk (blank = no IP lock)
+   KITCHEN_PIN=1234   ← staff PIN to access /kitchen (change before production)
 
-Open Settings.
-Go to Security or Security & privacy.
-Find Screen pinning or App pinning.
-Turn it on.
-Also enable Ask for PIN before unpinning, if available.
-Open Chrome.
-Go to your kiosk URL:
-http://192.168.1.25:3000
-Open the recent apps screen.
-Tap the Chrome app icon or menu.
-Tap Pin.
-To exit screen pinning:
+2. Install dependencies:
+   npm install
 
-Hold Back + Recent Apps
-or on gesture navigation:
+3. Set up the database:
+   npx prisma generate
+   npx prisma migrate deploy
 
-Swipe up and hold, then unpin
-Then enter the tablet PIN/password.
+   If you get a migration conflict error, resolve it with:
+   cmd /c npx prisma migrate resolve --applied 20260412072940_add_order_log
+
+4. Seed the database (loads default menu, admin account, gcash placeholder):
+   npx prisma db seed
+   Skip this if you want a completely fresh database.
+
+   Default admin login after seed:
+   Username: admin
+   Password: admin
+   ← Change this immediately in production via Admin → Settings → Admin Credentials
+
+5. Run the app (local only):
+   npm run dev
+
+--------------------------------------------------------------------------------
+RUNNING ON A LOCAL NETWORK (tablet + PC setup)
+--------------------------------------------------------------------------------
+
+Connect the PC and all devices (kiosk tablet, kitchen tablet, queue monitor)
+to the same Wi-Fi network.
+
+Run the app so other devices can reach it:
+   npm run dev -- -H 0.0.0.0
+
+Find your PC's local IP:
+   ipconfig      (Windows) → look for IPv4 Address, e.g. 192.168.1.10
+
+Devices access the system at:
+   http://192.168.1.10:3000          ← replace with your actual IP
+
+KIOSK_IP — set to the kiosk tablet's IP (not the server PC's IP):
+   When the tablet accesses http://192.168.1.10:3000, the server sees the
+   request coming from the tablet's IP. Set KIOSK_IP to the tablet's IP.
+   Localhost (127.0.0.1) always bypasses the IP lock so the server PC itself
+   can always access the kiosk pages.
+
+   To find tablet IP: Settings → Wi-Fi → tap connected network → IP Address
+
+   Tablet IPs can change on router restart. Set a static IP on the tablet
+   or set a DHCP reservation on the router (bind tablet MAC to fixed IP).
+
+--------------------------------------------------------------------------------
+PAGES & WHO USES THEM
+--------------------------------------------------------------------------------
+
+  /                   Kiosk — customer-facing order screen (kiosk device only)
+  /kitchen            Kitchen operator — staff confirms + prepares orders (PIN gated)
+  /queue              Queue display — TV/monitor showing preparing/ready orders (open)
+  /admin              Admin panel — menu, orders, GCash, students, settings (session auth)
+  /student            Student portal — balance, transactions, PIN change (session auth)
+  /student/register   Student self-registration (open, results in pending account)
+
+--------------------------------------------------------------------------------
+SECURITY MODEL
+--------------------------------------------------------------------------------
+
+IP Lock (middleware.ts):
+  - Kiosk routes (/, /menu, /cart, /payment, /confirmed, /status) are locked to
+    KIOSK_IP. Any other device gets 403. Localhost always allowed.
+  - Student portal (/student/*) is blocked from the kiosk IP — prevents
+    students from opening /student on the kiosk device.
+
+Session Auth:
+  - /admin/* — requires iron-session cookie (admin session). Redirects to
+    /admin/login if not authenticated.
+  - /student/* — requires iron-session cookie (student session). Redirects to
+    /student if not authenticated. Forces /student/change-pin if isTemporaryPin.
+
+Kitchen PIN Gate:
+  - /kitchen has no session auth. Protected by a staff PIN stored in .env as
+    KITCHEN_PIN. Verified via POST /api/kitchen/auth. Result stored in
+    sessionStorage (clears on browser close).
+  - Known limitation: sessionStorage is client-side only. For stronger security,
+    add a proper session — listed as future recommendation.
+
+Queue (/queue):
+  - Intentionally open. Read-only, shows order numbers only, no sensitive data.
+    Designed to be displayed on a public TV screen.
+
+API-level Guards:
+  - Admin APIs (/api/admin/*) check admin session cookie — middleware alone is
+    not enough since middleware only covers page routes, not /api/*.
+  - Paid orders cannot be edited — server rejects edit requests if
+    paymentStatus === 'paid', regardless of UI state.
+  - Cashless pay is atomic (Prisma $transaction) — balance check and deduction
+    happen in a single DB transaction to prevent double-spend.
+  - PIN brute force: 3 wrong attempts → 30-second lockout per account
+    (tracked in StudentAccount.pinAttempts + pinLockedUntil).
+
+Password/PIN Storage:
+  - All passwords and PINs stored as bcrypt hashes (cost 10). Never stored plain.
+  - QR tokens are UUIDs — unguessable, no personal data encoded in the QR.
+
+Two-Factor Narrative (cashless):
+  - Physical QR card (something you HAVE) + 4-digit PIN (something you KNOW)
+  - If QR card lost/stolen: admin regenerates qrToken → old card dead instantly
+  - If PIN compromised: admin resets PIN → student sets new one on next login
+
+--------------------------------------------------------------------------------
+ADMIN ABUSE PREVENTION (TOP-UP ACCOUNTABILITY)
+--------------------------------------------------------------------------------
+
+Problem: Any admin with system access can credit arbitrary amounts to student
+accounts. This is a financial trust problem present in all cashless reload
+systems (GCash reload centers, school canteen cards, prepaid systems).
+
+Technical controls implemented:
+  1. Required reference note — every top-up/adjustment requires a text note
+     (e.g. "Cash received from student", "Receipt #0012"). Cannot be submitted
+     blank — enforced at both UI and API level.
+  2. Admin ID logged — every transaction records which admin performed it +
+     exact timestamp. Immutable once written.
+  3. Top-up Audit Log — dedicated page at Admin → Students → Top-up Audit
+     showing all balance adjustments across all students: who did it, when,
+     how much, and the reference note. Any admin can view this.
+
+What code cannot prevent:
+  An admin can still write a fake note. Technical controls create a paper trail
+  and raise the cost of abuse — they do not eliminate the possibility.
+
+Recommended institutional controls (outside the system):
+  - Supervisor periodically reviews the Top-up Audit log
+  - Physical receipt books: admin writes a receipt per top-up, student signs it
+  - Cash reconciliation: total top-ups credited by admin should match cash
+    collected and deposited
+  - Two-person rule: one admin credits, a different person reviews (if staffing allows)
+
+For the study paper:
+  "The system logs all balance adjustments with admin identity, timestamp, and
+  a mandatory reference note (enforced at the API level). Institutional oversight
+  — cash handling procedures, supervisor review of the audit log, and physical
+  receipt documentation — provides the primary accountability layer. This mirrors
+  the accountability model used in real-world cashless reload systems."
+
+--------------------------------------------------------------------------------
+PAYMENT FLOWS
+--------------------------------------------------------------------------------
+
+Cash:
+  Order created (awaiting_payment) → kitchen confirms cash → preparing
+  → kitchen marks ready → completed
+
+GCash:
+  Order created (pending_verification) → kitchen confirms GCash receipt → preparing
+  → kitchen marks ready → completed
+  On confirmation: order totalAmount added to GCashAccount.monthlyReceived
+
+Cashless (normal — kiosk QR scan):
+  Order created (pending_verification) → kiosk camera scans student QR card
+  → student enters PIN → balance deducted atomically → order jumps to preparing
+  → kitchen marks ready → completed
+
+Cashless (fallback — cashier manual entry):
+  If student cannot use kiosk → kitchen shows "Confirm Cashless" button
+  → modal opens → cashier asks student for ID number + PIN → enters both
+  → same PIN validation + balance deduction → order moves to preparing
+  API: POST /api/cashless/pay-by-id
+
+Cancellation with refunds:
+  - Cashless paid orders: cancel auto-refunds balance to student account
+    (StudentTransaction type=refund created, refundStatus=completed)
+  - GCash paid orders: cancel flags refundStatus=pending — admin handles
+    manual GCash reversal separately
+  - Unpaid orders: cancel with no money movement
+
+--------------------------------------------------------------------------------
+TRICKY STUFF WE SOLVED
+--------------------------------------------------------------------------------
+
+Route Group Conflict:
+  Next.js route groups (parentheses folders) don't add URL segments. Originally
+  student portal was (student)/ which conflicted with (kiosk)/ — both resolved
+  to /. Fixed by renaming to student/ (a real path segment).
+
+Camera QR Scanning:
+  html5-qrcode failed silently on Windows Chrome. BarcodeDetector API is
+  Android-only by default on Chrome. Solved by using getUserMedia + jsQR:
+  get raw video stream, draw frames to canvas, pass pixel data to jsQR.
+  This works on all Chromium browsers (Chrome, Brave, Edge) on any platform.
+
+play() Race Condition:
+  Calling video.play() manually after setting srcObject caused
+  "play() interrupted by new load request" error in dev mode (React strict mode
+  runs effects twice). Fixed by adding autoPlay attribute to <video> and
+  removing the manual play() call.
+
+params in Next.js 14 vs 15:
+  Next.js 15 made params async (Promise<{id}>), requiring use() or await.
+  This project runs Next.js 14 where params is a plain object. use(params)
+  throws "unsupported type passed to use()". Fixed by accessing params.id directly.
+
+IP Lock + Localhost:
+  Setting KIOSK_IP blocks the server PC from accessing its own kiosk if using
+  localhost, because the request IP is 127.0.0.1, not the machine's LAN IP.
+  Fixed: middleware always allows 127.0.0.1 and ::1 regardless of KIOSK_IP.
+
+GCash Monthly Limit Idempotency:
+  monthlyReceived should only increment once per confirmed payment.
+  Guard: only increment when current paymentStatus !== 'paid' AND new
+  paymentStatus === 'paid'. Prevents double-counting if PATCH called twice.
+
+Double-Spend Prevention:
+  Initial cashless pay did balance check then wrote in two separate DB calls.
+  Race condition: concurrent requests could both pass the check with stale balance.
+  Fixed with Prisma interactive transaction — fresh balance read and deduction
+  happen atomically inside the same transaction.
+
+--------------------------------------------------------------------------------
+STUDENT CASHLESS ACCOUNTS
+--------------------------------------------------------------------------------
+
+Setup flow:
+1. Admin creates account in Admin → Students → New Account
+   OR student self-registers at /student/register → admin activates it
+2. Admin tops up balance (student hands cash to admin → admin credits account)
+3. Admin loads QR → prints card → hands to student with temp PIN
+   Temp PIN = last 4 digits of student ID number
+4. Student logs into /student with ID number + temp PIN
+5. Student forced to change PIN before accessing dashboard
+6. Student pays at kiosk: Cashless → scan QR card → enter 4-digit PIN → done
+
+Student ID rules:
+  7 digits = student account
+  6 digits = faculty account
+  Any other length → rejected at both client and server
+
+PIN rules:
+  Always exactly 4 digits everywhere (login, payment, change-pin)
+  Stored as bcrypt hash — never retrievable, only resettable
+
+Admin account actions:
+  Activate / Freeze / Unfreeze / Reset PIN / Regenerate QR / Edit Details / Delete
+  Delete requires balance = ₱0 first (prevents accidental loss of funds)
+
+--------------------------------------------------------------------------------
+KIOSK MODE SETUP
+--------------------------------------------------------------------------------
+
+── Windows PC (Chrome kiosk) ──────────────────────────────────────────────────
+
+Kiosk (order screen):
+  "C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --kiosk-printing http://localhost:3000
+
+Kitchen display:
+  "C:\Program Files\Google\Chrome\Application\chrome.exe" --kiosk --kiosk-printing http://localhost:3000/kitchen
+
+With separate Chrome profile (avoids conflicts if both run on same PC):
+  "C:\Program Files\Google\Chrome\Application\chrome.exe" --user-data-dir="C:\KioskChromeProfile" --kiosk --kiosk-printing http://localhost:3000
+
+Exit kiosk mode: Alt + F4
+
+── iPad / iPhone (Guided Access) ──────────────────────────────────────────────
+
+1. Settings → Accessibility → Guided Access → Turn on
+2. Set a Passcode under Passcode Settings
+3. Open Chrome or Safari → go to http://192.168.1.10:3000
+4. Triple-click Side button (or Home button) → Tap Start
+
+To exit: Triple-click Side/Home → enter passcode → Tap End
+
+── Android (Screen Pinning) ────────────────────────────────────────────────────
+
+1. Settings → Security (or Security & Privacy) → Screen Pinning / App Pinning → On
+2. Enable "Ask for PIN before unpinning" if available
+3. Open Chrome → go to http://192.168.1.10:3000
+4. Open recent apps → tap Chrome icon/menu → tap Pin
+
+To exit: Hold Back + Recent Apps (or swipe up and hold on gesture nav) → enter PIN
+
+--------------------------------------------------------------------------------
+PRINT SETTINGS (thermal printer)
+--------------------------------------------------------------------------------
+
+Paper size: Width 80mm × Height 127mm
+Set this in Chrome print dialog → More settings → Paper size → Custom
+
+--------------------------------------------------------------------------------
+NETWORKING — NOTES & LIMITATIONS
+--------------------------------------------------------------------------------
+
+Q: Router might not handle 50+ connections in a canteen setting?
+A: Not a practical limitation. Standard routers support 50–254 simultaneous
+   connections. The bottleneck is bandwidth, not connection count. A local web
+   app with no video/heavy assets is very light. This setup handles canteen-scale
+   traffic without issue.
+
+Q: Can we host this online to remove the local network requirement?
+A: Yes, but with trade-offs:
+   - PRO: Students access /student portal from anywhere, not just school Wi-Fi
+   - CON: Camera QR scanning requires HTTPS. getUserMedia is blocked on plain
+           HTTP by all modern browsers. Need SSL certificate (free: Let's Encrypt)
+   - CON: Latency — every action hits a remote server. Outages kill the system.
+   - CON: SQLite is not suitable for cloud/multi-instance. Migrate to PostgreSQL.
+   - VERDICT: Local network is more reliable for a single-canteen study.
+               Online hosting is a valid future recommendation.
+
+--------------------------------------------------------------------------------
+FUTURE RECOMMENDATIONS
+--------------------------------------------------------------------------------
+
+- Admin activity logging: freeze/unfreeze, PIN reset, QR regen not logged.
+  Add StudentAccountLog model (studentAccountId, action, adminId, createdAt)
+  and write entries in PATCH /api/admin/students/[id].
+
+- Stronger kitchen access: current /kitchen PIN gate uses sessionStorage —
+  clears on browser close but no server-side session. Add a proper server
+  session for kitchen staff similar to admin session.
+
+- Online hosting: SQLite → PostgreSQL, HTTPS via Let's Encrypt, deploy to VPS
+  or Railway/Render. Required for student portal access outside school Wi-Fi.
+
+- MIS integration: validate student ID numbers against school's student
+  information system on registration. Currently admin does face-to-face only.
+
+- Daily spending limit per student account.
+
+- Email/SMS notification on payment or low balance.
+
+- QR code printed on physical student ID card (school MIS integration).
+
+- Multi-admin support: currently one admin account. Add role-based access
+  (admin vs staff) — staff can confirm orders and top up, admin can manage menu
+  and settings.
+
+--------------------------------------------------------------------------------
+MIGRATION NOTES (moving to a new computer)
+--------------------------------------------------------------------------------
+
+1. Copy the entire project folder
+2. Copy the .env file (not committed to git — keep it separate and safe)
+3. Run: npm install
+4. Run: npx prisma generate
+5. Run: npx prisma migrate deploy
+6. If migrating existing data: copy prisma/dev.db from old machine
+   If starting fresh: npx prisma db seed
+
+--------------------------------------------------------------------------------

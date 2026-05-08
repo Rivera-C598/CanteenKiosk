@@ -34,6 +34,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
   const [student, setStudent] = useState<Student | null>(null)
   const [loading, setLoading] = useState(true)
   const [topupAmount, setTopupAmount] = useState('')
+  const [topupNote, setTopupNote] = useState('')
   const [topupLoading, setTopupLoading] = useState(false)
   const [qrSvg, setQrSvg] = useState('')
   const [qrStudent, setQrStudent] = useState<Student | null>(null)
@@ -72,14 +73,15 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
 
   const doTopup = async () => {
     const amount = parseFloat(topupAmount)
-    if (!amount || amount <= 0) return
+    if (!amount || !topupNote.trim()) return
     setTopupLoading(true)
     await fetch(`/api/admin/students/${id}/topup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount }),
+      body: JSON.stringify({ amount, note: topupNote.trim() }),
     })
     setTopupAmount('')
+    setTopupNote('')
     await fetch_()
     setTopupLoading(false)
   }
@@ -274,16 +276,25 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
         <div className="mb-6 p-4 bg-surface-container-lowest rounded-xl">
           <p className="font-bold text-on-surface text-sm mb-1">Balance Adjustment</p>
           <p className="text-on-surface-variant text-xs mb-3">Positive to add (e.g. 500), negative to deduct (e.g. -180)</p>
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-3">
+              <input
+                type="number"
+                value={topupAmount}
+                onChange={e => setTopupAmount(e.target.value)}
+                placeholder="e.g. 500 or -180"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-background border border-surface-container text-on-surface text-sm outline-none focus:border-primary"
+              />
+            </div>
             <input
-              type="number"
-              value={topupAmount}
-              onChange={e => setTopupAmount(e.target.value)}
-              placeholder="e.g. 500 or -180"
-              className="flex-1 px-4 py-2.5 rounded-xl bg-background border border-surface-container text-on-surface text-sm outline-none focus:border-primary"
+              type="text"
+              value={topupNote}
+              onChange={e => setTopupNote(e.target.value)}
+              placeholder="Reference note — required (e.g. Cash received, Receipt #123)"
+              className="w-full px-4 py-2.5 rounded-xl bg-background border border-surface-container text-on-surface text-sm outline-none focus:border-primary"
             />
-            <button onClick={doTopup} disabled={topupLoading || !topupAmount}
-              className="bg-primary text-on-primary px-6 py-2.5 rounded-xl text-sm font-bold shadow-primary-glow active:scale-95 disabled:opacity-40">
+            <button onClick={doTopup} disabled={topupLoading || !topupAmount || !topupNote.trim()}
+              className="bg-primary text-on-primary px-6 py-2.5 rounded-xl text-sm font-bold shadow-primary-glow active:scale-95 disabled:opacity-40 self-end">
               {topupLoading ? '…' : 'Apply'}
             </button>
           </div>
