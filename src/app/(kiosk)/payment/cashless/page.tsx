@@ -177,7 +177,7 @@ function CashlessContent() {
         <div className="w-16" />
       </header>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-6 gap-6">
+      <div className="flex-1 flex flex-col items-center justify-start px-4 py-6 gap-6 overflow-y-auto">
 
         {/* Amount */}
         <div className="text-center">

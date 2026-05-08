@@ -118,7 +118,7 @@ function GCashContent() {
           </button>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-8 gap-4 sm:gap-6 overflow-y-auto py-4">
+        <div className="flex-1 flex flex-col items-center justify-start px-4 sm:px-8 gap-4 sm:gap-6 overflow-y-auto py-6">
           {/* Amount */}
           <div className="text-center">
             <p className="text-on-surface-variant font-medium mb-1">{t('gcash.send_exactly')}</p>
