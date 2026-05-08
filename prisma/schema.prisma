@@ -53,12 +53,15 @@ model Order {
   confirmedById   Int?
   confirmedBy     AdminUser?    @relation(fields: [confirmedById], references: [id])
   notes           String        @default("")
-  cancelReason    String        @default("")
+  cancelReason     String        @default("")
+  studentAccountId Int?
+  studentAccount   StudentAccount? @relation(fields: [studentAccountId], references: [id])
   refundStatus    String        @default("")
-  items           OrderItem[]
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  logs            OrderLog[]
+  items                OrderItem[]
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  logs                 OrderLog[]
+  studentTransactions  StudentTransaction[]
 }
 
 model OrderItem {
@@ -100,7 +103,9 @@ model AdminUser {
   passwordHash String
   role         String   @default("staff")
   createdAt    DateTime @default(now())
-  orders       Order[]
+  orders              Order[]
+  activatedAccounts   StudentAccount[]    @relation("ActivatedAccounts")
+  studentTransactions StudentTransaction[] @relation("AdminTopups")
 }
 
 model OrderLog {
@@ -110,4 +115,43 @@ model OrderLog {
   action    String
   snapshot  String   @default("")
   createdAt DateTime @default(now())
+}
+
+model StudentAccount {
+  id              Int                  @id @default(autoincrement())
+  studentIdNumber String               @unique
+  accountType     String               @default("student")
+  fullName        String
+  course          String
+  year            String
+  photoUrl        String               @default("")
+  pinHash         String
+  isTemporaryPin  Boolean              @default(true)
+  balance         Float                @default(0)
+  qrToken         String               @unique @default("")
+  status          String               @default("pending")
+  pinAttempts     Int                  @default(0)
+  pinLockedUntil  DateTime?
+  createdAt       DateTime             @default(now())
+  activatedAt     DateTime?
+  activatedById   Int?
+  activatedBy     AdminUser?           @relation("ActivatedAccounts", fields: [activatedById], references: [id])
+  transactions    StudentTransaction[]
+  orders          Order[]
+}
+
+model StudentTransaction {
+  id               Int            @id @default(autoincrement())
+  studentAccountId Int
+  studentAccount   StudentAccount @relation(fields: [studentAccountId], references: [id])
+  type             String
+  amount           Float
+  balanceBefore    Float
+  balanceAfter     Float
+  orderId          Int?
+  order            Order?         @relation(fields: [orderId], references: [id])
+  adminId          Int?
+  admin            AdminUser?     @relation("AdminTopups", fields: [adminId], references: [id])
+  note             String         @default("")
+  createdAt        DateTime       @default(now())
 }
