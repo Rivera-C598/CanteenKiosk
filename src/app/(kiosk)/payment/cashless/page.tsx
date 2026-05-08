@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Icon } from '@/components/shared/Icon'
+import jsQR from 'jsqr'
 
 type Stage = 'scanning' | 'confirm' | 'pin' | 'processing' | 'success' | 'error'
 
@@ -48,27 +49,25 @@ function CashlessContent() {
           await videoRef.current.play()
         }
 
-        // BarcodeDetector is available in Chrome 83+ / Edge 83+
-        if (!('BarcodeDetector' in window)) {
-          setError('QR scanning not supported in this browser. Use Chrome.')
-          return
-        }
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')!
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const detector = new (window as any).BarcodeDetector({ formats: ['qr_code'] })
-
-        const scan = async () => {
+        const scan = () => {
           if (scannedRef.current || !videoRef.current) return
-          try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const codes: any[] = await detector.detect(videoRef.current)
-            if (codes.length > 0 && codes[0].rawValue) {
+          const video = videoRef.current
+          if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.width = video.videoWidth
+            canvas.height = video.videoHeight
+            ctx.drawImage(video, 0, 0)
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+            const code = jsQR(imageData.data, imageData.width, imageData.height)
+            if (code?.data) {
               scannedRef.current = true
               stopStream()
-              await handleScan(codes[0].rawValue)
+              handleScan(code.data)
               return
             }
-          } catch { /* frame not ready yet */ }
+          }
           animRef.current = requestAnimationFrame(scan)
         }
         animRef.current = requestAnimationFrame(scan)
