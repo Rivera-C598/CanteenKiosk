@@ -78,6 +78,33 @@ function escapeHtml(value: string) {
 }
 
 export default function KitchenPage() {
+  const [authed, setAuthed] = useState(false)
+  const [pinInput, setPinInput] = useState('')
+  const [pinError, setPinError] = useState('')
+  const [pinLoading, setPinLoading] = useState(false)
+
+  useEffect(() => {
+    if (sessionStorage.getItem('kitchen_authed') === 'yes') setAuthed(true)
+  }, [])
+
+  const handlePinSubmit = async () => {
+    setPinLoading(true)
+    setPinError('')
+    const res = await fetch('/api/kitchen/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin: pinInput }),
+    })
+    if (res.ok) {
+      sessionStorage.setItem('kitchen_authed', 'yes')
+      setAuthed(true)
+    } else {
+      setPinError('Incorrect PIN')
+      setPinInput('')
+    }
+    setPinLoading(false)
+  }
+
   const [orders, setOrders] = useState<Order[]>([])
   const [time, setTime] = useState(new Date())
   const storeName = useStoreName()
@@ -277,6 +304,59 @@ export default function KitchenPage() {
     setEditingOrder(null)
     printOrder(full, true)
   }
+
+  if (!authed) return (
+    <div className="min-h-screen bg-surface-container-low flex items-center justify-center px-4">
+      <div className="bg-surface rounded-3xl p-8 w-full max-w-xs shadow-2xl flex flex-col items-center gap-6">
+        <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center shadow-primary-glow">
+          <Icon name="kitchen" size={28} className="text-on-primary" />
+        </div>
+        <div className="text-center">
+          <h1 className="font-headline font-black text-2xl text-on-surface" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+            Kitchen Access
+          </h1>
+          <p className="text-on-surface-variant text-sm mt-1">Enter staff PIN to continue</p>
+        </div>
+
+        <div className="flex gap-3 justify-center">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className={`w-4 h-4 rounded-full transition-all ${i < pinInput.length ? 'bg-primary' : 'bg-surface-container'}`} />
+          ))}
+        </div>
+
+        <div className="grid grid-cols-3 gap-3 w-full">
+          {['1','2','3','4','5','6','7','8','9','','0','⌫'].map((d, i) => (
+            <button
+              key={i}
+              onClick={() => {
+                if (d === '⌫') setPinInput(p => p.slice(0, -1))
+                else if (d && pinInput.length < 4) setPinInput(p => p + d)
+              }}
+              disabled={pinLoading || !d}
+              className={`py-4 rounded-xl font-black text-2xl transition-all active:scale-95 ${
+                d === '⌫' ? 'bg-surface-container text-on-surface' :
+                d ? 'bg-surface-container-lowest text-on-surface shadow-ambient' : 'invisible'
+              } disabled:opacity-40`}
+              style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
+
+        {pinError && <p className="text-error text-sm font-medium">{pinError}</p>}
+
+        <button
+          onClick={handlePinSubmit}
+          disabled={pinInput.length < 4 || pinLoading}
+          className="w-full bg-primary text-on-primary rounded-xl py-4 font-black text-lg shadow-primary-glow active:scale-[0.98] disabled:opacity-40 transition-transform"
+          style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+        >
+          {pinLoading ? 'Verifying…' : 'Enter'}
+        </button>
+      </div>
+    </div>
+  )
 
   return (
     <>
