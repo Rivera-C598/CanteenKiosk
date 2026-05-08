@@ -115,7 +115,7 @@ export default function KitchenPage() {
         </div>
       `)
       .join('')
-    const paymentLabel = order.paymentMethod === 'gcash' ? 'GCASH PAYMENT' : 'CASH PAYMENT'
+    const paymentLabel = order.paymentMethod === 'gcash' ? 'GCASH PAYMENT' : order.paymentMethod === 'cashless' ? 'CASHLESS PAYMENT' : 'CASH PAYMENT'
 
     const slot = document.getElementById('print-slot')
     if (!slot) return
