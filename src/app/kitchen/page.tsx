@@ -426,7 +426,7 @@ export default function KitchenPage() {
                           </button>
                           <button
                             onClick={() => setCancelTarget(order)}
-                            disabled={order.status === 'ready' || order.paymentStatus === 'paid'}
+                            disabled={order.status === 'ready'}
                             className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-headline font-bold text-xs text-error bg-error-container/20 hover:bg-error-container/40 active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none"
                           >
                             <Icon name="cancel" size={15} />
@@ -452,9 +452,23 @@ export default function KitchenPage() {
             <h3 className="font-headline font-black text-2xl text-center text-on-surface mb-1 tracking-tight">
               Cancel Order?
             </h3>
-            <p className="text-center text-on-surface-variant text-sm font-medium mb-6">
+            <p className="text-center text-on-surface-variant text-sm font-medium mb-4">
               Order <span className="font-black text-on-surface">{cancelTarget.orderNumber}</span> — why are you cancelling?
             </p>
+
+            {/* Refund notice for paid orders */}
+            {cancelTarget.paymentStatus === 'paid' && (
+              <div className={`mb-5 p-3 rounded-xl text-sm font-medium text-center ${
+                cancelTarget.paymentMethod === 'cashless'
+                  ? 'bg-primary/10 text-primary'
+                  : 'bg-warning-container text-on-warning-container'
+              }`}>
+                {cancelTarget.paymentMethod === 'cashless'
+                  ? `₱${cancelTarget.totalAmount.toFixed(2)} will be automatically refunded to the student's cashless balance.`
+                  : 'GCash payment — manual refund required after cancellation.'}
+              </div>
+            )}
+
             <div className="flex flex-col gap-2 mb-3">
               {[
                 { key: 'customer_request', label: 'Customer Request' },

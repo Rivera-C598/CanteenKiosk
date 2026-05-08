@@ -75,16 +75,41 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       })
       if (!current) return NextResponse.json({ error: 'Order not found' }, { status: 404 })
 
-      const shouldFlagRefund =
-        current.paymentMethod === 'gcash' && current.paymentStatus === 'paid'
+      const isCashlessPaid = current.paymentMethod === 'cashless' && current.paymentStatus === 'paid'
+      const isGCashPaid = current.paymentMethod === 'gcash' && current.paymentStatus === 'paid'
 
       const order = await prisma.$transaction(async (tx) => {
+        // Auto-refund cashless balance
+        if (isCashlessPaid && current.studentAccountId) {
+          const student = await tx.studentAccount.findUnique({ where: { id: current.studentAccountId } })
+          if (student) {
+            const balanceBefore = student.balance
+            const balanceAfter = balanceBefore + current.totalAmount
+            await tx.studentAccount.update({
+              where: { id: student.id },
+              data: { balance: balanceAfter },
+            })
+            await tx.studentTransaction.create({
+              data: {
+                studentAccountId: student.id,
+                type: 'refund',
+                amount: current.totalAmount,
+                balanceBefore,
+                balanceAfter,
+                orderId,
+                note: `Order ${current.orderNumber} cancelled`,
+              },
+            })
+          }
+        }
+
         const updated = await tx.order.update({
           where: { id: orderId },
           data: {
             status: 'cancelled',
             cancelReason: cancelReason ?? '',
-            ...(shouldFlagRefund ? { refundStatus: 'pending' } : {}),
+            ...(isCashlessPaid ? { refundStatus: 'completed' } : {}),
+            ...(isGCashPaid ? { refundStatus: 'pending' } : {}),
           },
           include: { items: { include: { menuItem: true } }, gcashAccount: true },
         })
@@ -96,6 +121,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
               items: current.items.map(i => ({ name: i.menuItem.name, quantity: i.quantity })),
               total: current.totalAmount,
               cancelReason: cancelReason ?? '',
+              refund: isCashlessPaid ? 'auto' : isGCashPaid ? 'manual_pending' : 'none',
             }),
           },
         })
