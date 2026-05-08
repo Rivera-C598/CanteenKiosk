@@ -76,6 +76,16 @@ function ConfirmedContent() {
               {t('confirmed.cash_desc')}
             </p>
           </>
+        ) : method === 'cashless' ? (
+          <>
+            <Icon name="account_balance_wallet" size={32} className="text-primary mb-3" filled />
+            <p className="font-headline font-bold text-on-surface text-lg mb-1" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+              Payment Successful
+            </p>
+            <p className="text-on-surface-variant text-sm">
+              Your cashless balance has been deducted. Watch the queue display for your order number.
+            </p>
+          </>
         ) : (
           <>
             <Icon name="qr_code_scanner" size={32} className="text-primary mb-3" filled />
@@ -119,13 +129,15 @@ function ConfirmedContent() {
          <p className="mb-4 text-xs font-bold">CTU - Danao Campus</p>
          <div className="border-t border-black border-dashed my-4"></div>
          <p className="text-6xl font-black mb-2">{orderNumber}</p>
-         <p className="text-[10px] uppercase font-bold tracking-widest">{method === 'cash' ? 'CASH PAYMENT' : 'GCASH PAYMENT'}</p>
+         <p className="text-[10px] uppercase font-bold tracking-widest">{method === 'cash' ? 'CASH PAYMENT' : method === 'cashless' ? 'CASHLESS PAYMENT' : 'GCASH PAYMENT'}</p>
          <div className="border-t border-black border-dashed my-4"></div>
          {amount > 0 && (
            <p className="text-2xl font-black mb-1">&#8369;{amount.toFixed(2)}</p>
          )}
          {method === 'cash' ? (
            <p className="text-sm font-bold mb-4">Please pay this amount<br/>to the cashier.</p>
+         ) : method === 'cashless' ? (
+           <p className="text-sm font-bold mb-4">Balance deducted from<br/>your cashless account.</p>
          ) : (
            <p className="text-sm font-bold mb-4">Show your GCash receipt<br/>to the cashier for confirmation.</p>
          )}

@@ -130,7 +130,7 @@ function CashlessContent() {
     }, 2000)
   }
 
-  const addPinDigit = (d: string) => { if (pin.length < 6) setPin(p => p + d) }
+  const addPinDigit = (d: string) => { if (pin.length < 4) setPin(p => p + d) }
   const delPinDigit = () => setPin(p => p.slice(0, -1))
 
   return (
@@ -228,7 +228,7 @@ function CashlessContent() {
             </div>
 
             <div className="flex gap-4">
-              {Array.from({ length: 6 }).map((_, i) => (
+              {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className={`w-4 h-4 rounded-full transition-all ${i < pin.length ? 'bg-primary' : 'bg-surface-container'}`} />
               ))}
             </div>
