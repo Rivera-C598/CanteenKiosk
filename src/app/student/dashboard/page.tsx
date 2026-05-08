@@ -13,8 +13,14 @@ export default function StudentDashboard() {
   const [txs, setTxs] = useState<Tx[]>([])
 
   useEffect(() => {
-    fetch('/api/student/me').then(r => r.json()).then(setMe).catch(() => router.push('/student'))
-    fetch('/api/student/transactions').then(r => r.json()).then((data: Tx[]) => setTxs(data.slice(0, 5)))
+    fetch('/api/student/me')
+      .then(r => { if (!r.ok) throw new Error(); return r.json() })
+      .then(setMe)
+      .catch(() => router.push('/student'))
+    fetch('/api/student/transactions')
+      .then(r => r.ok ? r.json() : [])
+      .then((data: Tx[]) => setTxs(data.slice(0, 5)))
+      .catch(() => {})
   }, [])
 
 
