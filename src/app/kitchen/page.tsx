@@ -16,6 +16,7 @@ interface Order {
   orderNumber: string
   status: string
   paymentMethod: string
+  paymentStatus: string
   totalAmount: number
   createdAt: string
   items: OrderItem[]
@@ -417,7 +418,7 @@ export default function KitchenPage() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => setEditingOrder(order)}
-                            disabled={order.status === 'ready'}
+                            disabled={order.status === 'ready' || order.paymentStatus === 'paid'}
                             className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-headline font-bold text-xs text-secondary bg-secondary-container/30 hover:bg-secondary-container/50 active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none"
                           >
                             <Icon name="edit" size={15} />
@@ -425,7 +426,7 @@ export default function KitchenPage() {
                           </button>
                           <button
                             onClick={() => setCancelTarget(order)}
-                            disabled={order.status === 'ready'}
+                            disabled={order.status === 'ready' || order.paymentStatus === 'paid'}
                             className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-headline font-bold text-xs text-error bg-error-container/20 hover:bg-error-container/40 active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none"
                           >
                             <Icon name="cancel" size={15} />
