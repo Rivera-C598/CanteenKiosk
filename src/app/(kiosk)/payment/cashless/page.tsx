@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Icon } from '@/components/shared/Icon'
 import jsQR from 'jsqr'
+import { useCart } from '@/lib/cart-context'
 
 type Stage = 'scanning' | 'confirm' | 'pin' | 'processing' | 'success' | 'error'
 
@@ -19,6 +20,7 @@ interface StudentInfo {
 function CashlessContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { clearCart } = useCart()
   const orderNumber = searchParams.get('order') ?? ''
   const amount = parseFloat(searchParams.get('amount') ?? '0')
   const orderId = parseInt(searchParams.get('orderId') ?? '0')
@@ -125,6 +127,7 @@ function CashlessContent() {
       return
     }
     setStage('success')
+    clearCart()
     setTimeout(() => {
       router.push(`/confirmed?order=${orderNumber}&method=cashless&amount=${amount}`)
     }, 2000)
