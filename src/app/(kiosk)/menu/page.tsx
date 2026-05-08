@@ -181,7 +181,7 @@ export default function MenuPage() {
                   )}
                   <div className="flex items-center justify-between mt-auto pt-1">
                     <span className="font-headline font-black text-primary text-base sm:text-lg" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-                      ₱{item.price.toFixed(0)}
+                      ₱{item.price.toFixed(2)}
                     </span>
                     <button
                       onClick={() => handleAdd(item)}

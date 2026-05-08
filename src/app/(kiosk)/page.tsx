@@ -208,7 +208,7 @@ export default function WelcomePage() {
                         {item.name}
                       </p>
                       <p className="font-black text-primary text-sm mt-1">
-                        ₱{item.price.toFixed(0)}
+                        ₱{item.price.toFixed(2)}
                       </p>
                     </div>
                   </button>
