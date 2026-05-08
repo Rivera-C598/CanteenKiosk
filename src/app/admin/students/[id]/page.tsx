@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, use } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Icon } from '@/components/shared/Icon'
 
@@ -28,8 +28,8 @@ interface Student {
   }>
 }
 
-export default function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
+export default function StudentDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params
   const router = useRouter()
   const [student, setStudent] = useState<Student | null>(null)
   const [loading, setLoading] = useState(true)
