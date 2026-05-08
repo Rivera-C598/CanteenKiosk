@@ -105,9 +105,7 @@ export default function WelcomePage() {
           {storeName}
         </div>
         <div className="glass-panel flex items-center gap-2 sm:gap-3 px-4 sm:px-5 py-2 rounded-full">
-          <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center">
-            <Icon name="school" className="text-white" size={16} />
-          </div>
+          <img src="/images/ctu-logo.png" alt="CTU Logo" className="w-8 h-8 object-contain" />
           <span className="font-headline font-bold text-on-surface text-sm tracking-wide" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
             CTU - DANAO CAMPUS
           </span>
