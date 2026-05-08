@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { hashPin, deriveTempPin } from '@/lib/pin-utils'
 import { generateQrToken } from '@/lib/qr-utils'
+import { cookies } from 'next/headers'
+import { getIronSession } from 'iron-session'
+import { sessionOptions, SessionData } from '@/lib/session'
+
+async function requireAdmin(): Promise<number | null> {
+  const cookieStore = await cookies()
+  const session = await getIronSession<SessionData>(cookieStore, sessionOptions)
+  return session.isLoggedIn ? (session.userId ?? null) : null
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -9,6 +18,9 @@ export async function GET(request: NextRequest) {
   const search = searchParams.get('search') ?? ''
 
   try {
+    const adminId = await requireAdmin()
+    if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
     const students = await prisma.studentAccount.findMany({
       where: {
         ...(status ? { status } : {}),
@@ -35,6 +47,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const adminId = await requireAdmin()
+    if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
     const { studentIdNumber, fullName, course, year, photoUrl, accountType } = await request.json()
 
     if (!studentIdNumber || !fullName || !course || !year) {

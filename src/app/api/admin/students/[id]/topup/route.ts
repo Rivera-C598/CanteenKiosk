@@ -14,7 +14,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   const cookieStore = await cookies()
   const session = await getIronSession<SessionData>(cookieStore, sessionOptions)
-  const adminId = session.userId ?? null
+  const adminId = session.isLoggedIn ? (session.userId ?? null) : null
+  if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   try {
     const student = await prisma.studentAccount.findUnique({ where: { id: parseInt(id) } })

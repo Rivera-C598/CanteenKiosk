@@ -15,6 +15,9 @@ async function getAdminId(): Promise<number | null> {
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   try {
+    const adminId = await getAdminId()
+    if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
     const student = await prisma.studentAccount.findUnique({
       where: { id: parseInt(id) },
       include: {

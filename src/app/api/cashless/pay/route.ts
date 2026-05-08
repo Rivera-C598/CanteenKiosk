@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     await prisma.studentAccount.update({
       where: { id: student.id },
       data: {
-        pinAttempts: locked ? 0 : newAttempts,
+        pinAttempts: locked ? MAX_ATTEMPTS : newAttempts,
         pinLockedUntil: locked ? new Date(Date.now() + LOCKOUT_SECONDS * 1000) : null,
       },
     })
@@ -43,33 +43,41 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: `Incorrect PIN. ${MAX_ATTEMPTS - newAttempts} attempt(s) left` }, { status: 401 })
   }
 
-  if (student.balance < order.totalAmount) {
-    return NextResponse.json({ error: `Insufficient balance. Balance: ₱${student.balance.toFixed(2)}` }, { status: 400 })
+  try {
+    await prisma.$transaction(async (tx) => {
+      const freshStudent = await tx.studentAccount.findUnique({ where: { id: student.id } })
+      if (!freshStudent || freshStudent.balance < order.totalAmount) {
+        throw new Error('INSUFFICIENT')
+      }
+
+      const balanceBefore = freshStudent.balance
+      const balanceAfter = balanceBefore - order.totalAmount
+
+      await tx.studentAccount.update({
+        where: { id: student.id },
+        data: { balance: balanceAfter, pinAttempts: 0, pinLockedUntil: null },
+      })
+      await tx.order.update({
+        where: { id: orderId },
+        data: { paymentStatus: 'paid', status: 'confirmed', studentAccountId: student.id },
+      })
+      await tx.studentTransaction.create({
+        data: {
+          studentAccountId: student.id,
+          type: 'payment',
+          amount: order.totalAmount,
+          balanceBefore,
+          balanceAfter,
+          orderId,
+        },
+      })
+    })
+  } catch (e: unknown) {
+    if (e instanceof Error && e.message === 'INSUFFICIENT') {
+      return NextResponse.json({ error: `Insufficient balance. Balance: ₱${student.balance.toFixed(2)}` }, { status: 400 })
+    }
+    return NextResponse.json({ error: 'Payment failed' }, { status: 500 })
   }
 
-  const balanceBefore = student.balance
-  const balanceAfter = balanceBefore - order.totalAmount
-
-  await prisma.$transaction([
-    prisma.studentAccount.update({
-      where: { id: student.id },
-      data: { balance: balanceAfter, pinAttempts: 0, pinLockedUntil: null },
-    }),
-    prisma.order.update({
-      where: { id: orderId },
-      data: { paymentStatus: 'paid', status: 'confirmed', studentAccountId: student.id },
-    }),
-    prisma.studentTransaction.create({
-      data: {
-        studentAccountId: student.id,
-        type: 'payment',
-        amount: order.totalAmount,
-        balanceBefore,
-        balanceAfter,
-        orderId,
-      },
-    }),
-  ])
-
-  return NextResponse.json({ ok: true, balanceAfter })
+  return NextResponse.json({ ok: true })
 }

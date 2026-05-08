@@ -25,6 +25,7 @@ function CashlessContent() {
 
   const [stage, setStage] = useState<Stage>('scanning')
   const [student, setStudent] = useState<StudentInfo | null>(null)
+  const [scannedToken, setScannedToken] = useState('')
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
   const [lockMsg, setLockMsg] = useState('')
@@ -65,7 +66,8 @@ function CashlessContent() {
       setStage('error')
       return
     }
-    setStudent({ ...data, _qrToken: qrToken } as StudentInfo & { _qrToken: string })
+    setStudent(data)
+    setScannedToken(qrToken)
     setStage('confirm')
   }
 
@@ -73,7 +75,7 @@ function CashlessContent() {
     if (pin.length < 4) { setError('Enter your PIN'); return }
     setStage('processing')
     setError('')
-    const qrToken = (student as unknown as { _qrToken: string })?._qrToken
+    const qrToken = scannedToken
     const res = await fetch('/api/cashless/pay', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -118,7 +120,7 @@ function CashlessContent() {
         <div className="text-center">
           <p className="text-on-surface-variant font-medium mb-1">Order {orderNumber}</p>
           <p className="font-headline font-black text-5xl text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-            ₱{amount.toFixed(0)}
+            ₱{amount.toFixed(2)}
           </p>
         </div>
 
@@ -176,7 +178,7 @@ function CashlessContent() {
           <div className="w-full max-w-xs flex flex-col items-center gap-6">
             <div className="text-center">
               <p className="text-on-surface font-bold">{student.fullName}</p>
-              <p className="text-on-surface-variant text-sm">Enter your PIN to pay ₱{amount.toFixed(0)}</p>
+              <p className="text-on-surface-variant text-sm">Enter your PIN to pay ₱{amount.toFixed(2)}</p>
             </div>
 
             {/* PIN dots */}
@@ -216,7 +218,7 @@ function CashlessContent() {
               {stage === 'processing' ? (
                 <><Icon name="hourglass_empty" size={24} className="animate-spin" /> Processing…</>
               ) : (
-                <><Icon name="check_circle" size={24} filled /> Pay ₱{amount.toFixed(0)}</>
+                <><Icon name="check_circle" size={24} filled /> Pay ₱{amount.toFixed(2)}</>
               )}
             </button>
 

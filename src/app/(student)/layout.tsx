@@ -1,24 +1,23 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 
-const INACTIVITY_MS = 3 * 60 * 1000 // 3 minutes
+const INACTIVITY_MS = 3 * 60 * 1000
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const resetTimer = () => {
+  const resetTimer = useCallback(() => {
     if (timer.current) clearTimeout(timer.current)
-    // Only auto-logout on protected pages
     if (pathname === '/student' || pathname === '/student/register') return
     timer.current = setTimeout(async () => {
       await fetch('/api/student/logout', { method: 'POST' })
       router.push('/student')
     }, INACTIVITY_MS)
-  }
+  }, [pathname, router])
 
   useEffect(() => {
     const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll']
@@ -28,7 +27,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       events.forEach(e => window.removeEventListener(e, resetTimer))
       if (timer.current) clearTimeout(timer.current)
     }
-  }, [pathname])
+  }, [resetTimer])
 
   return <div className="min-h-screen bg-background">{children}</div>
 }
