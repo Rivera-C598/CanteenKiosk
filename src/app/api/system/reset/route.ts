@@ -21,6 +21,28 @@ export async function POST(request: NextRequest) {
   if (action === 'seed' && confirm !== 'LOAD-DEMO') {
     return NextResponse.json({ error: 'Incorrect confirmation code' }, { status: 400 })
   }
+  if (action === 'nuclear' && confirm !== 'NUCLEAR-RESET') {
+    return NextResponse.json({ error: 'Incorrect confirmation code' }, { status: 400 })
+  }
+
+  if (action === 'nuclear') {
+    try {
+      await prisma.orderItemAddon.deleteMany()
+      await prisma.orderItem.deleteMany()
+      await prisma.orderLog.deleteMany()
+      await prisma.studentTransaction.deleteMany()
+      await prisma.order.deleteMany()
+      await prisma.studentAccount.deleteMany()
+      await prisma.menuItemAddon.deleteMany()
+      await prisma.menuItem.deleteMany()
+      await prisma.category.deleteMany()
+      await prisma.gCashAccount.deleteMany()
+      return NextResponse.json({ ok: true, message: 'Full reset complete. Admin accounts preserved.' })
+    } catch (error) {
+      console.error('Nuclear Reset Error:', error)
+      return NextResponse.json({ error: 'Reset failed' }, { status: 500 })
+    }
+  }
 
   if (action === 'clear' || action === 'seed') {
     try {

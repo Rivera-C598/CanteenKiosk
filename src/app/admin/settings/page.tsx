@@ -20,7 +20,7 @@ export default function SettingsPage() {
   const [form, setForm] = useState<Settings | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [resetModal, setResetModal] = useState<{ isOpen: boolean; action: 'clear' | 'seed' | null; input: string; error: string; success?: boolean }>({ isOpen: false, action: null, input: '', error: '' })
+  const [resetModal, setResetModal] = useState<{ isOpen: boolean; action: 'clear' | 'seed' | 'nuclear' | null; input: string; error: string; success?: boolean }>({ isOpen: false, action: null, input: '', error: '' })
   const [creds, setCreds] = useState({ currentPassword: '', newUsername: '', newPassword: '' })
   const [credsSaving, setCredsSaving] = useState(false)
   const [credsMsg, setCredsMsg] = useState<{ text: string; error: boolean } | null>(null)
@@ -72,7 +72,7 @@ export default function SettingsPage() {
 
   const confirmReset = async () => {
     if (!resetModal.action) return
-    const word = resetModal.action === 'clear' ? 'CLEAR-DB' : 'LOAD-DEMO'
+    const word = resetModal.action === 'clear' ? 'CLEAR-DB' : resetModal.action === 'nuclear' ? 'NUCLEAR-RESET' : 'LOAD-DEMO'
     if (resetModal.input !== word) {
       setResetModal(prev => ({ ...prev, error: "Incorrect confirmation word." }))
       return
@@ -364,6 +364,13 @@ export default function SettingsPage() {
             >
               Load Demo Data
             </button>
+            <button
+              onClick={() => openResetModal('nuclear')}
+              disabled={saving}
+              className="flex-1 bg-black text-white py-3 rounded-xl font-headline font-bold shadow-lg active:scale-95 transition-all text-sm disabled:opacity-50"
+            >
+              Nuclear Reset
+            </button>
           </div>
         </section>
 
@@ -393,7 +400,7 @@ export default function SettingsPage() {
             <div className="mb-6 bg-surface-container-lowest p-4 border border-outline-variant/20 rounded-xl text-center shadow-inner">
               <span className="text-xs text-stone-500 uppercase tracking-widest font-bold">Type exactly to confirm:</span>
               <p className="font-mono font-bold text-xl text-on-surface select-all mt-1">
-                {resetModal.action === 'clear' ? 'CLEAR-DB' : 'LOAD-DEMO'}
+                {resetModal.action === 'clear' ? 'CLEAR-DB' : resetModal.action === 'nuclear' ? 'NUCLEAR-RESET' : 'LOAD-DEMO'}
               </p>
             </div>
             <input
