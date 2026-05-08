@@ -22,11 +22,12 @@ interface Order {
   items: OrderItem[]
 }
 
-const ACTIVE_STATUSES = 'pending_verification,awaiting_payment,preparing,ready'
+const ACTIVE_STATUSES = 'pending_verification,awaiting_payment,confirmed,preparing,ready'
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; cardBg: string }> = {
   pending_verification: { label: 'Pending Payment Conf.', color: 'text-stone-500', cardBg: 'bg-white border-2 border-stone-200 border-dashed opacity-75' },
   awaiting_payment: { label: 'Awaiting Cash', color: 'text-stone-500', cardBg: 'bg-stone-50 border-2 border-stone-200' },
+  confirmed: { label: 'Cashless — Paid', color: 'text-primary', cardBg: 'bg-primary/5 border-2 border-primary/30' },
   preparing: { label: 'Preparing', color: 'text-on-secondary-container', cardBg: 'bg-secondary-container/30 border-2 border-secondary-container' },
   ready: { label: 'Ready for Pickup', color: 'text-on-tertiary-container', cardBg: 'bg-tertiary-container border-2 border-tertiary-container shadow-sm' },
 }
@@ -34,6 +35,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; cardBg: stri
 const NEXT_ACTION: Record<string, { label: string; icon: string; nextStatus: string; nextPayment?: string }> = {
   pending_verification: { label: 'Confirm GCash', icon: 'check_circle', nextStatus: 'preparing', nextPayment: 'paid' },
   awaiting_payment: { label: 'Confirm Cash', icon: 'payments', nextStatus: 'preparing', nextPayment: 'paid' },
+  confirmed: { label: 'Start Preparing', icon: 'cooking', nextStatus: 'preparing' },
   preparing: { label: 'Mark Ready', icon: 'done_all', nextStatus: 'ready' },
   ready: { label: 'Complete Order', icon: 'task_alt', nextStatus: 'completed' },
 }
@@ -477,7 +479,7 @@ export default function KitchenPage() {
                             }
                           }}
                           disabled={acting === order.id || (requireAllChecked && order.status === 'preparing' && !allItemsChecked(order))}
-                          className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl font-headline font-bold text-sm sm:text-base active:scale-95 transition-all disabled:opacity-50 ${order.status === 'ready' ? 'bg-tertiary text-on-tertiary shadow-lg shadow-tertiary/30' : order.status === 'preparing' ? 'bg-secondary text-on-secondary shadow-lg shadow-secondary/30' : 'bg-surface-container-highest text-on-surface hover:bg-stone-300'}`}
+                          className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl font-headline font-bold text-sm sm:text-base active:scale-95 transition-all disabled:opacity-50 ${order.status === 'ready' ? 'bg-tertiary text-on-tertiary shadow-lg shadow-tertiary/30' : order.status === 'preparing' ? 'bg-secondary text-on-secondary shadow-lg shadow-secondary/30' : order.status === 'confirmed' ? 'bg-primary text-on-primary shadow-lg shadow-primary/30' : 'bg-surface-container-highest text-on-surface hover:bg-stone-300'}`}
                         >
                           <Icon name={order.status === 'pending_verification' && order.paymentMethod === 'cashless' ? 'account_balance_wallet' : action.icon} size={22} />
                           {acting === order.id ? 'Loading…' : order.status === 'pending_verification' && order.paymentMethod === 'cashless' ? 'Confirm Cashless' : action.label}

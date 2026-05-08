@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     })
     await tx.order.update({
       where: { id: orderId },
-      data: { paymentStatus: 'paid', status: 'preparing', studentAccountId: student.id },
+      data: { paymentStatus: 'paid', status: 'confirmed', studentAccountId: student.id },
     })
     await tx.studentTransaction.create({
       data: {
