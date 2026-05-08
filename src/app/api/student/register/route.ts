@@ -10,7 +10,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'All fields required' }, { status: 400 })
   }
 
-  const existing = await prisma.studentAccount.findUnique({ where: { studentIdNumber } })
+  const idLen = String(studentIdNumber).trim().length
+  if (!/^\d+$/.test(String(studentIdNumber).trim())) {
+    return NextResponse.json({ error: 'Student ID must contain digits only' }, { status: 400 })
+  }
+  if (idLen !== 6 && idLen !== 7) {
+    return NextResponse.json({ error: 'Student ID must be 7 digits (student) or 6 digits (faculty)' }, { status: 400 })
+  }
+
+  const existing = await prisma.studentAccount.findUnique({ where: { studentIdNumber: String(studentIdNumber).trim() } })
   if (existing) {
     return NextResponse.json({ error: 'ID already registered' }, { status: 409 })
   }

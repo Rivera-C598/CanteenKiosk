@@ -56,7 +56,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    const existing = await prisma.studentAccount.findUnique({ where: { studentIdNumber } })
+    const idStr = String(studentIdNumber).trim()
+    if (!/^\d+$/.test(idStr) || (idStr.length !== 6 && idStr.length !== 7)) {
+      return NextResponse.json({ error: 'Student ID must be 7 digits (student) or 6 digits (faculty)' }, { status: 400 })
+    }
+
+    const existing = await prisma.studentAccount.findUnique({ where: { studentIdNumber: idStr } })
     if (existing) {
       return NextResponse.json({ error: 'Student ID already registered' }, { status: 409 })
     }

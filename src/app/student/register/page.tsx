@@ -11,7 +11,17 @@ export default function StudentRegisterPage() {
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
 
+  const idLen = form.studentIdNumber.trim().length
+  const idValid = (idLen === 6 || idLen === 7) && /^\d+$/.test(form.studentIdNumber.trim())
+  const idHint = form.studentIdNumber.trim().length === 0 ? ''
+    : !/^\d+$/.test(form.studentIdNumber.trim()) ? 'Digits only'
+    : idLen < 6 ? `${6 - idLen} more digit${6 - idLen > 1 ? 's' : ''} needed`
+    : idLen === 6 ? 'Faculty ID ✓'
+    : idLen === 7 ? 'Student ID ✓'
+    : 'Must be 6 or 7 digits'
+
   const handleSubmit = async () => {
+    if (!idValid) { setError('Enter a valid 7-digit student ID or 6-digit faculty ID'); return }
     setLoading(true)
     setError('')
     const res = await fetch('/api/student/register', {
@@ -46,8 +56,26 @@ export default function StudentRegisterPage() {
         </div>
 
         <div className="space-y-4">
+          {/* Student ID — separate for hint display */}
+          <div>
+            <label className="block text-sm font-semibold text-on-surface-variant mb-1.5">Student ID Number</label>
+            <input
+              value={form.studentIdNumber}
+              onChange={e => setForm(f => ({ ...f, studentIdNumber: e.target.value.replace(/\D/g, '').slice(0, 7) }))}
+              placeholder="7-digit student or 6-digit faculty"
+              inputMode="numeric"
+              className={`w-full px-4 py-3 rounded-xl bg-surface-container-lowest border text-on-surface text-sm outline-none focus:border-primary ${
+                form.studentIdNumber && !idValid ? 'border-error' : 'border-surface-container'
+              }`}
+            />
+            {idHint && (
+              <p className={`text-xs mt-1.5 font-medium ${idValid ? 'text-secondary' : 'text-on-surface-variant'}`}>
+                {idHint}
+              </p>
+            )}
+          </div>
+
           {[
-            { label: 'Student ID Number', key: 'studentIdNumber', placeholder: '7-digit or 6-digit ID' },
             { label: 'Full Name', key: 'fullName', placeholder: 'Last, First Middle' },
             { label: 'Course / Department', key: 'course', placeholder: 'BSCS, BSIT…' },
             { label: 'Year / Level', key: 'year', placeholder: '1st Year, Faculty…' },
@@ -68,7 +96,7 @@ export default function StudentRegisterPage() {
 
         <button
           onClick={handleSubmit}
-          disabled={loading || !form.studentIdNumber || !form.fullName || !form.course || !form.year}
+          disabled={loading || !idValid || !form.fullName || !form.course || !form.year}
           className="w-full mt-6 bg-primary text-on-primary rounded-xl px-6 py-4 font-black text-lg shadow-primary-glow active:scale-[0.98] disabled:opacity-40"
           style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
         >
