@@ -240,13 +240,7 @@ export default function WelcomePage() {
           >
             FILIPINO
           </button>
-          <button 
-            onClick={() => setLanguage('ceb')}
-            className={`glass-panel px-4 sm:px-6 py-3 rounded-full font-headline font-bold shadow-ambient active:scale-95 transition-transform duration-150 text-xs sm:text-sm ${language === 'ceb' ? 'bg-primary/10 text-primary border-primary/20' : 'text-on-surface'}`} 
-            style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-          >
-            CEBUANO
-          </button>
+          {/* CEBUANO hidden — translations incomplete */}
         </div>
         {/* Order status check */}
         <button
