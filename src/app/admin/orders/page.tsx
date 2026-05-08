@@ -73,6 +73,7 @@ export default function OrdersPage() {
   const [dateFilter, setDateFilter] = useState('today')
   const [acting, setActing] = useState<number | null>(null)
   const [logsModal, setLogsModal] = useState<{ orderNumber: string; logs: OrderLog[] } | null>(null)
+  const [confirmModal, setConfirmModal] = useState<{ type: 'cancel' | 'delete'; order: Order } | null>(null)
 
   const load = () => {
     const params = new URLSearchParams({ date: dateFilter })
@@ -102,18 +103,18 @@ export default function OrdersPage() {
   }
 
   const cancelOrder = async (id: number) => {
-    if (!confirm('Cancel this order?')) return
     await fetch(`/api/orders/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'cancelled' }),
     })
+    setConfirmModal(null)
     load()
   }
 
-  const deleteOrder = async (id: number, orderNumber: string) => {
-    if (!confirm(`Permanently delete order ${orderNumber} and all its records? This cannot be undone.`)) return
+  const deleteOrder = async (id: number) => {
     await fetch(`/api/orders/${id}`, { method: 'DELETE' })
+    setConfirmModal(null)
     load()
   }
 
@@ -271,7 +272,7 @@ export default function OrdersPage() {
                     )}
                     {!['completed', 'cancelled'].includes(order.status) && (
                       <button
-                        onClick={() => cancelOrder(order.id)}
+                        onClick={() => setConfirmModal({ type: 'cancel', order })}
                         title="Cancel Order"
                         className="p-2.5 text-stone-400 hover:text-error hover:bg-error/10 rounded-xl transition-all"
                       >
@@ -280,7 +281,7 @@ export default function OrdersPage() {
                     )}
                     {['completed', 'cancelled'].includes(order.status) && (
                       <button
-                        onClick={() => deleteOrder(order.id, order.orderNumber)}
+                        onClick={() => setConfirmModal({ type: 'delete', order })}
                         title="Permanently Delete"
                         className="p-2.5 text-stone-400 hover:text-error hover:bg-error/10 rounded-xl transition-all"
                       >
@@ -301,6 +302,38 @@ export default function OrdersPage() {
           })}
         </div>
       )}
+      {/* Cancel / Delete confirm modal */}
+      {confirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-surface rounded-3xl p-8 max-w-sm w-full shadow-2xl">
+            <div className="w-12 h-12 bg-error/10 rounded-full flex items-center justify-center mb-4 mx-auto">
+              <Icon name={confirmModal.type === 'delete' ? 'delete_forever' : 'cancel'} size={24} className="text-error" />
+            </div>
+            <h3 className="font-headline font-black text-xl text-center text-on-surface mb-2" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+              {confirmModal.type === 'delete' ? 'Delete Order?' : 'Cancel Order?'}
+            </h3>
+            <p className="text-on-surface-variant text-sm text-center mb-6">
+              {confirmModal.type === 'delete'
+                ? `Permanently delete order ${confirmModal.order.orderNumber} and all its records. This cannot be undone.`
+                : `Cancel order ${confirmModal.order.orderNumber} (₱${confirmModal.order.totalAmount.toFixed(2)})?`}
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmModal(null)}
+                className="flex-1 py-3 rounded-xl bg-surface-container text-on-surface font-bold text-sm active:scale-95">
+                Keep it
+              </button>
+              <button
+                onClick={() => confirmModal.type === 'delete'
+                  ? deleteOrder(confirmModal.order.id)
+                  : cancelOrder(confirmModal.order.id)}
+                className="flex-1 py-3 rounded-xl bg-error text-white font-bold text-sm active:scale-95">
+                {confirmModal.type === 'delete' ? 'Delete' : 'Cancel Order'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {logsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-surface rounded-3xl p-8 max-w-lg w-full shadow-2xl max-h-[80vh] flex flex-col">
