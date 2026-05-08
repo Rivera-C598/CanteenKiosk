@@ -12,6 +12,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  if (process.env.ENABLE_DANGER_ZONE !== 'true') {
+    return NextResponse.json({ error: 'Danger zone is disabled in this environment' }, { status: 403 })
+  }
+
   const { action, confirm } = await request.json()
 
   // Verify confirm code strictly

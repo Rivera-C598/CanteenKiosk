@@ -7,7 +7,11 @@ const SETTINGS_PATH = join(process.cwd(), 'settings.json')
 export async function GET() {
   try {
     const raw = await readFile(SETTINGS_PATH, 'utf-8')
-    return NextResponse.json(JSON.parse(raw))
+    const settings = JSON.parse(raw)
+    return NextResponse.json({
+      ...settings,
+      dangerZoneEnabled: process.env.ENABLE_DANGER_ZONE === 'true',
+    })
   } catch {
     return NextResponse.json({ error: 'Failed to read settings' }, { status: 500 })
   }

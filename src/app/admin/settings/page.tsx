@@ -14,6 +14,7 @@ interface Settings {
   openTime: string
   closeTime: string
   requireAllItemsChecked: boolean
+  dangerZoneEnabled?: boolean
 }
 
 export default function SettingsPage() {
@@ -338,8 +339,8 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* Danger Zone */}
-        <section className="bg-error-container/10 rounded-2xl shadow-sm border border-error/20 p-8 mt-8">
+        {/* Danger Zone — only shown when ENABLE_DANGER_ZONE=true in .env */}
+        {form.dangerZoneEnabled && <section className="bg-error-container/10 rounded-2xl shadow-sm border border-error/20 p-8 mt-8">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-error/10 flex justify-center items-center rounded-xl text-error">
               <Icon name="warning" size={20} />
@@ -372,7 +373,7 @@ export default function SettingsPage() {
               Nuclear Reset
             </button>
           </div>
-        </section>
+        </section>}
 
         {/* Save */}
         <div className="pt-4 flex justify-end">

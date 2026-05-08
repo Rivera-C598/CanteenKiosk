@@ -51,6 +51,9 @@ FIRST-TIME SETUP
    SESSION_SECRET="change-this-to-a-long-random-string-in-production"
    KIOSK_IP=          ← tablet/device IP that runs the kiosk (blank = no IP lock)
    KITCHEN_PIN=1234   ← staff PIN to access /kitchen (change before production)
+   ENABLE_DANGER_ZONE=true  ← set to true in dev only; remove or set false in production
+                               Controls visibility of Fresh Start / Load Demo / Nuclear Reset buttons
+                               and blocks the /api/system/reset endpoint entirely when false/missing
 
 2. Install dependencies:
    npm install
