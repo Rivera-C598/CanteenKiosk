@@ -11,7 +11,7 @@ export default function PaymentPage() {
   const router = useRouter()
   const { items, totalAmount, clearCart } = useCart()
   const { t } = useLanguage()
-  const [selected, setSelected] = useState<'cash' | 'gcash' | null>(null)
+  const [selected, setSelected] = useState<'cash' | 'gcash' | 'cashless' | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -36,6 +36,8 @@ export default function PaymentPage() {
       clearCart()
       if (selected === 'gcash') {
         router.push(`/payment/gcash?order=${order.orderNumber}&amount=${totalAmount}`)
+      } else if (selected === 'cashless') {
+        router.push(`/payment/cashless?order=${order.orderNumber}&amount=${totalAmount}&orderId=${order.id}`)
       } else {
         router.push(`/confirmed?order=${order.orderNumber}&method=${selected}&amount=${totalAmount}`)
       }
@@ -72,7 +74,7 @@ export default function PaymentPage() {
         </div>
 
         {/* Payment options */}
-        <div className="w-full max-w-lg grid grid-cols-1 min-[420px]:grid-cols-2 gap-3 sm:gap-4">
+        <div className="w-full max-w-lg grid grid-cols-1 min-[420px]:grid-cols-3 gap-3 sm:gap-4">
           {/* Cash */}
           <button
             onClick={() => setSelected('cash')}
@@ -102,6 +104,22 @@ export default function PaymentPage() {
             <div className="text-center">
               <p className="font-headline font-black text-xl" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>{t('payment.gcash')}</p>
               <p className="text-sm opacity-70 mt-1">{t('payment.gcash_desc')}</p>
+            </div>
+          </button>
+
+          {/* Cashless */}
+          <button
+            onClick={() => setSelected('cashless')}
+            className={`flex flex-col items-center gap-3 sm:gap-4 p-5 sm:p-8 rounded-xl transition-all duration-150 active:scale-95 ${
+              selected === 'cashless'
+                ? 'bg-primary text-on-primary shadow-primary-glow'
+                : 'bg-surface-container-lowest text-on-surface shadow-ambient'
+            }`}
+          >
+            <Icon name="badge" size={48} className={selected === 'cashless' ? 'text-on-primary' : 'text-primary'} filled={selected === 'cashless'} />
+            <div className="text-center">
+              <p className="font-headline font-black text-xl" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Cashless</p>
+              <p className="text-sm opacity-70 mt-1">Scan your QR card</p>
             </div>
           </button>
         </div>
