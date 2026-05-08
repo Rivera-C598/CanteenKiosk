@@ -29,6 +29,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         include: { items: { include: { menuItem: true } } },
       })
       if (!current) return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+      if (current.paymentStatus === 'paid') {
+        return NextResponse.json({ error: 'Cannot edit a paid order' }, { status: 400 })
+      }
 
       const beforeSnapshot = {
         items: current.items.map(i => ({ name: i.menuItem.name, quantity: i.quantity, unitPrice: i.unitPrice })),
