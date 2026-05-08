@@ -24,7 +24,7 @@ interface Order {
 const ACTIVE_STATUSES = 'pending_verification,awaiting_payment,preparing,ready'
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; cardBg: string }> = {
-  pending_verification: { label: 'Pending GCash Conf.', color: 'text-stone-500', cardBg: 'bg-white border-2 border-stone-200 border-dashed opacity-75' },
+  pending_verification: { label: 'Pending Payment Conf.', color: 'text-stone-500', cardBg: 'bg-white border-2 border-stone-200 border-dashed opacity-75' },
   awaiting_payment: { label: 'Awaiting Cash', color: 'text-stone-500', cardBg: 'bg-stone-50 border-2 border-stone-200' },
   preparing: { label: 'Preparing', color: 'text-on-secondary-container', cardBg: 'bg-secondary-container/30 border-2 border-secondary-container' },
   ready: { label: 'Ready for Pickup', color: 'text-on-tertiary-container', cardBg: 'bg-tertiary-container border-2 border-tertiary-container shadow-sm' },
