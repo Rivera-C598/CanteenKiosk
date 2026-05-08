@@ -71,7 +71,7 @@ export default function PaymentPage() {
         <div className="text-center">
           <p className="text-on-surface-variant font-medium mb-1">{t('payment.total')}</p>
           <p className="font-headline font-black text-5xl sm:text-6xl text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-            ₱{totalAmount.toFixed(0)}
+            ₱{totalAmount.toFixed(2)}
           </p>
         </div>
 

@@ -61,7 +61,7 @@ export default function CartPage() {
                 {item.name}
               </h3>
               <p className="font-headline font-black text-primary mt-0.5" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-                ₱{(item.price * item.quantity).toFixed(0)}
+                ₱{(item.price * item.quantity).toFixed(2)}
               </p>
             </div>
             {/* Quantity controls */}
@@ -92,7 +92,7 @@ export default function CartPage() {
           <span className="font-body text-on-surface-variant font-medium">{totalItems} {totalItems > 1 ? t('cart.items_plural') : t('cart.items')}</span>
           <div className="flex items-center gap-2">
             <span className="font-body text-on-surface-variant text-sm">{t('cart.total')}</span>
-            <span className="font-headline font-black text-2xl text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>₱{totalAmount.toFixed(0)}</span>
+            <span className="font-headline font-black text-2xl text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>₱{totalAmount.toFixed(2)}</span>
           </div>
         </div>
         <button

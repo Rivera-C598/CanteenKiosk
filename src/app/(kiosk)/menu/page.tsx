@@ -215,7 +215,7 @@ export default function MenuPage() {
               </div>
               <span className="font-headline font-bold text-base" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>{t('menu.view_order')}</span>
             </div>
-            <span className="font-headline font-black text-xl" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>₱{totalAmount.toFixed(0)}</span>
+            <span className="font-headline font-black text-xl" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>₱{totalAmount.toFixed(2)}</span>
           </button>
         </div>
       )}
