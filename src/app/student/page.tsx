@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Icon } from '@/components/shared/Icon'
+import { useStoreName } from '@/lib/store-context'
 
 export default function StudentLoginPage() {
   const router = useRouter()
+  const storeName = useStoreName()
   const [studentIdNumber, setStudentIdNumber] = useState('')
   const [pin, setPin] = useState('')
   const [loading, setLoading] = useState(false)
@@ -36,7 +38,7 @@ export default function StudentLoginPage() {
             <Icon name="account_balance_wallet" size={32} className="text-on-primary" />
           </div>
           <h1 className="text-3xl font-black italic text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-            HyperBite Pay
+            {storeName} Pay
           </h1>
           <p className="text-on-surface-variant text-sm mt-1">Student Cashless Account</p>
         </div>
