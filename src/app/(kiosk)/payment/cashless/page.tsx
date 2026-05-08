@@ -46,7 +46,6 @@ function CashlessContent() {
         streamRef.current = stream
         if (videoRef.current) {
           videoRef.current.srcObject = stream
-          await videoRef.current.play()
         }
 
         const canvas = document.createElement('canvas')
@@ -167,6 +166,7 @@ function CashlessContent() {
               <video
                 ref={videoRef}
                 className="absolute inset-0 w-full h-full object-cover"
+                autoPlay
                 muted
                 playsInline
               />
