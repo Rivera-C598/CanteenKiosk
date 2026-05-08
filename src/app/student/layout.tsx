@@ -15,7 +15,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     if (pathname === '/student' || pathname === '/student/register') return
     timer.current = setTimeout(async () => {
       await fetch('/api/student/logout', { method: 'POST' })
-      router.push('/student')
+      router.push('/student?reason=inactive')
     }, INACTIVITY_MS)
   }, [pathname, router])
 

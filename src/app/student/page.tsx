@@ -1,13 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Icon } from '@/components/shared/Icon'
 import { useStoreName } from '@/lib/store-context'
+import { Suspense } from 'react'
 
-export default function StudentLoginPage() {
+function StudentLoginContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const storeName = useStoreName()
+  const wasInactive = searchParams.get('reason') === 'inactive'
   const [studentIdNumber, setStudentIdNumber] = useState('')
   const [pin, setPin] = useState('')
   const [loading, setLoading] = useState(false)
@@ -42,6 +45,13 @@ export default function StudentLoginPage() {
           </h1>
           <p className="text-on-surface-variant text-sm mt-1">Student Cashless Account</p>
         </div>
+
+        {wasInactive && (
+          <div className="flex items-center gap-2 bg-warning-container text-on-warning-container px-4 py-3 rounded-xl text-sm font-medium">
+            <Icon name="schedule" size={18} className="shrink-0" />
+            You were automatically logged out due to inactivity.
+          </div>
+        )}
 
         <div className="space-y-4">
           <input
@@ -80,5 +90,13 @@ export default function StudentLoginPage() {
         </button>
       </div>
     </div>
+  )
+}
+
+export default function StudentLoginPage() {
+  return (
+    <Suspense>
+      <StudentLoginContent />
+    </Suspense>
   )
 }
