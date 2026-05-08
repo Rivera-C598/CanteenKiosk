@@ -51,7 +51,7 @@ export default function StudentLoginPage() {
           <input
             type="password"
             inputMode="numeric"
-            maxLength={6}
+            maxLength={4}
             value={pin}
             onChange={e => setPin(e.target.value)}
             placeholder="PIN"

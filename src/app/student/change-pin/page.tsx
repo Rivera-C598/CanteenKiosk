@@ -14,7 +14,7 @@ export default function ChangePinPage() {
 
   const handleChange = async () => {
     if (newPin !== confirmPin) { setError('PINs do not match'); return }
-    if (newPin.length < 4) { setError('PIN must be at least 4 digits'); return }
+    if (newPin.length !== 4) { setError('PIN must be exactly 4 digits'); return }
     setLoading(true)
     setError('')
     const res = await fetch('/api/student/change-pin', {
@@ -38,7 +38,7 @@ export default function ChangePinPage() {
         </div>
 
         <div className="p-4 bg-secondary-container rounded-xl mb-6 text-on-secondary-container text-sm">
-          Choose a new 4–6 digit PIN. You will use this at the kiosk when paying.
+          Choose a new 4-digit PIN. You will use this at the kiosk when paying.
         </div>
 
         <div className="space-y-4">
@@ -52,7 +52,7 @@ export default function ChangePinPage() {
               <input
                 type="password"
                 inputMode="numeric"
-                maxLength={6}
+                maxLength={4}
                 value={val}
                 onChange={e => set(e.target.value)}
                 className="w-full px-4 py-4 rounded-xl bg-surface-container-lowest border border-surface-container text-on-surface outline-none focus:border-primary text-center text-2xl tracking-[0.5em]"

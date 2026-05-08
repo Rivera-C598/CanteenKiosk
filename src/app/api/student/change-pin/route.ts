@@ -13,8 +13,8 @@ export async function POST(request: NextRequest) {
   }
 
   const { currentPin, newPin } = await request.json()
-  if (!currentPin || !newPin || newPin.length < 4) {
-    return NextResponse.json({ error: 'Invalid PIN' }, { status: 400 })
+  if (!currentPin || !newPin || newPin.length !== 4) {
+    return NextResponse.json({ error: 'PIN must be exactly 4 digits' }, { status: 400 })
   }
 
   const student = await prisma.studentAccount.findUnique({ where: { id: session.studentId } })
