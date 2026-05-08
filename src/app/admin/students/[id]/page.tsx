@@ -40,6 +40,13 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
   const [showQr, setShowQr] = useState(false)
   const [actionLoading, setActionLoading] = useState(false)
   const [pendingAction, setPendingAction] = useState<string | null>(null)
+  const [showEdit, setShowEdit] = useState(false)
+  const [editForm, setEditForm] = useState({ fullName: '', course: '', year: '' })
+  const [editLoading, setEditLoading] = useState(false)
+  const [editError, setEditError] = useState('')
+  const [showDelete, setShowDelete] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   const fetch_ = async () => {
     setLoading(true)
@@ -75,6 +82,37 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
     setTopupAmount('')
     await fetch_()
     setTopupLoading(false)
+  }
+
+  const openEdit = () => {
+    if (!student) return
+    setEditForm({ fullName: student.fullName, course: student.course, year: student.year })
+    setEditError('')
+    setShowEdit(true)
+  }
+
+  const saveEdit = async () => {
+    setEditLoading(true)
+    setEditError('')
+    const res = await fetch(`/api/admin/students/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'edit', ...editForm }),
+    })
+    const data = await res.json()
+    if (!res.ok) { setEditError(data.error ?? 'Failed'); setEditLoading(false); return }
+    setShowEdit(false)
+    await fetch_()
+    setEditLoading(false)
+  }
+
+  const doDelete = async () => {
+    setDeleteLoading(true)
+    setDeleteError('')
+    const res = await fetch(`/api/admin/students/${id}`, { method: 'DELETE' })
+    const data = await res.json()
+    if (!res.ok) { setDeleteError(data.error ?? 'Failed'); setDeleteLoading(false); return }
+    router.push('/admin/students')
   }
 
   const loadQr = async () => {
@@ -181,6 +219,14 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
           className="flex items-center gap-2 bg-surface-container text-on-surface px-4 py-2.5 rounded-xl text-sm font-bold active:scale-95">
           <Icon name="print" size={18} /> {showQr ? 'Print Card' : 'Load QR'}
         </button>
+        <button onClick={openEdit}
+          className="flex items-center gap-2 bg-surface-container text-on-surface px-4 py-2.5 rounded-xl text-sm font-bold active:scale-95">
+          <Icon name="edit" size={18} /> Edit Details
+        </button>
+        <button onClick={() => { setDeleteError(''); setShowDelete(true) }}
+          className="flex items-center gap-2 bg-error-container text-on-error-container px-4 py-2.5 rounded-xl text-sm font-bold active:scale-95">
+          <Icon name="delete" size={18} /> Delete
+        </button>
       </div>
 
       {/* Inline confirm bar */}
@@ -267,6 +313,68 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
           </div>
         )}
       </div>
+
+      {/* Edit modal */}
+      {showEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-surface rounded-3xl p-8 max-w-sm w-full shadow-2xl flex flex-col gap-4">
+            <h2 className="font-headline font-black text-xl text-on-surface" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Edit Details</h2>
+            {[
+              { label: 'Full Name', key: 'fullName' },
+              { label: 'Course / Department', key: 'course' },
+              { label: 'Year / Level', key: 'year' },
+            ].map(({ label, key }) => (
+              <div key={key}>
+                <label className="block text-xs font-semibold text-on-surface-variant mb-1.5 uppercase tracking-wide">{label}</label>
+                <input
+                  value={editForm[key as keyof typeof editForm]}
+                  onChange={e => setEditForm(f => ({ ...f, [key]: e.target.value }))}
+                  className="w-full px-4 py-3 rounded-xl bg-surface-container-lowest border border-surface-container text-on-surface text-sm outline-none focus:border-primary"
+                />
+              </div>
+            ))}
+            {editError && <p className="text-error text-sm">{editError}</p>}
+            <div className="flex gap-3 mt-2">
+              <button onClick={() => setShowEdit(false)}
+                className="flex-1 py-3 rounded-xl bg-surface-container text-on-surface font-bold text-sm active:scale-95">
+                Cancel
+              </button>
+              <button onClick={saveEdit} disabled={editLoading}
+                className="flex-1 py-3 rounded-xl bg-primary text-on-primary font-bold text-sm shadow-primary-glow active:scale-95 disabled:opacity-40">
+                {editLoading ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete modal */}
+      {showDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-surface rounded-3xl p-8 max-w-sm w-full shadow-2xl flex flex-col gap-4">
+            <div className="w-12 h-12 bg-error/10 rounded-full flex items-center justify-center mx-auto">
+              <Icon name="delete" size={24} className="text-error" />
+            </div>
+            <div className="text-center">
+              <h2 className="font-headline font-black text-xl text-on-surface" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Delete Account?</h2>
+              <p className="text-on-surface-variant text-sm mt-1">
+                This permanently removes <span className="font-bold text-on-surface">{student.fullName}</span> and all their transaction history.
+              </p>
+            </div>
+            {deleteError && <p className="text-error text-sm text-center">{deleteError}</p>}
+            <div className="flex gap-3">
+              <button onClick={() => setShowDelete(false)}
+                className="flex-1 py-3 rounded-xl bg-surface-container text-on-surface font-bold text-sm active:scale-95">
+                Cancel
+              </button>
+              <button onClick={doDelete} disabled={deleteLoading}
+                className="flex-1 py-3 rounded-xl bg-error text-white font-bold text-sm active:scale-95 disabled:opacity-40">
+                {deleteLoading ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

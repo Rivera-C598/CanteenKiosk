@@ -80,8 +80,47 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json(updated)
     }
 
+    // Edit details
+    if (body.action === 'edit') {
+      const { fullName, course, year, photoUrl } = body
+      if (!fullName || !course || !year) {
+        return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+      }
+      const updated = await prisma.studentAccount.update({
+        where: { id: parseInt(id) },
+        data: { fullName, course, year, ...(photoUrl !== undefined ? { photoUrl } : {}) },
+      })
+      return NextResponse.json(updated)
+    }
+
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
   } catch {
     return NextResponse.json({ error: 'Failed to update student' }, { status: 500 })
+  }
+}
+
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const adminId = await getAdminId()
+  if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  try {
+    const student = await prisma.studentAccount.findUnique({
+      where: { id: parseInt(id) },
+      include: { transactions: true, orders: true },
+    })
+    if (!student) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+    if (student.balance > 0) {
+      return NextResponse.json({ error: `Account has ₱${student.balance.toFixed(2)} remaining balance. Top down to ₱0 before deleting.` }, { status: 400 })
+    }
+
+    // Delete transactions first (FK constraint), then account
+    await prisma.studentTransaction.deleteMany({ where: { studentAccountId: parseInt(id) } })
+    await prisma.studentAccount.delete({ where: { id: parseInt(id) } })
+
+    return NextResponse.json({ ok: true })
+  } catch {
+    return NextResponse.json({ error: 'Failed to delete student' }, { status: 500 })
   }
 }
