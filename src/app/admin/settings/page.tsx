@@ -21,6 +21,27 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [resetModal, setResetModal] = useState<{ isOpen: boolean; action: 'clear' | 'seed' | null; input: string; error: string; success?: boolean }>({ isOpen: false, action: null, input: '', error: '' })
+  const [creds, setCreds] = useState({ currentPassword: '', newUsername: '', newPassword: '' })
+  const [credsSaving, setCredsSaving] = useState(false)
+  const [credsMsg, setCredsMsg] = useState<{ text: string; error: boolean } | null>(null)
+
+  const saveCreds = async () => {
+    setCredsSaving(true)
+    setCredsMsg(null)
+    const res = await fetch('/api/admin/credentials', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(creds),
+    })
+    const data = await res.json()
+    if (res.ok) {
+      setCredsMsg({ text: 'Credentials updated', error: false })
+      setCreds({ currentPassword: '', newUsername: '', newPassword: '' })
+    } else {
+      setCredsMsg({ text: data.error ?? 'Failed', error: true })
+    }
+    setCredsSaving(false)
+  }
 
   useEffect(() => {
     fetch('/api/settings').then(r => r.json()).then(data => {
@@ -256,6 +277,63 @@ export default function SettingsPage() {
               className={`w-14 h-8 rounded-full transition-colors relative shadow-inner shadow-black/10 flex items-center shrink-0 ${form.requireAllItemsChecked ? 'bg-tertiary' : 'bg-stone-300'}`}
             >
               <span className={`absolute left-0 w-6 h-6 rounded-full bg-white transition-transform shadow-md ${form.requireAllItemsChecked ? 'translate-x-7' : 'translate-x-1'}`} />
+            </button>
+          </div>
+        </section>
+
+        {/* Admin Credentials */}
+        <section className="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/10 p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-surface-container flex justify-center items-center rounded-xl text-stone-500">
+              <Icon name="manage_accounts" size={20} />
+            </div>
+            <div>
+              <h3 className="font-headline font-bold text-on-surface text-xl">Admin Credentials</h3>
+              <p className="text-xs text-stone-400 font-medium mt-0.5">Leave a field blank to keep it unchanged.</p>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-bold text-on-surface-variant mb-1 block">Current Password <span className="text-error">*</span></label>
+              <input
+                type="password"
+                value={creds.currentPassword}
+                onChange={e => setCreds(c => ({ ...c, currentPassword: e.target.value }))}
+                placeholder="Required to make any changes"
+                className="w-full bg-surface-container-low/50 border border-outline-variant/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-bold text-on-surface-variant mb-1 block">New Username</label>
+                <input
+                  type="text"
+                  value={creds.newUsername}
+                  onChange={e => setCreds(c => ({ ...c, newUsername: e.target.value }))}
+                  placeholder="Leave blank to keep current"
+                  className="w-full bg-surface-container-low/50 border border-outline-variant/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-bold text-on-surface-variant mb-1 block">New Password</label>
+                <input
+                  type="password"
+                  value={creds.newPassword}
+                  onChange={e => setCreds(c => ({ ...c, newPassword: e.target.value }))}
+                  placeholder="Min 6 characters"
+                  className="w-full bg-surface-container-low/50 border border-outline-variant/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              </div>
+            </div>
+            {credsMsg && (
+              <p className={`text-sm font-medium ${credsMsg.error ? 'text-error' : 'text-secondary'}`}>{credsMsg.text}</p>
+            )}
+            <button
+              onClick={saveCreds}
+              disabled={credsSaving || !creds.currentPassword || (!creds.newUsername && !creds.newPassword)}
+              className="bg-primary text-on-primary px-6 py-3 rounded-xl font-bold text-sm shadow-primary-glow active:scale-95 disabled:opacity-40 transition-all"
+            >
+              {credsSaving ? 'Saving…' : 'Update Credentials'}
             </button>
           </div>
         </section>
