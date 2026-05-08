@@ -39,6 +39,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
   const [qrStudent, setQrStudent] = useState<Student | null>(null)
   const [showQr, setShowQr] = useState(false)
   const [actionLoading, setActionLoading] = useState(false)
+  const [pendingAction, setPendingAction] = useState<string | null>(null)
 
   const fetch_ = async () => {
     setLoading(true)
@@ -51,8 +52,8 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
   useEffect(() => { fetch_() }, [id])
 
   const doAction = async (action: string) => {
-    if (!confirm(`Confirm: ${action}?`)) return
     setActionLoading(true)
+    setPendingAction(null)
     await fetch(`/api/admin/students/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -151,28 +152,28 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
       {/* Actions */}
       <div className="flex flex-wrap gap-3 mb-6">
         {student.status === 'pending' && (
-          <button onClick={() => doAction('activate')} disabled={actionLoading}
+          <button onClick={() => setPendingAction('activate')} disabled={actionLoading}
             className="flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-xl text-sm font-bold shadow-primary-glow active:scale-95 disabled:opacity-40">
             <Icon name="check_circle" size={18} /> Activate
           </button>
         )}
         {student.status === 'active' && (
-          <button onClick={() => doAction('freeze')} disabled={actionLoading}
+          <button onClick={() => setPendingAction('freeze')} disabled={actionLoading}
             className="flex items-center gap-2 bg-error-container text-on-error-container px-4 py-2.5 rounded-xl text-sm font-bold active:scale-95 disabled:opacity-40">
             <Icon name="lock" size={18} /> Freeze Account
           </button>
         )}
         {student.status === 'frozen' && (
-          <button onClick={() => doAction('unfreeze')} disabled={actionLoading}
+          <button onClick={() => setPendingAction('unfreeze')} disabled={actionLoading}
             className="flex items-center gap-2 bg-secondary-container text-on-secondary-container px-4 py-2.5 rounded-xl text-sm font-bold active:scale-95 disabled:opacity-40">
             <Icon name="lock_open" size={18} /> Unfreeze
           </button>
         )}
-        <button onClick={() => doAction('reset-pin')} disabled={actionLoading}
+        <button onClick={() => setPendingAction('reset-pin')} disabled={actionLoading}
           className="flex items-center gap-2 bg-surface-container text-on-surface px-4 py-2.5 rounded-xl text-sm font-bold active:scale-95 disabled:opacity-40">
           <Icon name="pin" size={18} /> Reset PIN
         </button>
-        <button onClick={() => doAction('regen-qr')} disabled={actionLoading}
+        <button onClick={() => setPendingAction('regen-qr')} disabled={actionLoading}
           className="flex items-center gap-2 bg-surface-container text-on-surface px-4 py-2.5 rounded-xl text-sm font-bold active:scale-95 disabled:opacity-40">
           <Icon name="qr_code" size={18} /> Regen QR
         </button>
@@ -181,6 +182,31 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
           <Icon name="print" size={18} /> {showQr ? 'Print Card' : 'Load QR'}
         </button>
       </div>
+
+      {/* Inline confirm bar */}
+      {pendingAction && (
+        <div className="mb-4 flex items-center justify-between gap-4 px-4 py-3 bg-surface-container rounded-xl border border-surface-container-high">
+          <p className="text-on-surface text-sm font-medium">
+            {{
+              activate: 'Activate this account?',
+              freeze: 'Freeze this account? Student cannot pay until unfrozen.',
+              unfreeze: 'Unfreeze this account?',
+              'reset-pin': 'Reset PIN to temp PIN (last 4 of ID)?',
+              'regen-qr': 'Regenerate QR? Old card will stop working.',
+            }[pendingAction]}
+          </p>
+          <div className="flex gap-2 shrink-0">
+            <button onClick={() => setPendingAction(null)}
+              className="px-3 py-1.5 rounded-lg text-sm font-semibold text-on-surface-variant bg-surface-container-lowest active:scale-95">
+              Cancel
+            </button>
+            <button onClick={() => doAction(pendingAction)} disabled={actionLoading}
+              className="px-3 py-1.5 rounded-lg text-sm font-semibold text-on-primary bg-primary shadow-primary-glow active:scale-95 disabled:opacity-40">
+              {actionLoading ? '…' : 'Confirm'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* QR Preview */}
       {showQr && qrSvg && (
