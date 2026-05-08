@@ -34,8 +34,7 @@ export default function PaymentPage() {
       if (!res.ok) throw new Error('Order failed')
       const order = await res.json()
       if (selected === 'gcash') {
-        clearCart()
-        router.push(`/payment/gcash?order=${order.orderNumber}&amount=${totalAmount}`)
+        router.push(`/payment/gcash?order=${order.orderNumber}&amount=${totalAmount}&orderId=${order.id}`)
       } else if (selected === 'cashless') {
         // Don't clear cart yet — clear only on successful payment in cashless page
         router.push(`/payment/cashless?order=${order.orderNumber}&amount=${totalAmount}&orderId=${order.id}`)

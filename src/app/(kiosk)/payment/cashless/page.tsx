@@ -140,11 +140,37 @@ function CashlessContent() {
     <div className="h-[100dvh] w-screen flex flex-col bg-background overflow-hidden">
       {/* Header */}
       <header className="flex items-center justify-between gap-3 px-4 sm:px-8 py-3 sm:py-4 bg-surface-container-low shrink-0">
-        <button onClick={() => router.push('/payment')}
-          className="flex items-center gap-2 text-on-surface-variant active:scale-95 transition-transform">
-          <Icon name="arrow_back" size={24} />
-          <span className="font-body text-sm font-medium">Back</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={async () => {
+              await fetch(`/api/orders/${orderId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'cancelled', cancelReason: 'customer_cancelled' }) })
+              router.push('/cart')
+            }}
+            className="flex items-center gap-1.5 text-on-surface-variant active:scale-95 transition-transform text-sm font-medium"
+          >
+            <Icon name="shopping_cart" size={20} /> Cart
+          </button>
+          <span className="text-surface-container-high">·</span>
+          <button
+            onClick={async () => {
+              await fetch(`/api/orders/${orderId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'cancelled', cancelReason: 'customer_cancelled' }) })
+              router.push('/payment')
+            }}
+            className="flex items-center gap-1.5 text-on-surface-variant active:scale-95 transition-transform text-sm font-medium"
+          >
+            <Icon name="swap_horiz" size={20} /> Change
+          </button>
+          <span className="text-surface-container-high">·</span>
+          <button
+            onClick={async () => {
+              await fetch(`/api/orders/${orderId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'cancelled', cancelReason: 'customer_cancelled' }) })
+              router.push('/')
+            }}
+            className="flex items-center gap-1.5 text-error active:scale-95 transition-transform text-sm font-medium"
+          >
+            <Icon name="close" size={20} /> Cancel
+          </button>
+        </div>
         <div className="text-xl sm:text-2xl font-black italic text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
           Cashless Pay
         </div>

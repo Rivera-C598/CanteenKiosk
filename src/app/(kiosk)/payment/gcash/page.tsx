@@ -4,13 +4,16 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useEffect, useState, Suspense } from 'react'
 import { Icon } from '@/components/shared/Icon'
 import { useLanguage } from '@/lib/language-context'
+import { useCart } from '@/lib/cart-context'
 
 function GCashContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { t } = useLanguage()
+  const { clearCart } = useCart()
   const orderNumber = searchParams.get('order') ?? 'A-001'
   const amount = searchParams.get('amount') ?? '0'
+  const orderId = searchParams.get('orderId')
   const [timeLeft, setTimeLeft] = useState(600) // 10 minutes
   const [gcashAccount, setGcashAccount] = useState<{
     accountName: string
@@ -39,11 +42,33 @@ function GCashContent() {
   const seconds = timeLeft % 60
   const isUrgent = timeLeft <= 60
 
+  const cancelOrder = async () => {
+    if (orderId) {
+      await fetch(`/api/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'cancelled', cancelReason: 'customer_cancelled' }),
+      })
+    }
+  }
+
   const handlePaid = () => {
+    clearCart()
     router.push(`/confirmed?order=${orderNumber}&method=gcash&amount=${amount}`)
   }
 
-  const handleCancel = () => {
+  const handleChangePayment = async () => {
+    await cancelOrder()
+    router.push('/payment')
+  }
+
+  const handleBackToCart = async () => {
+    await cancelOrder()
+    router.push('/cart')
+  }
+
+  const handleCancel = async () => {
+    await cancelOrder()
     router.push('/')
   }
 
@@ -51,13 +76,19 @@ function GCashContent() {
     <div className="h-[100dvh] w-screen flex flex-col bg-background overflow-hidden">
       {/* Header */}
       <header className="flex items-center justify-between gap-3 px-4 sm:px-8 py-3 sm:py-4 bg-surface-container-low shrink-0">
-        <button
-          onClick={handleCancel}
-          className="flex items-center gap-2 text-on-surface-variant active:scale-95 transition-transform"
-        >
-          <Icon name="close" size={24} />
-          <span className="font-body text-sm font-medium">{t('gcash.cancel')}</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={handleBackToCart} className="flex items-center gap-1.5 text-on-surface-variant active:scale-95 transition-transform text-sm font-medium">
+            <Icon name="shopping_cart" size={20} /> Cart
+          </button>
+          <span className="text-surface-container-high">·</span>
+          <button onClick={handleChangePayment} className="flex items-center gap-1.5 text-on-surface-variant active:scale-95 transition-transform text-sm font-medium">
+            <Icon name="swap_horiz" size={20} /> Change
+          </button>
+          <span className="text-surface-container-high">·</span>
+          <button onClick={handleCancel} className="flex items-center gap-1.5 text-error active:scale-95 transition-transform text-sm font-medium">
+            <Icon name="close" size={20} /> Cancel
+          </button>
+        </div>
         <div className="text-lg sm:text-2xl font-black italic text-primary truncate" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
           {t('gcash.title')}
         </div>
@@ -92,7 +123,7 @@ function GCashContent() {
           <div className="text-center">
             <p className="text-on-surface-variant font-medium mb-1">{t('gcash.send_exactly')}</p>
             <p className="font-headline font-black text-5xl sm:text-6xl text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-              ₱{parseFloat(amount).toFixed(0)}
+              ₱{parseFloat(amount).toFixed(2)}
             </p>
             <p className="text-on-surface-variant text-sm mt-1">{t('gcash.order')} {orderNumber}</p>
           </div>
@@ -131,7 +162,7 @@ function GCashContent() {
             {[
               { icon: 'smartphone', text: t('gcash.step1') },
               { icon: 'qr_code_scanner', text: t('gcash.step2') },
-              { icon: 'payments', text: `${t('gcash.step3')} ₱${parseFloat(amount).toFixed(0)}` },
+              { icon: 'payments', text: `${t('gcash.step3')} ₱${parseFloat(amount).toFixed(2)}` },
               { icon: 'send', text: t('gcash.step4') },
             ].map((step, i) => (
               <div key={i} className="flex items-center gap-3 mb-2 last:mb-0">
