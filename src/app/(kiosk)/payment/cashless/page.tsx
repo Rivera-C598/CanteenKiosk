@@ -199,7 +199,20 @@ function CashlessContent() {
 
             {student.balance < amount && (
               <div className="w-full p-4 bg-error-container rounded-xl text-on-error-container text-sm text-center">
-                Insufficient balance (₱{student.balance.toFixed(2)} available)
+                <p className="font-bold mb-2">Insufficient balance (₱{student.balance.toFixed(2)} available)</p>
+                <button
+                  onClick={async () => {
+                    await fetch(`/api/orders/${orderId}`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ status: 'cancelled', cancelReason: 'insufficient_balance' }),
+                    })
+                    router.push('/payment')
+                  }}
+                  className="bg-error text-white px-4 py-2 rounded-xl text-sm font-bold active:scale-95 transition-transform"
+                >
+                  Change Payment Method
+                </button>
               </div>
             )}
 

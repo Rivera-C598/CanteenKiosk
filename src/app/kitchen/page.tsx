@@ -210,7 +210,13 @@ export default function KitchenPage() {
     load()
     const poll = setInterval(load, 3000)
     const tick = setInterval(() => setTime(new Date()), 10000)
-    return () => { clearInterval(poll); clearInterval(tick) }
+    const cleanup = setInterval(() => {
+      fetch('/api/orders/cleanup', { method: 'POST' })
+        .then(r => r.json())
+        .then(d => { if (d.cancelled > 0) load() })
+        .catch(() => {})
+    }, 30000)
+    return () => { clearInterval(poll); clearInterval(tick); clearInterval(cleanup) }
   }, [load])
 
   useEffect(() => {
@@ -556,6 +562,7 @@ export default function KitchenPage() {
                 { key: 'customer_request', label: 'Customer Request' },
                 { key: 'out_of_stock', label: 'Out of Stock' },
                 { key: 'duplicate', label: 'Duplicate Order' },
+                { key: 'abandoned', label: 'Abandoned / No Payment' },
               ].map(reason => (
                 <button
                   key={reason.key}
