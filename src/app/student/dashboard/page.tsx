@@ -11,11 +11,24 @@ export default function StudentDashboard() {
   const router = useRouter()
   const [me, setMe] = useState<Me | null>(null)
   const [txs, setTxs] = useState<Tx[]>([])
+  const [qrSvg, setQrSvg] = useState('')
+  const [showQr, setShowQr] = useState(false)
+  const [qrLoading, setQrLoading] = useState(false)
 
   useEffect(() => {
     fetch('/api/student/me').then(r => r.json()).then(setMe).catch(() => router.push('/student'))
     fetch('/api/student/transactions').then(r => r.json()).then((data: Tx[]) => setTxs(data.slice(0, 5)))
   }, [])
+
+  const toggleQr = async () => {
+    if (showQr) { setShowQr(false); return }
+    if (qrSvg) { setShowQr(true); return }
+    setQrLoading(true)
+    const res = await fetch('/api/student/qr')
+    const data = await res.json()
+    if (res.ok) { setQrSvg(data.svg); setShowQr(true) }
+    setQrLoading(false)
+  }
 
   const handleLogout = async () => {
     await fetch('/api/student/logout', { method: 'POST' })
@@ -47,18 +60,36 @@ export default function StudentDashboard() {
       </div>
 
       {/* Quick actions */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
+      <div className="grid grid-cols-3 gap-3 mb-4">
         <button onClick={() => router.push('/student/transactions')}
           className="flex flex-col items-center gap-2 p-4 bg-surface-container-lowest rounded-xl active:scale-95 transition-transform">
           <Icon name="receipt_long" size={28} className="text-primary" />
-          <span className="text-sm font-medium text-on-surface">History</span>
+          <span className="text-xs font-medium text-on-surface">History</span>
+        </button>
+        <button onClick={toggleQr} disabled={qrLoading}
+          className={`flex flex-col items-center gap-2 p-4 rounded-xl active:scale-95 transition-transform ${showQr ? 'bg-primary' : 'bg-surface-container-lowest'}`}>
+          <Icon name="qr_code" size={28} className={showQr ? 'text-on-primary' : 'text-primary'} />
+          <span className={`text-xs font-medium ${showQr ? 'text-on-primary' : 'text-on-surface'}`}>
+            {qrLoading ? '…' : 'My QR'}
+          </span>
         </button>
         <button onClick={() => router.push('/student/change-pin')}
           className="flex flex-col items-center gap-2 p-4 bg-surface-container-lowest rounded-xl active:scale-95 transition-transform">
           <Icon name="pin" size={28} className="text-primary" />
-          <span className="text-sm font-medium text-on-surface">Change PIN</span>
+          <span className="text-xs font-medium text-on-surface">Change PIN</span>
         </button>
       </div>
+
+      {/* QR display */}
+      {showQr && qrSvg && (
+        <div className="mb-4 bg-surface-container-lowest rounded-2xl p-5 flex flex-col items-center gap-3">
+          <div dangerouslySetInnerHTML={{ __html: qrSvg }} className="w-48 h-48 [&>svg]:w-full [&>svg]:h-full" />
+          <p className="text-on-surface-variant text-xs text-center leading-relaxed">
+            Show this QR at the kiosk camera as a backup if you forgot your physical card.
+            Keep this screen private.
+          </p>
+        </div>
+      )}
 
       {/* Recent transactions */}
       <p className="font-bold text-on-surface text-sm mb-3">Recent</p>
