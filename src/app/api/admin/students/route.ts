@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     const students = await prisma.studentAccount.findMany({
       where: {
-        ...(status ? { status } : {}),
+        status: status ? status : { not: 'deleted' },
         ...(search ? {
           OR: [
             { fullName: { contains: search } },

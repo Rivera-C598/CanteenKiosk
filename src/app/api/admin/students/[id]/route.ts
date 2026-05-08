@@ -112,12 +112,14 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     if (!student) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
     if (student.balance > 0) {
-      return NextResponse.json({ error: `Account has ₱${student.balance.toFixed(2)} remaining balance. Top down to ₱0 before deleting.` }, { status: 400 })
+      return NextResponse.json({ error: `Account has ₱${student.balance.toFixed(2)} remaining balance. Adjust to ₱0 before deleting.` }, { status: 400 })
     }
 
-    // Delete transactions first (FK constraint), then account
-    await prisma.studentTransaction.deleteMany({ where: { studentAccountId: parseInt(id) } })
-    await prisma.studentAccount.delete({ where: { id: parseInt(id) } })
+    // Soft delete — keep record and transaction history for audit trail
+    await prisma.studentAccount.update({
+      where: { id: parseInt(id) },
+      data: { status: 'deleted' },
+    })
 
     return NextResponse.json({ ok: true })
   } catch {

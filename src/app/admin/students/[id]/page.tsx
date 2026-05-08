@@ -372,7 +372,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
             <div className="text-center">
               <h2 className="font-headline font-black text-xl text-on-surface" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Delete Account?</h2>
               <p className="text-on-surface-variant text-sm mt-1">
-                This permanently removes <span className="font-bold text-on-surface">{student.fullName}</span> and all their transaction history.
+                <span className="font-bold text-on-surface">{student.fullName}</span>'s account will be deactivated and hidden. Transaction history is preserved for audit purposes.
               </p>
             </div>
             {deleteError && <p className="text-error text-sm text-center">{deleteError}</p>}

@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
   if (!student) return NextResponse.json({ error: 'Student ID not found' }, { status: 404 })
   if (student.status === 'frozen') return NextResponse.json({ error: 'Account frozen' }, { status: 403 })
   if (student.status === 'pending') return NextResponse.json({ error: 'Account not activated' }, { status: 403 })
+  if (student.status === 'deleted') return NextResponse.json({ error: 'Account no longer exists' }, { status: 403 })
 
   if (student.pinLockedUntil && new Date() < student.pinLockedUntil) {
     const secondsLeft = Math.ceil((student.pinLockedUntil.getTime() - Date.now()) / 1000)
