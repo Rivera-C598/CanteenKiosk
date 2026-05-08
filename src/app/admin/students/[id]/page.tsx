@@ -71,17 +71,27 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
     setActionLoading(false)
   }
 
+  const [topupError, setTopupError] = useState('')
+
   const doTopup = async () => {
     const amount = parseFloat(topupAmount)
     if (!amount || !topupNote.trim()) return
     setTopupLoading(true)
-    await fetch(`/api/admin/students/${id}/topup`, {
+    setTopupError('')
+    const res = await fetch(`/api/admin/students/${id}/topup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ amount, note: topupNote.trim() }),
     })
+    if (!res.ok) {
+      const data = await res.json()
+      setTopupError(data.error ?? 'Failed')
+      setTopupLoading(false)
+      return
+    }
     setTopupAmount('')
     setTopupNote('')
+    setTopupError('')
     await fetch_()
     setTopupLoading(false)
   }
@@ -298,6 +308,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
               {topupLoading ? '…' : 'Apply'}
             </button>
           </div>
+          {topupError && <p className="text-error text-xs font-medium mt-1">{topupError}</p>}
         </div>
       )}
 
