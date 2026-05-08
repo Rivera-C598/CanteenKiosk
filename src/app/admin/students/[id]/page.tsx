@@ -159,6 +159,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
 
   const txTypeColor: Record<string, string> = {
     topup: 'text-green-600',
+    adjustment: 'text-error',
     payment: 'text-error',
     refund: 'text-secondary',
   }
@@ -271,18 +272,19 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
       {/* Top-up */}
       {student.status === 'active' && (
         <div className="mb-6 p-4 bg-surface-container-lowest rounded-xl">
-          <p className="font-bold text-on-surface text-sm mb-3">Top Up Balance</p>
+          <p className="font-bold text-on-surface text-sm mb-1">Balance Adjustment</p>
+          <p className="text-on-surface-variant text-xs mb-3">Positive to add (e.g. 500), negative to deduct (e.g. -180)</p>
           <div className="flex gap-3">
             <input
               type="number"
               value={topupAmount}
               onChange={e => setTopupAmount(e.target.value)}
-              placeholder="Amount (₱)"
+              placeholder="e.g. 500 or -180"
               className="flex-1 px-4 py-2.5 rounded-xl bg-background border border-surface-container text-on-surface text-sm outline-none focus:border-primary"
             />
             <button onClick={doTopup} disabled={topupLoading || !topupAmount}
               className="bg-primary text-on-primary px-6 py-2.5 rounded-xl text-sm font-bold shadow-primary-glow active:scale-95 disabled:opacity-40">
-              {topupLoading ? '…' : 'Credit'}
+              {topupLoading ? '…' : 'Apply'}
             </button>
           </div>
         </div>
@@ -305,6 +307,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
                 <div className="text-right">
                   <p className={`font-bold text-sm ${tx.type === 'topup' ? 'text-green-600' : 'text-error'}`}>
                     {tx.type === 'topup' ? '+' : '-'}₱{tx.amount.toFixed(2)}
+                    {tx.type === 'refund' ? ' (refund)' : ''}
                   </p>
                   <p className="text-on-surface-variant text-xs">bal: ₱{tx.balanceAfter.toFixed(2)}</p>
                 </div>

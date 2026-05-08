@@ -8,8 +8,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { id } = await params
   const { amount, note } = await request.json()
 
-  if (!amount || amount <= 0) {
-    return NextResponse.json({ error: 'Invalid amount' }, { status: 400 })
+  if (amount === undefined || amount === null || amount === 0) {
+    return NextResponse.json({ error: 'Amount cannot be zero' }, { status: 400 })
   }
 
   const cookieStore = await cookies()
@@ -27,6 +27,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const balanceBefore = student.balance
     const balanceAfter = balanceBefore + amount
 
+    if (balanceAfter < 0) {
+      return NextResponse.json({
+        error: `Cannot reduce below ₱0. Current balance: ₱${balanceBefore.toFixed(2)}`,
+      }, { status: 400 })
+    }
+
+    const type = amount > 0 ? 'topup' : 'adjustment'
+
     const [, transaction] = await prisma.$transaction([
       prisma.studentAccount.update({
         where: { id: parseInt(id) },
@@ -35,8 +43,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       prisma.studentTransaction.create({
         data: {
           studentAccountId: parseInt(id),
-          type: 'topup',
-          amount,
+          type,
+          amount: Math.abs(amount),
           balanceBefore,
           balanceAfter,
           adminId,
@@ -47,6 +55,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     return NextResponse.json({ balance: balanceAfter, transaction })
   } catch {
-    return NextResponse.json({ error: 'Top-up failed' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed' }, { status: 500 })
   }
 }
