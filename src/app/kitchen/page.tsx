@@ -89,6 +89,11 @@ export default function KitchenPage() {
   const [checkedItems, setCheckedItems] = useState<Map<number, Set<number>>>(new Map())
   const [cancelTarget, setCancelTarget] = useState<Order | null>(null)
   const [editingOrder, setEditingOrder] = useState<Order | null>(null)
+  const [cashlessTarget, setCashlessTarget] = useState<Order | null>(null)
+  const [cashlessStudentId, setCashlessStudentId] = useState('')
+  const [cashlessPin, setCashlessPin] = useState('')
+  const [cashlessError, setCashlessError] = useState('')
+  const [cashlessLoading, setCashlessLoading] = useState(false)
 
   const toggleItem = (orderId: number, idx: number) => {
     setCheckedItems(prev => {
@@ -238,6 +243,29 @@ export default function KitchenPage() {
     })
   }
 
+  const doConfirmCashless = async () => {
+    if (!cashlessTarget || cashlessPin.length < 4) return
+    setCashlessLoading(true)
+    setCashlessError('')
+    const res = await fetch('/api/cashless/pay-by-id', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ studentIdNumber: cashlessStudentId, pin: cashlessPin, orderId: cashlessTarget.id }),
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      setCashlessError(data.error ?? 'Payment failed')
+      setCashlessLoading(false)
+      return
+    }
+    setCashlessTarget(null)
+    setCashlessStudentId('')
+    setCashlessPin('')
+    setCashlessError('')
+    setCashlessLoading(false)
+    load()
+  }
+
   const handleEditSaved = (updatedOrder: { id: number; orderNumber: string; totalAmount: number; items: OrderItem[] }) => {
     const existing = orders.find(o => o.id === updatedOrder.id)
     if (!existing) { setEditingOrder(null); return }
@@ -313,6 +341,10 @@ export default function KitchenPage() {
                        <div className="bg-[#0000ff]/10 text-[#0000ff] px-2 py-1 rounded-md flex items-center justify-center">
                          <Icon name="qr_code" size={24} />
                        </div>
+                    ) : order.paymentMethod === 'cashless' ? (
+                      <div className="bg-primary/10 text-primary px-2 py-1 rounded-md flex items-center justify-center">
+                        <Icon name="account_balance_wallet" size={24} />
+                      </div>
                     ) : (
                       <div className="bg-stone-200 text-stone-500 px-2 py-1 rounded-md flex items-center justify-center">
                          <Icon name="payments" size={24} />
@@ -353,12 +385,21 @@ export default function KitchenPage() {
                     {action && (
                       <>
                         <button
-                          onClick={() => advance(order)}
+                          onClick={() => {
+                            if (order.status === 'pending_verification' && order.paymentMethod === 'cashless') {
+                              setCashlessTarget(order)
+                              setCashlessPin('')
+                              setCashlessStudentId('')
+                              setCashlessError('')
+                            } else {
+                              advance(order)
+                            }
+                          }}
                           disabled={acting === order.id || (requireAllChecked && order.status === 'preparing' && !allItemsChecked(order))}
                           className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl font-headline font-bold text-sm sm:text-base active:scale-95 transition-all disabled:opacity-50 ${order.status === 'ready' ? 'bg-tertiary text-on-tertiary shadow-lg shadow-tertiary/30' : order.status === 'preparing' ? 'bg-secondary text-on-secondary shadow-lg shadow-secondary/30' : 'bg-surface-container-highest text-on-surface hover:bg-stone-300'}`}
                         >
-                          <Icon name={action.icon} size={22} />
-                          {acting === order.id ? 'Loading…' : action.label}
+                          <Icon name={order.status === 'pending_verification' && order.paymentMethod === 'cashless' ? 'account_balance_wallet' : action.icon} size={22} />
+                          {acting === order.id ? 'Loading…' : order.status === 'pending_verification' && order.paymentMethod === 'cashless' ? 'Confirm Cashless' : action.label}
                         </button>
                         {requireAllChecked && order.status === 'preparing' && !allItemsChecked(order) && (
                           <p className="text-xs text-center text-stone-400 font-medium">
@@ -444,6 +485,86 @@ export default function KitchenPage() {
         onClose={() => setEditingOrder(null)}
         onSaved={handleEditSaved}
       />
+
+      {/* Cashless manual PIN modal */}
+      {cashlessTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-surface rounded-3xl p-8 max-w-sm w-full shadow-2xl flex flex-col gap-5">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3 mx-auto">
+                <Icon name="account_balance_wallet" size={24} className="text-primary" />
+              </div>
+              <h2 className="font-headline font-black text-on-surface text-xl" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+                Confirm Cashless
+              </h2>
+              <p className="text-on-surface-variant text-sm mt-1">
+                Order {cashlessTarget.orderNumber} · ₱{cashlessTarget.totalAmount.toFixed(2)}
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-on-surface-variant mb-1.5 uppercase tracking-wide">Student ID Number</label>
+                <input
+                  value={cashlessStudentId}
+                  onChange={e => setCashlessStudentId(e.target.value)}
+                  placeholder="e.g. 2021234"
+                  className="w-full px-4 py-3 rounded-xl bg-surface-container-lowest border border-surface-container text-on-surface text-sm outline-none focus:border-primary font-mono tracking-widest text-center"
+                  inputMode="numeric"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-on-surface-variant mb-1.5 uppercase tracking-wide">Student PIN</label>
+                {/* PIN numpad */}
+                <div className="flex gap-3 justify-center mb-3">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className={`w-4 h-4 rounded-full transition-all ${i < cashlessPin.length ? 'bg-primary' : 'bg-surface-container'}`} />
+                  ))}
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {['1','2','3','4','5','6','7','8','9','','0','⌫'].map((d, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        if (d === '⌫') setCashlessPin(p => p.slice(0, -1))
+                        else if (d && cashlessPin.length < 4) setCashlessPin(p => p + d)
+                      }}
+                      disabled={cashlessLoading || !d}
+                      className={`py-3 rounded-xl font-black text-xl transition-all active:scale-95 ${
+                        d === '⌫' ? 'bg-surface-container text-on-surface' :
+                        d ? 'bg-surface-container-lowest text-on-surface shadow-ambient' : 'invisible'
+                      } disabled:opacity-40`}
+                      style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {cashlessError && (
+              <p className="text-error text-sm text-center font-medium">{cashlessError}</p>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setCashlessTarget(null); setCashlessPin(''); setCashlessStudentId(''); setCashlessError('') }}
+                className="flex-1 py-3 rounded-xl bg-surface-container text-on-surface font-bold text-sm active:scale-95"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={doConfirmCashless}
+                disabled={cashlessLoading || cashlessPin.length < 4 || !cashlessStudentId}
+                className="flex-1 py-3 rounded-xl bg-primary text-on-primary font-bold text-sm shadow-primary-glow active:scale-95 disabled:opacity-40"
+              >
+                {cashlessLoading ? 'Verifying…' : 'Confirm Payment'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     <div id="print-slot" />
     </>
