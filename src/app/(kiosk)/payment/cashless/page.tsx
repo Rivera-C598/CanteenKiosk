@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Icon } from '@/components/shared/Icon'
-import { Html5Qrcode } from 'html5-qrcode'
 
 type Stage = 'scanning' | 'confirm' | 'pin' | 'processing' | 'success' | 'error'
 
@@ -29,29 +28,69 @@ function CashlessContent() {
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
   const [lockMsg, setLockMsg] = useState('')
-  const scannerRef = useRef<Html5Qrcode | null>(null)
-  const scannerDivId = 'cashless-qr-scanner'
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const animRef = useRef<number>(0)
+  const scannedRef = useRef(false)
 
   useEffect(() => {
     if (stage !== 'scanning') return
+    scannedRef.current = false
 
-    const scanner = new Html5Qrcode(scannerDivId)
-    scannerRef.current = scanner
+    const start = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } },
+        })
+        streamRef.current = stream
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream
+          await videoRef.current.play()
+        }
 
-    scanner.start(
-      { facingMode: 'environment' },
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      async (decodedText) => {
-        await scanner.stop()
-        await handleScan(decodedText)
-      },
-      () => {} // ignore frame errors
-    ).catch(() => setError('Camera unavailable. Check browser permissions.'))
+        // BarcodeDetector is available in Chrome 83+ / Edge 83+
+        if (!('BarcodeDetector' in window)) {
+          setError('QR scanning not supported in this browser. Use Chrome.')
+          return
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const detector = new (window as any).BarcodeDetector({ formats: ['qr_code'] })
+
+        const scan = async () => {
+          if (scannedRef.current || !videoRef.current) return
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const codes: any[] = await detector.detect(videoRef.current)
+            if (codes.length > 0 && codes[0].rawValue) {
+              scannedRef.current = true
+              stopStream()
+              await handleScan(codes[0].rawValue)
+              return
+            }
+          } catch { /* frame not ready yet */ }
+          animRef.current = requestAnimationFrame(scan)
+        }
+        animRef.current = requestAnimationFrame(scan)
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        setError(`Camera error: ${msg}`)
+      }
+    }
+
+    start()
 
     return () => {
-      scanner.stop().catch(() => {})
+      scannedRef.current = true
+      cancelAnimationFrame(animRef.current)
+      stopStream()
     }
   }, [stage])
+
+  const stopStream = () => {
+    streamRef.current?.getTracks().forEach(t => t.stop())
+    streamRef.current = null
+  }
 
   const handleScan = async (qrToken: string) => {
     setError('')
@@ -75,11 +114,10 @@ function CashlessContent() {
     if (pin.length < 4) { setError('Enter your PIN'); return }
     setStage('processing')
     setError('')
-    const qrToken = scannedToken
     const res = await fetch('/api/cashless/pay', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ qrToken, pin, orderId }),
+      body: JSON.stringify({ qrToken: scannedToken, pin, orderId }),
     })
     const data = await res.json()
     if (!res.ok) {
@@ -94,9 +132,7 @@ function CashlessContent() {
     }, 2000)
   }
 
-  const addPinDigit = (d: string) => {
-    if (pin.length < 6) setPin(p => p + d)
-  }
+  const addPinDigit = (d: string) => { if (pin.length < 6) setPin(p => p + d) }
   const delPinDigit = () => setPin(p => p.slice(0, -1))
 
   return (
@@ -128,7 +164,18 @@ function CashlessContent() {
         {stage === 'scanning' && (
           <div className="w-full max-w-sm flex flex-col items-center gap-4">
             <p className="text-on-surface-variant text-sm text-center">Hold your QR card in front of the camera</p>
-            <div id={scannerDivId} className="w-72 h-72 rounded-xl overflow-hidden bg-black" />
+            <div className="relative w-72 h-72 rounded-2xl overflow-hidden bg-surface-container shadow-ambient">
+              <video
+                ref={videoRef}
+                className="absolute inset-0 w-full h-full object-cover"
+                muted
+                playsInline
+              />
+              {/* Viewfinder overlay */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-48 h-48 border-2 border-primary rounded-xl opacity-70" />
+              </div>
+            </div>
             {error && <p className="text-error text-sm text-center">{error}</p>}
           </div>
         )}
@@ -181,14 +228,12 @@ function CashlessContent() {
               <p className="text-on-surface-variant text-sm">Enter your PIN to pay ₱{amount.toFixed(2)}</p>
             </div>
 
-            {/* PIN dots */}
             <div className="flex gap-4">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className={`w-4 h-4 rounded-full transition-all ${i < pin.length ? 'bg-primary' : 'bg-surface-container'}`} />
               ))}
             </div>
 
-            {/* Numpad */}
             <div className="grid grid-cols-3 gap-3 w-full">
               {['1','2','3','4','5','6','7','8','9','','0','⌫'].map((d, i) => (
                 <button
@@ -242,7 +287,7 @@ function CashlessContent() {
         {stage === 'error' && (
           <div className="flex flex-col items-center gap-4">
             <Icon name="error" size={64} className="text-error" />
-            <p className="text-error font-bold text-lg">{error}</p>
+            <p className="text-error font-bold text-lg text-center">{error}</p>
             <button onClick={() => { setStage('scanning'); setError('') }}
               className="bg-primary text-on-primary px-6 py-3 rounded-xl font-bold shadow-primary-glow">
               Try Again

@@ -185,7 +185,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
       {/* QR Preview */}
       {showQr && qrSvg && (
         <div className="mb-6 p-4 bg-surface-container-lowest rounded-xl flex items-center gap-4">
-          <div dangerouslySetInnerHTML={{ __html: qrSvg }} className="w-24 h-24 shrink-0" />
+          <div dangerouslySetInnerHTML={{ __html: qrSvg }} className="w-24 h-24 shrink-0 [&>svg]:w-full [&>svg]:h-full" />
           <div>
             <p className="font-bold text-on-surface text-sm">{qrStudent?.fullName}</p>
             <p className="text-on-surface-variant text-xs">{qrStudent?.studentIdNumber}</p>
