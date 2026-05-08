@@ -9,6 +9,7 @@ const navItems = [
   { href: '/admin/menu', icon: 'restaurant_menu', label: 'Menu' },
   { href: '/admin/orders', icon: 'receipt_long', label: 'Orders' },
   { href: '/admin/gcash', icon: 'qr_code', label: 'GCash' },
+  { href: '/admin/students', icon: 'group', label: 'Students' },
   { href: '/admin/settings', icon: 'settings', label: 'Settings' },
 ]
 
