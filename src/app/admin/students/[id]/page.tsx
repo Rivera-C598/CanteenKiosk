@@ -269,7 +269,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
 
       {/* QR Preview */}
       {showQr && qrSvg && (
-        <div className="mb-6 p-4 bg-surface-container-lowest rounded-xl flex items-center gap-4">
+        <div className="mb-6 p-4 bg-surface-container-lowest rounded-md flex items-center gap-4">
           <div dangerouslySetInnerHTML={{ __html: qrSvg }} className="w-24 h-24 shrink-0 [&>svg]:w-full [&>svg]:h-full" />
           <div>
             <p className="font-bold text-on-surface text-sm">{qrStudent?.fullName}</p>
@@ -283,7 +283,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
 
       {/* Top-up */}
       {student.status === 'active' && (
-        <div className="mb-6 p-4 bg-surface-container-lowest rounded-xl">
+        <div className="mb-6 p-4 bg-surface-container-lowest rounded-md">
           <p className="font-bold text-on-surface text-sm mb-1">Balance Adjustment</p>
           <p className="text-on-surface-variant text-xs mb-3">Positive to add (e.g. 500), negative to deduct (e.g. -180)</p>
           <div className="flex flex-col gap-2">
@@ -293,7 +293,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
                 value={topupAmount}
                 onChange={e => setTopupAmount(e.target.value)}
                 placeholder="e.g. 500 or -180"
-                className="flex-1 px-4 py-2.5 rounded-xl bg-background border border-surface-container text-on-surface text-sm outline-none focus:border-primary"
+                className="flex-1 px-4 py-2.5 rounded-md bg-background border border-surface-container text-on-surface text-sm outline-none focus:border-primary"
               />
             </div>
             <input
@@ -301,10 +301,10 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
               value={topupNote}
               onChange={e => setTopupNote(e.target.value)}
               placeholder="Reference note — required (e.g. Cash received, Receipt #123)"
-              className="w-full px-4 py-2.5 rounded-xl bg-background border border-surface-container text-on-surface text-sm outline-none focus:border-primary"
+              className="w-full px-4 py-2.5 rounded-md bg-background border border-surface-container text-on-surface text-sm outline-none focus:border-primary"
             />
             <button onClick={doTopup} disabled={topupLoading || !topupAmount || !topupNote.trim()}
-              className="bg-primary text-on-primary px-6 py-2.5 rounded-xl text-sm font-bold shadow-primary-glow active:scale-95 disabled:opacity-40 self-end">
+              className="bg-primary text-on-primary px-6 py-2.5 rounded-md text-sm font-bold shadow-primary-glow active:scale-95 disabled:opacity-40 self-end">
               {topupLoading ? '…' : 'Apply'}
             </button>
           </div>
