@@ -7,6 +7,47 @@ import { Icon } from '@/components/shared/Icon'
 interface Me { fullName: string; studentIdNumber: string; accountType: string; balance: number }
 interface Tx { id: number; type: string; amount: number; balanceAfter: number; createdAt: string }
 
+function TopupGuide() {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="mb-4">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 bg-secondary-container rounded-xl text-on-secondary-container active:scale-[0.99] transition-transform"
+      >
+        <div className="flex items-center gap-2">
+          <Icon name="info" size={18} />
+          <span className="text-sm font-semibold">How to top up your balance</span>
+        </div>
+        <Icon name={open ? 'expand_less' : 'expand_more'} size={20} />
+      </button>
+      {open && (
+        <div className="mt-2 px-4 py-4 bg-surface-container-lowest rounded-xl space-y-3">
+          {[
+            { icon: 'person', text: 'Go to the canteen admin or cashier counter.' },
+            { icon: 'badge', text: 'Provide your Student ID number and full name so they can find your account.' },
+            { icon: 'payments', text: 'Hand over the cash amount you want to load.' },
+            { icon: 'account_balance_wallet', text: 'Admin credits the amount to your account — check your balance here after.' },
+          ].map((step, i) => (
+            <div key={i} className="flex items-start gap-3">
+              <div className="w-7 h-7 rounded-full bg-secondary-container flex items-center justify-center shrink-0 mt-0.5">
+                <span className="text-on-secondary-container text-xs font-black">{i + 1}</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <Icon name={step.icon} size={16} className="text-on-surface-variant shrink-0 mt-0.5" />
+                <p className="text-on-surface text-sm leading-snug">{step.text}</p>
+              </div>
+            </div>
+          ))}
+          <p className="text-on-surface-variant text-xs pt-1 border-t border-surface-container">
+            Top-up is only available at the canteen counter. Minimum top-up: ₱1.00.
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function StudentDashboard() {
   const router = useRouter()
   const [me, setMe] = useState<Me | null>(null)
@@ -73,6 +114,9 @@ export default function StudentDashboard() {
         </button>
       </div>
 
+
+      {/* How to top up */}
+      <TopupGuide />
 
       {/* Recent transactions */}
       <p className="font-bold text-on-surface text-sm mb-3">Recent</p>
