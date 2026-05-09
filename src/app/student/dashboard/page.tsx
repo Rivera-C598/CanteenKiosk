@@ -13,7 +13,7 @@ function TopupGuide() {
     <div className="mb-4">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 bg-secondary-container rounded-xl text-on-secondary-container active:scale-[0.99] transition-transform"
+        className="w-full flex items-center justify-between px-4 py-3 bg-surface-container rounded-xl text-on-surface-variant active:scale-[0.99] transition-transform"
       >
         <div className="flex items-center gap-2">
           <Icon name="info" size={18} />
@@ -30,8 +30,8 @@ function TopupGuide() {
             { icon: 'account_balance_wallet', text: 'Admin credits the amount to your account — check your balance here after.' },
           ].map((step, i) => (
             <div key={i} className="flex items-start gap-3">
-              <div className="w-7 h-7 rounded-full bg-secondary-container flex items-center justify-center shrink-0 mt-0.5">
-                <span className="text-on-secondary-container text-xs font-black">{i + 1}</span>
+              <div className="w-7 h-7 rounded-full bg-surface-container-high flex items-center justify-center shrink-0 mt-0.5">
+                <span className="text-on-surface-variant text-xs font-black">{i + 1}</span>
               </div>
               <div className="flex items-start gap-2">
                 <Icon name={step.icon} size={16} className="text-on-surface-variant shrink-0 mt-0.5" />
@@ -87,13 +87,16 @@ export default function StudentDashboard() {
       </div>
 
       {/* Balance card */}
-      <div className="bg-primary rounded-2xl p-6 mb-6 shadow-primary-glow">
+      <div className="bg-primary rounded-2xl p-6 mb-3 shadow-primary-glow">
         <p className="text-on-primary opacity-80 text-sm font-medium">Available Balance</p>
         <p className="text-on-primary font-black text-5xl mt-1" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
           ₱{me.balance.toFixed(2)}
         </p>
         <p className="text-on-primary opacity-60 text-xs mt-2">{me.studentIdNumber} · {me.accountType}</p>
       </div>
+
+      {/* How to top up */}
+      <TopupGuide />
 
       {/* Quick actions */}
       <div className="grid grid-cols-3 gap-3 mb-4">
@@ -114,9 +117,6 @@ export default function StudentDashboard() {
         </button>
       </div>
 
-
-      {/* How to top up */}
-      <TopupGuide />
 
       {/* Recent transactions */}
       <p className="font-bold text-on-surface text-sm mb-3">Recent</p>
