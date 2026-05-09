@@ -94,7 +94,7 @@ export default function StudentsPage() {
           <Icon name="hourglass_empty" size={32} className="text-on-surface-variant animate-spin" />
         </div>
       ) : (
-        <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-ambient">
+        <div className="bg-surface-container-lowest rounded-lg overflow-hidden shadow-ambient">
           {students.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
               <Icon name="group" size={48} className="text-on-surface-variant opacity-40" />
