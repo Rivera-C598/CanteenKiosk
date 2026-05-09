@@ -68,7 +68,7 @@ export default function QueuePage() {
   useEffect(() => {
     load()
     const poll = setInterval(load, 5000)
-    const tick = setInterval(() => setTime(new Date()), 30000)
+    const tick = setInterval(() => setTime(new Date()), 1000)
     return () => { clearInterval(poll); clearInterval(tick) }
   }, [load])
 
