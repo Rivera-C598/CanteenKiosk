@@ -6,7 +6,7 @@ export async function GET() {
     const today = new Date()
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
 
-    const [todayOrders, todayRevenue, pendingVerification, recentOrders, allItemsToday] = await Promise.all([
+    const [todayOrders, todayRevenue, pendingVerification, recentOrders, allItemsToday, pendingStudents, totalCashlessBalance, todayCashless] = await Promise.all([
       prisma.order.count({ where: { createdAt: { gte: todayStart } } }),
       prisma.order.aggregate({
         where: { createdAt: { gte: todayStart }, paymentStatus: 'paid' },
@@ -21,7 +21,17 @@ export async function GET() {
       prisma.orderItem.findMany({
         where: { order: { createdAt: { gte: todayStart } } },
         include: { menuItem: true }
-      })
+      }),
+      prisma.studentAccount.count({ where: { status: 'pending' } }),
+      prisma.studentAccount.aggregate({
+        where: { status: 'active' },
+        _sum: { balance: true },
+      }),
+      prisma.order.aggregate({
+        where: { createdAt: { gte: todayStart }, paymentMethod: 'cashless', paymentStatus: 'paid' },
+        _sum: { totalAmount: true },
+        _count: true,
+      }),
     ])
 
     const counts: Record<string, number> = {}
@@ -38,7 +48,11 @@ export async function GET() {
       todayRevenue: todayRevenue._sum.totalAmount ?? 0,
       pendingVerification,
       recentOrders,
-      popularItems
+      popularItems,
+      pendingStudents,
+      totalCashlessBalance: totalCashlessBalance._sum.balance ?? 0,
+      todayCashlessCount: todayCashless._count,
+      todayCashlessRevenue: todayCashless._sum.totalAmount ?? 0,
     })
   } catch (error) {
     console.error('Stats error:', error)

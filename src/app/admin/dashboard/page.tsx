@@ -7,6 +7,10 @@ interface Stats {
   todayOrders: number
   todayRevenue: number
   pendingVerification: number
+  pendingStudents: number
+  totalCashlessBalance: number
+  todayCashlessCount: number
+  todayCashlessRevenue: number
   recentOrders: Array<{
     id: number
     orderNumber: string
@@ -96,7 +100,7 @@ export default function DashboardPage() {
             <p className="text-on-surface-variant text-sm font-medium">Revenue Today</p>
           </div>
           <p className="font-headline font-black text-4xl text-on-surface" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-            ₱{(stats?.todayRevenue ?? 0).toFixed(0)}
+            ₱{(stats?.todayRevenue ?? 0).toFixed(2)}
           </p>
         </div>
 
@@ -105,11 +109,52 @@ export default function DashboardPage() {
             <div className="w-10 h-10 bg-secondary/10 rounded-xl flex items-center justify-center">
               <Icon name="pending" size={22} className="text-secondary" />
             </div>
-            <p className="text-on-surface-variant text-sm font-medium">Pending GCash</p>
+            <p className="text-on-surface-variant text-sm font-medium">Pending Payment</p>
           </div>
           <p className="font-headline font-black text-4xl text-on-surface" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
             {stats?.pendingVerification ?? 0}
           </p>
+        </div>
+
+        {/* Cashless row */}
+        <div className="bg-surface-container-lowest rounded-xl p-6 shadow-ambient">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+              <Icon name="account_balance_wallet" size={22} className="text-primary" />
+            </div>
+            <p className="text-on-surface-variant text-sm font-medium">Cashless Today</p>
+          </div>
+          <p className="font-headline font-black text-4xl text-on-surface" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+            {stats?.todayCashlessCount ?? 0}
+          </p>
+          <p className="text-on-surface-variant text-xs mt-1">₱{(stats?.todayCashlessRevenue ?? 0).toFixed(2)} collected</p>
+        </div>
+
+        <div className="bg-surface-container-lowest rounded-xl p-6 shadow-ambient">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-secondary/10 rounded-xl flex items-center justify-center">
+              <Icon name="savings" size={22} className="text-secondary" />
+            </div>
+            <p className="text-on-surface-variant text-sm font-medium">Balance in System</p>
+          </div>
+          <p className="font-headline font-black text-4xl text-on-surface" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+            ₱{(stats?.totalCashlessBalance ?? 0).toFixed(2)}
+          </p>
+          <p className="text-on-surface-variant text-xs mt-1">Total across active accounts</p>
+        </div>
+
+        <div className={`rounded-xl p-6 shadow-ambient cursor-pointer hover:bg-surface-container transition-colors ${(stats?.pendingStudents ?? 0) > 0 ? 'bg-warning-container' : 'bg-surface-container-lowest'}`}
+          onClick={() => window.location.href = '/admin/students?status=pending'}>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+              <Icon name="person_add" size={22} className="text-primary" />
+            </div>
+            <p className="text-on-surface-variant text-sm font-medium">Pending Activations</p>
+          </div>
+          <p className="font-headline font-black text-4xl text-on-surface" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+            {stats?.pendingStudents ?? 0}
+          </p>
+          <p className="text-on-surface-variant text-xs mt-1">{(stats?.pendingStudents ?? 0) > 0 ? 'Tap to review →' : 'All accounts active'}</p>
         </div>
       </div>
 
