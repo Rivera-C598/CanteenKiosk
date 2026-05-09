@@ -173,7 +173,7 @@ export default function DashboardPage() {
             <p className="font-medium">No orders yet today</p>
           </div>
         ) : (
-          <div className="divide-y divide-surface-container">
+          <div className="divide-y divide-surface-container max-h-96 overflow-y-auto">
             {stats?.recentOrders.map(order => (
               <div key={order.id} className="px-6 py-4 flex items-center gap-4">
                 <div className="w-12 h-12 bg-surface-container rounded-xl flex items-center justify-center shrink-0">
