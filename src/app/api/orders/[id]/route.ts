@@ -145,11 +145,17 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
 
     // Credit GCash monthlyReceived when confirming GCash payment
-    const current = await prisma.order.findUnique({ where: { id: orderId } })
+    const current = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    })
     const isGCashConfirm = current?.paymentMethod === 'gcash'
       && paymentStatus === 'paid'
       && current?.paymentStatus !== 'paid'
       && current?.gcashAccountId
+
+    const isCompleting = status === 'completed' && current?.status !== 'completed'
+    const isCancellingAfterComplete = status === 'cancelled' && current?.status === 'completed'
 
     const order = await prisma.$transaction(async (tx) => {
       if (isGCashConfirm && current?.gcashAccountId) {
@@ -158,6 +164,27 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           data: { monthlyReceived: { increment: current.totalAmount } },
         })
       }
+
+      // Deduct stock when order completes
+      if (isCompleting && current?.items) {
+        for (const item of current.items) {
+          await tx.menuItem.update({
+            where: { id: item.menuItemId },
+            data: { stock: { decrement: item.quantity } },
+          })
+        }
+      }
+
+      // Restore stock if a completed order is somehow cancelled
+      if (isCancellingAfterComplete && current?.items) {
+        for (const item of current.items) {
+          await tx.menuItem.update({
+            where: { id: item.menuItemId },
+            data: { stock: { increment: item.quantity } },
+          })
+        }
+      }
+
       return tx.order.update({
         where: { id: orderId },
         data: {
