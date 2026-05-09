@@ -193,7 +193,7 @@ export default function DashboardPage() {
                   </p>
                 </div>
                 <p className="font-headline font-black text-primary shrink-0" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-                  ₱{order.totalAmount.toFixed(0)}
+                  ₱{order.totalAmount.toFixed(2)}
                 </p>
               </div>
             ))}
