@@ -425,6 +425,23 @@ FUTURE RECOMMENDATIONS
   restarts, consider persistent rate limiting (Redis or DB-backed).
 
 --------------------------------------------------------------------------------
+RESEARCH PAPER WRITING GUIDE
+--------------------------------------------------------------------------------
+
+Full guide for what to write in the thesis paper is at:
+  docs/paper-guide.md
+
+Covers:
+  - Chapter 3 (Methodology): system architecture, modules, cashless subsystem,
+    security design — ready-to-use paragraphs
+  - Chapter 3 (Flowcharts): 4 flowcharts described in detail to draw
+    (cashless payment, registration, top-up, all payment methods)
+  - Chapter 4 (System Presentation): screenshot list and explanations per module
+  - Oral Defense / Demo: 12-step live demo sequence (~10-15 min)
+  - Key phrases for the paper (copy-paste ready academic language)
+  - Limitations to acknowledge
+
+--------------------------------------------------------------------------------
 MIGRATION NOTES (moving to a new computer)
 --------------------------------------------------------------------------------
 
