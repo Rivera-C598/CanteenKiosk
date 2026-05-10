@@ -29,6 +29,12 @@ export async function POST(request: Request) {
     if (!name || categoryId == null || price == null) {
       return NextResponse.json({ error: 'name, categoryId, and price are required' }, { status: 400 })
     }
+    if (parseFloat(price) < 0) {
+      return NextResponse.json({ error: 'Price cannot be negative' }, { status: 400 })
+    }
+    if (Number(stock) < 0) {
+      return NextResponse.json({ error: 'Stock cannot be negative' }, { status: 400 })
+    }
     const item = await prisma.menuItem.create({
       data: { name, categoryId: parseInt(categoryId), price: parseFloat(price), description, image, stock: Number(stock), available },
     })

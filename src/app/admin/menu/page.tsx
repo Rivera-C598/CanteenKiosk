@@ -428,15 +428,16 @@ export default function MenuPage() {
             </div>
 
             {[
-              { label: 'Name', key: 'name', type: 'text', placeholder: 'e.g. Classic Deluxe Burger' },
-              { label: 'Price (₱)', key: 'price', type: 'number', placeholder: '0.00' },
-              { label: 'Stock Level', key: 'stock', type: 'number', placeholder: '999' },
+              { label: 'Name', key: 'name', type: 'text', placeholder: 'e.g. Classic Deluxe Burger', min: undefined },
+              { label: 'Price (₱)', key: 'price', type: 'number', placeholder: '0.00', min: '0' },
+              { label: 'Stock Level', key: 'stock', type: 'number', placeholder: '999', min: '0' },
             ].map(field => (
               <div key={field.key}>
                 <label className="text-sm font-bold text-on-surface-variant mb-2 block">{field.label}</label>
                 <input
                   type={field.type}
                   placeholder={field.placeholder}
+                  min={field.min}
                   value={itemForm[field.key as keyof typeof itemForm] as string}
                   onChange={e => setItemForm(f => ({ ...f, [field.key]: e.target.value }))}
                   className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
