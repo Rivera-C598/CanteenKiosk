@@ -221,6 +221,7 @@ export default function GCashPage() {
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [cropSource, setCropSource] = useState<{ url: string; file: File } | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const load = () => {
@@ -277,8 +278,8 @@ export default function GCashPage() {
   }
 
   const deleteAccount = async (id: number) => {
-    if (!confirm('Delete this GCash account?')) return
     await fetch(`/api/gcash/${id}`, { method: 'DELETE' })
+    setConfirmDeleteId(null)
     load()
   }
 
@@ -430,9 +431,16 @@ export default function GCashPage() {
                       <button onClick={() => openEdit(acc)} className="w-9 h-9 flex items-center justify-center text-stone-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all">
                         <Icon name="edit" size={18} />
                       </button>
-                      <button onClick={() => deleteAccount(acc.id)} className="w-9 h-9 flex items-center justify-center text-stone-400 hover:text-error hover:bg-error/10 rounded-lg transition-all">
-                        <Icon name="delete" size={18} />
-                      </button>
+                      {confirmDeleteId === acc.id ? (
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => setConfirmDeleteId(null)} className="px-2 py-1 text-xs font-semibold text-on-surface-variant bg-surface-container rounded-md">Cancel</button>
+                          <button onClick={() => deleteAccount(acc.id)} className="px-2 py-1 text-xs font-semibold text-white bg-error rounded-md">Delete</button>
+                        </div>
+                      ) : (
+                        <button onClick={() => setConfirmDeleteId(acc.id)} className="w-9 h-9 flex items-center justify-center text-stone-400 hover:text-error hover:bg-error/10 rounded-lg transition-all">
+                          <Icon name="delete" size={18} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}

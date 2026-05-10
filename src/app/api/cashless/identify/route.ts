@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { rateLimit } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  const check = rateLimit(`identify:${ip}`, 30, 60 * 1000) // 30 per minute per IP
+  if (!check.ok) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
+
   const { qrToken } = await request.json()
   if (!qrToken) return NextResponse.json({ error: 'Missing token' }, { status: 400 })
 

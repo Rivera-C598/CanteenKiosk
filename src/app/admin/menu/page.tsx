@@ -32,6 +32,8 @@ export default function MenuPage() {
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [confirmDeleteItemId, setConfirmDeleteItemId] = useState<number | null>(null)
+  const [confirmDeleteCatId, setConfirmDeleteCatId] = useState<number | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const load = () => {
@@ -114,8 +116,8 @@ export default function MenuPage() {
   }
 
   const deleteItem = async (id: number) => {
-    if (!confirm('Delete this item?')) return
     await fetch(`/api/menu-items/${id}`, { method: 'DELETE' })
+    setConfirmDeleteItemId(null)
     load()
   }
 
@@ -137,8 +139,8 @@ export default function MenuPage() {
   }
 
   const deleteCat = async (id: number) => {
-    if (!confirm('Delete this category? All its items will be deleted too.')) return
     await fetch(`/api/categories/${id}`, { method: 'DELETE' })
+    setConfirmDeleteCatId(null)
     load()
   }
 
@@ -300,9 +302,16 @@ export default function MenuPage() {
                           <button onClick={() => openEditItem(item)} className="p-2 text-stone-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all">
                             <Icon name="edit" size={18} />
                           </button>
-                          <button onClick={() => deleteItem(item.id)} className="p-2 text-stone-400 hover:text-error hover:bg-error/10 rounded-lg transition-all">
-                            <Icon name="delete" size={18} />
-                          </button>
+                          {confirmDeleteItemId === item.id ? (
+                            <div className="flex items-center gap-1">
+                              <button onClick={() => setConfirmDeleteItemId(null)} className="px-2 py-1 text-xs font-semibold text-on-surface-variant bg-surface-container rounded-md">Cancel</button>
+                              <button onClick={() => deleteItem(item.id)} className="px-2 py-1 text-xs font-semibold text-white bg-error rounded-md">Delete</button>
+                            </div>
+                          ) : (
+                            <button onClick={() => setConfirmDeleteItemId(item.id)} className="p-2 text-stone-400 hover:text-error hover:bg-error/10 rounded-lg transition-all">
+                              <Icon name="delete" size={18} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -358,9 +367,16 @@ export default function MenuPage() {
                         <button onClick={() => openEditCat(cat)} className="p-2 text-stone-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all">
                           <Icon name="edit" size={18} />
                         </button>
-                        <button onClick={() => deleteCat(cat.id)} className="p-2 text-stone-400 hover:text-error hover:bg-error/10 rounded-lg transition-all">
+                        {confirmDeleteCatId === cat.id ? (
+                            <div className="flex items-center gap-1">
+                              <button onClick={() => setConfirmDeleteCatId(null)} className="px-2 py-1 text-xs font-semibold text-on-surface-variant bg-surface-container rounded-md">Cancel</button>
+                              <button onClick={() => deleteCat(cat.id)} className="px-2 py-1 text-xs font-semibold text-white bg-error rounded-md">Delete + Items</button>
+                            </div>
+                          ) : (
+                        <button onClick={() => setConfirmDeleteCatId(cat.id)} className="p-2 text-stone-400 hover:text-error hover:bg-error/10 rounded-lg transition-all">
                           <Icon name="delete" size={18} />
                         </button>
+                          )}
                       </div>
                     </td>
                   </tr>
