@@ -38,6 +38,11 @@ QR Code:
   jsQR (npm)                       Browser-based QR decoding via canvas (kiosk camera)
   getUserMedia (browser API)       Camera access for kiosk QR scanning
 
+Rate Limiting:
+  src/lib/rate-limit.ts            In-memory rate limiter (single-instance, no Redis needed)
+                                   Student login: 10 req/min per IP + 5 wrong PINs → 15-min account lock
+                                   Cashless identify: 30 req/min per IP
+
 Other:
   html5-qrcode (npm)               Installed but replaced by jsQR — can remove
 
@@ -50,7 +55,11 @@ FIRST-TIME SETUP
    DATABASE_URL="file:./dev.db"
    SESSION_SECRET="change-this-to-a-long-random-string-in-production"
    KIOSK_IP=          ← tablet/device IP that runs the kiosk (blank = no IP lock)
-   KITCHEN_PIN=1234   ← staff PIN to access /kitchen (change before production)
+                       Set to the KIOSK DEVICE's IP, not the server PC's IP.
+                       Localhost (127.0.0.1) always bypasses this lock.
+   KITCHEN_PIN=1234   ← 4–6 digit staff PIN to access /kitchen page
+                       Verified via POST /api/kitchen/auth. Stored in sessionStorage (clears on browser close).
+                       Change this before going to production.
    ENABLE_DANGER_ZONE=true  ← set to true in dev only; remove or set false in production
                                Controls visibility of Fresh Start / Load Demo / Nuclear Reset buttons
                                and blocks the /api/system/reset endpoint entirely when false/missing
@@ -149,8 +158,13 @@ API-level Guards:
     paymentStatus === 'paid', regardless of UI state.
   - Cashless pay is atomic (Prisma $transaction) — balance check and deduction
     happen in a single DB transaction to prevent double-spend.
-  - PIN brute force: 3 wrong attempts → 30-second lockout per account
+  - Kiosk cashless PIN brute force: 3 wrong attempts → 30-second lockout per account
     (tracked in StudentAccount.pinAttempts + pinLockedUntil).
+  - Student portal login brute force: 5 wrong PINs → 15-minute account lockout
+    (same pinAttempts/pinLockedUntil fields). Also: 10 login attempts/min per IP.
+  - Cashless identify endpoint: 30 requests/min per IP rate limit.
+  - Rate limiter: in-memory (src/lib/rate-limit.ts), resets on server restart.
+    Suitable for single-instance local deployment. No Redis needed.
 
 Password/PIN Storage:
   - All passwords and PINs stored as bcrypt hashes (cost 10). Never stored plain.
@@ -270,6 +284,24 @@ Double-Spend Prevention:
   Fixed with Prisma interactive transaction — fresh balance read and deduction
   happen atomically inside the same transaction.
 
+Cart Cleared Too Early (GCash/Cashless):
+  Payment page called clearCart() immediately after order creation, before payment
+  completed. If student went back from GCash or Cashless (insufficient balance),
+  cart was empty. Fixed: clearCart() moved to completion point — GCash clears on
+  "I've Sent Payment" click, Cashless clears on payment success stage.
+
+Soft Delete for Audit Trail:
+  Hard-deleting a student account also deleted all transaction history — admin
+  could top up fraudulently then delete the account to erase evidence. Fixed with
+  soft delete: "Delete" sets status='deleted', data stays in DB forever. Top-up
+  audit log shows transactions from deleted accounts. Balance must be ₱0 before
+  deletion is allowed.
+
+Stock Deduction Timing:
+  Stock is deducted when order reaches 'completed' (not on order creation).
+  Abandoned/cancelled orders don't consume stock. Restored if a completed order
+  is somehow cancelled after the fact.
+
 --------------------------------------------------------------------------------
 STUDENT CASHLESS ACCOUNTS
 --------------------------------------------------------------------------------
@@ -364,28 +396,33 @@ FUTURE RECOMMENDATIONS
 --------------------------------------------------------------------------------
 
 - Admin activity logging: freeze/unfreeze, PIN reset, QR regen not logged.
-  Add StudentAccountLog model (studentAccountId, action, adminId, createdAt)
-  and write entries in PATCH /api/admin/students/[id].
+  Top-ups and order edits/cancels ARE logged. Add StudentAccountLog model
+  (studentAccountId, action, adminId, createdAt) for full admin audit trail.
 
-- Stronger kitchen access: current /kitchen PIN gate uses sessionStorage —
-  clears on browser close but no server-side session. Add a proper server
-  session for kitchen staff similar to admin session.
+- Stronger kitchen access: /kitchen PIN gate uses sessionStorage — clears on
+  browser close but no server-side session. Add proper server session for kitchen
+  staff (similar to admin session).
 
 - Online hosting: SQLite → PostgreSQL, HTTPS via Let's Encrypt, deploy to VPS
   or Railway/Render. Required for student portal access outside school Wi-Fi.
+  NOTE: camera QR scanning requires HTTPS — getUserMedia blocked on plain HTTP.
 
 - MIS integration: validate student ID numbers against school's student
-  information system on registration. Currently admin does face-to-face only.
+  information system on registration. Currently admin verifies face-to-face only.
 
-- Daily spending limit per student account.
+- Daily spending limit per student account (e.g. max ₱500/day).
 
-- Email/SMS notification on payment or low balance.
+- Email/SMS notification on payment, low balance, or failed login attempts.
 
-- QR code printed on physical student ID card (school MIS integration).
+- P2P student credit transfer (deliberately excluded — weakens accountability model).
+
+- QR code printed directly on physical student ID card (requires MIS partnership).
 
 - Multi-admin support: currently one admin account. Add role-based access
-  (admin vs staff) — staff can confirm orders and top up, admin can manage menu
-  and settings.
+  (admin vs staff) — staff can confirm orders and top up, admin manages everything.
+
+- Rate limiter uses in-memory Map — resets on server restart. For production with
+  restarts, consider persistent rate limiting (Redis or DB-backed).
 
 --------------------------------------------------------------------------------
 MIGRATION NOTES (moving to a new computer)
