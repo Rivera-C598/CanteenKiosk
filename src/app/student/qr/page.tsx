@@ -54,7 +54,7 @@ export default function StudentQrPage() {
             </div>
 
             {/* QR — large and centered */}
-            <div className="w-64 h-64 sm:w-72 sm:h-72 bg-white rounded-2xl p-3 shadow-ambient">
+            <div className="w-80 h-80 sm:w-96 sm:h-96 bg-white rounded-2xl p-3 shadow-ambient">
               <div dangerouslySetInnerHTML={{ __html: qrSvg }} className="w-full h-full [&>svg]:w-full [&>svg]:h-full" />
             </div>
 
