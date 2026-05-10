@@ -67,7 +67,7 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 2000)
   }
 
-  const openResetModal = (action: 'clear' | 'seed') => {
+  const openResetModal = (action: 'clear' | 'seed' | 'nuclear') => {
     setResetModal({ isOpen: true, action, input: '', error: '' })
   }
 
