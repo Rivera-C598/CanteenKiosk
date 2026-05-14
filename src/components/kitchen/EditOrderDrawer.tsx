@@ -105,9 +105,13 @@ export function EditOrderDrawer({ order, onClose, onSaved }: EditOrderDrawerProp
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ items: editItems, totalAmount: total }),
       })
-      if (!res.ok) throw new Error('Save failed')
-      const updated = await res.json()
-      onSaved(updated)
+      const data = await res.json()
+      if (!res.ok) {
+        setSaveError(data.error ?? 'Failed to save. Please try again.')
+        setSaving(false)
+        return
+      }
+      onSaved(data)
       setSaving(false)
     } catch {
       setSaveError('Failed to save. Please try again.')
