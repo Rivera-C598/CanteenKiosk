@@ -383,7 +383,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
               <div className="flex justify-between">
                 <span className="text-on-surface-variant text-sm">Amount</span>
                 <span className={`text-sm font-bold ${pendingTopup.amount > 0 ? 'text-green-600' : 'text-error'}`}>
-                  {pendingTopup.amount > 0 ? '+' : ''}₱{Math.abs(pendingTopup.amount).toFixed(2)}
+                  {pendingTopup.amount > 0 ? '+' : '-'}₱{Math.abs(pendingTopup.amount).toFixed(2)}
                 </span>
               </div>
               <div className="flex justify-between">
