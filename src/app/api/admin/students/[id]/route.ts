@@ -21,7 +21,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     const student = await prisma.studentAccount.findUnique({
       where: { id: parseInt(id) },
       include: {
-        transactions: { orderBy: { createdAt: 'desc' }, take: 20 },
+        transactions: {
+          orderBy: { createdAt: 'desc' },
+          take: 20,
+          include: { admin: { select: { username: true } } },
+        },
         activatedBy: { select: { username: true } },
       },
     })

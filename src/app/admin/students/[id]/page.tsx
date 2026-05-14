@@ -26,6 +26,7 @@ interface Student {
     balanceAfter: number
     note: string
     createdAt: string
+    admin: { username: string } | null
   }>
 }
 
@@ -50,12 +51,11 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
   const [showDelete, setShowDelete] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [deleteError, setDeleteError] = useState('')
-  const [lastTopup, setLastTopup] = useState<{
+  const [pendingTopup, setPendingTopup] = useState<{ amount: number; note: string } | null>(null)
+  const [printTx, setPrintTx] = useState<{
     id: number
     type: string
     amount: number
-    balanceBefore: number
-    balanceAfter: number
     note: string
     createdAt: string
     admin: { username: string } | null
@@ -85,30 +85,36 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
 
   const [topupError, setTopupError] = useState('')
 
-  const doTopup = async () => {
+  const doTopup = () => {
     const amount = parseFloat(topupAmount)
     if (!amount || !topupNote.trim()) return
+    setPendingTopup({ amount, note: topupNote.trim() })
+  }
+
+  const confirmTopup = async () => {
+    if (!pendingTopup) return
     setTopupLoading(true)
     setTopupError('')
-    setLastTopup(null)
     const res = await fetch(`/api/admin/students/${id}/topup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount, note: topupNote.trim() }),
+      body: JSON.stringify({ amount: pendingTopup.amount, note: pendingTopup.note }),
     })
     if (!res.ok) {
       const data = await res.json()
       setTopupError(data.error ?? 'Failed')
+      setPendingTopup(null)
       setTopupLoading(false)
       return
     }
     const data = await res.json()
-    setLastTopup(data.transaction)
+    setPrintTx(data.transaction)
     setTopupAmount('')
     setTopupNote('')
-    setTopupError('')
+    setPendingTopup(null)
     await fetch_()
     setTopupLoading(false)
+    window.print()
   }
 
   const openEdit = () => {
@@ -322,14 +328,6 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
               className="bg-primary text-on-primary px-6 py-2.5 rounded-md text-sm font-bold shadow-primary-glow active:scale-95 disabled:opacity-40 self-end">
               {topupLoading ? '…' : 'Apply'}
             </button>
-            {lastTopup && (
-              <button
-                onClick={() => window.print()}
-                className="flex items-center gap-1.5 text-primary text-xs font-semibold self-end"
-              >
-                <Icon name="print" size={14} /> Print Receipt
-              </button>
-            )}
           </div>
           {topupError && <p className="text-error text-xs font-medium mt-1">{topupError}</p>}
         </div>
@@ -348,6 +346,14 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
                   <p className={`text-sm font-semibold capitalize ${txTypeColor[tx.type]}`}>{tx.type}</p>
                   <p className="text-on-surface-variant text-xs">{new Date(tx.createdAt).toLocaleString()}</p>
                   {tx.note && <p className="text-on-surface-variant text-xs">{tx.note}</p>}
+                  {(tx.type === 'topup' || tx.type === 'adjustment') && (
+                    <button
+                      onClick={() => { setPrintTx(tx); setTimeout(() => window.print(), 50) }}
+                      className="flex items-center gap-1 text-primary text-xs font-semibold mt-1"
+                    >
+                      <Icon name="print" size={14} /> Reprint
+                    </button>
+                  )}
                 </div>
                 <div className="text-right">
                   <p className={`font-bold text-sm ${tx.type === 'topup' ? 'text-green-600' : 'text-error'}`}>
@@ -361,6 +367,45 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
           </div>
         )}
       </div>
+
+      {/* Topup confirmation modal */}
+      {pendingTopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-surface rounded-2xl p-8 max-w-sm w-full shadow-2xl flex flex-col gap-4">
+            <h2 className="font-headline font-black text-xl text-on-surface" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+              Confirm {pendingTopup.amount > 0 ? 'Top-Up' : 'Adjustment'}
+            </h2>
+            <div className="bg-surface-container-lowest rounded-xl p-4 flex flex-col gap-2">
+              <div className="flex justify-between">
+                <span className="text-on-surface-variant text-sm">Student</span>
+                <span className="text-on-surface text-sm font-bold">{student?.fullName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-on-surface-variant text-sm">Amount</span>
+                <span className={`text-sm font-bold ${pendingTopup.amount > 0 ? 'text-green-600' : 'text-error'}`}>
+                  {pendingTopup.amount > 0 ? '+' : ''}₱{Math.abs(pendingTopup.amount).toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-on-surface-variant text-sm">Reference</span>
+                <span className="text-on-surface text-sm font-medium">{pendingTopup.note}</span>
+              </div>
+            </div>
+            {topupError && <p className="text-error text-xs font-medium">{topupError}</p>}
+            <div className="flex gap-3 mt-2">
+              <button onClick={() => setPendingTopup(null)} disabled={topupLoading}
+                className="flex-1 py-3 rounded-xl bg-surface-container text-on-surface font-bold text-sm active:scale-95 disabled:opacity-40">
+                Cancel
+              </button>
+              <button onClick={confirmTopup} disabled={topupLoading}
+                className="flex-1 py-3 rounded-xl bg-primary text-on-primary font-bold text-sm shadow-primary-glow active:scale-95 disabled:opacity-40 flex items-center justify-center gap-2">
+                <Icon name="print" size={16} />
+                {topupLoading ? 'Processing…' : 'Confirm & Print'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit modal */}
       {showEdit && (
@@ -432,7 +477,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
         }
       `}</style>
 
-      {lastTopup && (
+      {printTx && (
         <div className="print-area hidden invisible bg-white text-black w-full max-w-sm p-4 text-center font-mono text-sm leading-tight">
           <h1 className="text-2xl font-black italic mb-2 mt-4">{storeName}</h1>
           <p className="mb-4 text-xs font-bold">CTU - Danao Campus</p>
@@ -441,14 +486,14 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
           <p className="text-xs font-bold mb-4">{student.studentIdNumber}</p>
           <div className="border-t border-black border-dashed my-4" />
           <p className="text-[10px] uppercase font-bold tracking-widest mb-1">
-            {lastTopup.type === 'topup' ? 'TOP-UP' : 'ADJUSTMENT'}
+            {printTx.type === 'topup' ? 'TOP-UP' : 'ADJUSTMENT'}
           </p>
-          <p className="text-4xl font-black mb-1">&#8369;{lastTopup.amount.toFixed(2)}</p>
+          <p className="text-4xl font-black mb-1">&#8369;{printTx.amount.toFixed(2)}</p>
           <div className="border-t border-black border-dashed my-4" />
-          <p className="text-xs font-bold mb-4">REF-{String(lastTopup.id).padStart(6, '0')}</p>
-          {lastTopup.admin && <p className="text-xs font-bold mb-4">By: {lastTopup.admin.username}</p>}
+          <p className="text-xs font-bold mb-4">REF-{String(printTx.id).padStart(6, '0')}</p>
+          {printTx.admin && <p className="text-xs font-bold mb-4">By: {printTx.admin.username}</p>}
           <p className="text-[10px] mt-6 opacity-50 mb-4 tracking-widest">
-            Date: {new Date(lastTopup.createdAt).toLocaleString('en-PH')}
+            Date: {new Date(printTx.createdAt).toLocaleString('en-PH')}
           </p>
         </div>
       )}
