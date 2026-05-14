@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/lib/cart-context'
 import { Icon } from '@/components/shared/Icon'
@@ -9,6 +10,22 @@ export default function CartPage() {
   const router = useRouter()
   const { items, updateQuantity, totalItems, totalAmount } = useCart()
   const { t } = useLanguage()
+  const [stockMap, setStockMap] = useState<Record<number, number>>({})
+
+  useEffect(() => {
+    fetch('/api/categories')
+      .then(r => r.json())
+      .then((cats: Array<{ items: Array<{ id: number; stock: number }> }>) => {
+        const map: Record<number, number> = {}
+        for (const cat of cats) {
+          for (const item of cat.items ?? []) {
+            map[item.id] = item.stock
+          }
+        }
+        setStockMap(map)
+      })
+      .catch(() => {})
+  }, [])
 
   if (items.length === 0) {
     return (
@@ -77,7 +94,8 @@ export default function CartPage() {
               </span>
               <button
                 onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                className="w-10 h-10 sm:w-8 sm:h-8 rounded-full bg-primary flex items-center justify-center active:scale-90 transition-transform"
+                disabled={stockMap[item.id] !== undefined && item.quantity >= stockMap[item.id]}
+                className="w-10 h-10 sm:w-8 sm:h-8 rounded-full bg-primary flex items-center justify-center active:scale-90 transition-transform disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Icon name="add" size={16} className="text-on-primary" />
               </button>
