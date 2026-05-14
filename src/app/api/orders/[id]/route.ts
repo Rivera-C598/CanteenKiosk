@@ -43,6 +43,28 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       }
 
       await prisma.$transaction(async (tx) => {
+        // Compute stock deltas between old and new quantities
+        const oldQtyMap = new Map(current.items.map(i => [i.menuItem.id, i.quantity]))
+        const newQtyMap = new Map((items as EditItem[]).map(i => [i.menuItemId, i.quantity]))
+        const allIds = new Set([...oldQtyMap.keys(), ...newQtyMap.keys()])
+
+        for (const itemId of allIds) {
+          const oldQty = oldQtyMap.get(itemId) ?? 0
+          const newQty = newQtyMap.get(itemId) ?? 0
+          const delta = newQty - oldQty
+          if (delta > 0) {
+            const menuItem = await tx.menuItem.findUnique({ where: { id: itemId } })
+            if (!menuItem || menuItem.stock < delta) {
+              const name = menuItem?.name ?? 'Item'
+              const avail = (menuItem?.stock ?? 0) + oldQty
+              throw new Error(`STOCK_INSUFFICIENT:${name}:${avail}`)
+            }
+            await tx.menuItem.update({ where: { id: itemId }, data: { stock: { decrement: delta } } })
+          } else if (delta < 0) {
+            await tx.menuItem.update({ where: { id: itemId }, data: { stock: { increment: -delta } } })
+          }
+        }
+
         await tx.orderItem.deleteMany({ where: { orderId } })
         await tx.orderItem.createMany({
           data: (items as EditItem[]).map(i => ({
@@ -189,6 +211,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     })
     return NextResponse.json(order)
   } catch (error: unknown) {
+    if (error instanceof Error && error.message.startsWith('STOCK_INSUFFICIENT:')) {
+      const parts = error.message.split(':')
+      const name = parts[1]
+      const avail = parts[2]
+      return NextResponse.json({ error: `Only ${avail} ${name} available` }, { status: 409 })
+    }
     if (typeof error === 'object' && error !== null && (error as { code?: string }).code === 'P2025') {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
