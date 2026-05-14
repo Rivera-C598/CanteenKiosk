@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Icon } from '@/components/shared/Icon'
+import { useStoreName } from '@/lib/store-context'
 
 interface Student {
   id: number
@@ -31,6 +32,7 @@ interface Student {
 export default function StudentDetailPage({ params }: { params: { id: string } }) {
   const { id } = params
   const router = useRouter()
+  const storeName = useStoreName()
   const [student, setStudent] = useState<Student | null>(null)
   const [loading, setLoading] = useState(true)
   const [topupAmount, setTopupAmount] = useState('')
@@ -48,6 +50,16 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
   const [showDelete, setShowDelete] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [deleteError, setDeleteError] = useState('')
+  const [lastTopup, setLastTopup] = useState<{
+    id: number
+    type: string
+    amount: number
+    balanceBefore: number
+    balanceAfter: number
+    note: string
+    createdAt: string
+    admin: { username: string } | null
+  } | null>(null)
 
   const fetch_ = async () => {
     setLoading(true)
@@ -78,6 +90,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
     if (!amount || !topupNote.trim()) return
     setTopupLoading(true)
     setTopupError('')
+    setLastTopup(null)
     const res = await fetch(`/api/admin/students/${id}/topup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -89,6 +102,8 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
       setTopupLoading(false)
       return
     }
+    const data = await res.json()
+    setLastTopup(data.transaction)
     setTopupAmount('')
     setTopupNote('')
     setTopupError('')
@@ -307,6 +322,14 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
               className="bg-primary text-on-primary px-6 py-2.5 rounded-md text-sm font-bold shadow-primary-glow active:scale-95 disabled:opacity-40 self-end">
               {topupLoading ? '…' : 'Apply'}
             </button>
+            {lastTopup && (
+              <button
+                onClick={() => window.print()}
+                className="flex items-center gap-1.5 text-primary text-xs font-semibold self-end"
+              >
+                <Icon name="print" size={14} /> Print Receipt
+              </button>
+            )}
           </div>
           {topupError && <p className="text-error text-xs font-medium mt-1">{topupError}</p>}
         </div>
@@ -398,6 +421,37 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      <style>{`
+        @media print {
+          body * { visibility: hidden !important; }
+          .print-area, .print-area * { visibility: visible !important; display: block !important; }
+          .print-area { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
+        }
+      `}</style>
+
+      {lastTopup && (
+        <div className="print-area hidden invisible bg-white text-black w-full max-w-sm p-4 text-center font-mono text-sm leading-tight">
+          <h1 className="text-2xl font-black italic mb-2 mt-4">{storeName}</h1>
+          <p className="mb-4 text-xs font-bold">CTU - Danao Campus</p>
+          <div className="border-t border-black border-dashed my-4" />
+          <p className="text-xl font-black mb-1">{student.fullName}</p>
+          <p className="text-xs font-bold mb-4">{student.studentIdNumber}</p>
+          <div className="border-t border-black border-dashed my-4" />
+          <p className="text-[10px] uppercase font-bold tracking-widest mb-1">
+            {lastTopup.type === 'topup' ? 'TOP-UP' : 'ADJUSTMENT'}
+          </p>
+          <p className="text-4xl font-black mb-1">&#8369;{lastTopup.amount.toFixed(2)}</p>
+          <div className="border-t border-black border-dashed my-4" />
+          <p className="text-sm font-bold mb-1">Before: &#8369;{lastTopup.balanceBefore.toFixed(2)}</p>
+          <p className="text-sm font-bold mb-4">After: &#8369;{lastTopup.balanceAfter.toFixed(2)}</p>
+          {lastTopup.note && <p className="text-xs font-bold mb-1">Ref: {lastTopup.note}</p>}
+          {lastTopup.admin && <p className="text-xs font-bold mb-4">By: {lastTopup.admin.username}</p>}
+          <p className="text-[10px] mt-6 opacity-50 mb-4 tracking-widest">
+            Date: {new Date(lastTopup.createdAt).toLocaleString('en-PH')}
+          </p>
         </div>
       )}
     </div>
