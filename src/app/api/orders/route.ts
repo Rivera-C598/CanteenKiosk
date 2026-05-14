@@ -90,24 +90,47 @@ export async function POST(request: Request) {
       gcashAccountId = gcashAccount?.id
     }
 
-    const order = await prisma.order.create({
-      data: {
-        orderNumber,
-        paymentMethod,
-        paymentStatus: 'unpaid',
-        status: paymentMethod === 'cash' ? 'awaiting_payment' : 'pending_verification',
-        totalAmount: computedTotal,
-        gcashAccountId,
-        items: { create: orderItems },
-      },
-      include: {
-        items: { include: { menuItem: true } },
-        gcashAccount: true,
+    const order = await prisma.$transaction(async (tx) => {
+      for (const orderItem of orderItems) {
+        const menuItem = await tx.menuItem.findUnique({ where: { id: orderItem.menuItemId } })
+        if (!menuItem || menuItem.stock < orderItem.quantity) {
+          const name = menuItem?.name ?? 'Item'
+          const avail = menuItem?.stock ?? 0
+          throw new Error(`STOCK_INSUFFICIENT:${name}:${avail}`)
+        }
+        await tx.menuItem.update({
+          where: { id: orderItem.menuItemId },
+          data: { stock: { decrement: orderItem.quantity } },
+        })
       }
+      return tx.order.create({
+        data: {
+          orderNumber,
+          paymentMethod,
+          paymentStatus: 'unpaid',
+          status: paymentMethod === 'cash' ? 'awaiting_payment' : 'pending_verification',
+          totalAmount: computedTotal,
+          gcashAccountId,
+          items: { create: orderItems },
+        },
+        include: {
+          items: { include: { menuItem: true } },
+          gcashAccount: true,
+        },
+      })
     })
 
     return NextResponse.json(order)
   } catch (error) {
+    if (error instanceof Error && error.message.startsWith('STOCK_INSUFFICIENT:')) {
+      const parts = error.message.split(':')
+      const name = parts[1]
+      const avail = parts[2]
+      return NextResponse.json(
+        { error: `Only ${avail} ${name} available` },
+        { status: 409 }
+      )
+    }
     console.error('Create order error:', error)
     return NextResponse.json({ error: 'Failed to create order' }, { status: 500 })
   }
