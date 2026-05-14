@@ -50,8 +50,8 @@ export default function TransactionsPage() {
             <div key={tx.id} className="px-4 py-3 bg-surface-container-lowest rounded-xl">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-on-surface capitalize">{tx.type}</p>
-                <p className={`font-bold text-sm ${tx.type === 'topup' ? 'text-green-600' : 'text-error'}`}>
-                  {tx.type === 'topup' ? '+' : '-'}&#8369;{tx.amount.toFixed(2)}
+                <p className={`font-bold text-sm ${tx.balanceAfter >= tx.balanceBefore ? 'text-green-600' : 'text-error'}`}>
+                  {tx.balanceAfter >= tx.balanceBefore ? '+' : '-'}&#8369;{tx.amount.toFixed(2)}
                 </p>
               </div>
               <div className="flex items-center justify-between mt-1">
