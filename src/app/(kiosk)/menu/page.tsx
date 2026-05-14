@@ -35,6 +35,7 @@ export default function MenuPage() {
   const { addItem, items, totalItems, totalAmount } = useCart()
   const { t } = useLanguage()
   const storeName = useStoreName()
+  const getCartQty = (itemId: number) => items.find(i => i.id === itemId)?.quantity ?? 0
   const [categories, setCategories] = useState<Category[]>([])
   const [activeCategory, setActiveCategory] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
@@ -89,7 +90,7 @@ export default function MenuPage() {
   const activeItems = categories.find(c => c.id === activeCategory)?.items ?? []
 
   const handleAdd = (item: MenuItem) => {
-    const cartQty = items.find(i => i.id === item.id)?.quantity ?? 0
+    const cartQty = getCartQty(item.id)
     if (cartQty >= item.stock) return
     addItem({ id: item.id, name: item.name, price: item.price, image: item.image })
     setAddedId(item.id)
@@ -187,7 +188,7 @@ export default function MenuPage() {
                     </span>
                     <button
                       onClick={() => handleAdd(item)}
-                      disabled={!item.available || item.stock === 0 || (items.find(i => i.id === item.id)?.quantity ?? 0) >= item.stock}
+                      disabled={!item.available || item.stock === 0 || getCartQty(item.id) >= item.stock}
                       className={`w-10 h-10 sm:w-9 sm:h-9 rounded-full flex items-center justify-center active:scale-90 transition-all duration-150 ${
                         addedId === item.id
                           ? 'bg-tertiary text-on-tertiary'
