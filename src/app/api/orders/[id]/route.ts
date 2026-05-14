@@ -155,6 +155,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       && current?.paymentStatus !== 'paid'
       && current?.gcashAccountId
 
+    // Note: status 'cancelled' is handled by the early-return block above (with refund logic).
+    // isCancelling here only fires for edge cases where the early block was not triggered.
     const isCancelling = status === 'cancelled' && current?.status !== 'cancelled'
 
     const order = await prisma.$transaction(async (tx) => {
