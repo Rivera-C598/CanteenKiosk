@@ -155,8 +155,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       && current?.paymentStatus !== 'paid'
       && current?.gcashAccountId
 
-    const isCompleting = status === 'completed' && current?.status !== 'completed'
-    const isCancellingAfterComplete = status === 'cancelled' && current?.status === 'completed'
+    const isCancelling = status === 'cancelled' && current?.status !== 'cancelled'
 
     const order = await prisma.$transaction(async (tx) => {
       if (isGCashConfirm && current?.gcashAccountId) {
@@ -166,18 +165,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         })
       }
 
-      // Deduct stock when order completes
-      if (isCompleting && current?.items) {
-        for (const item of current.items) {
-          await tx.menuItem.update({
-            where: { id: item.menuItemId },
-            data: { stock: { decrement: item.quantity } },
-          })
-        }
-      }
-
-      // Restore stock if a completed order is somehow cancelled
-      if (isCancellingAfterComplete && current?.items) {
+      // Restore stock when order is cancelled at any stage
+      if (isCancelling && current?.items) {
         for (const item of current.items) {
           await tx.menuItem.update({
             where: { id: item.menuItemId },
