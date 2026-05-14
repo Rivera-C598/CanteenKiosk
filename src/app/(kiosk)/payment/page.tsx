@@ -31,8 +31,12 @@ export default function PaymentPage() {
         }),
       })
 
-      if (!res.ok) throw new Error('Order failed')
       const order = await res.json()
+      if (!res.ok) {
+        setError(order.error ?? t('payment.error'))
+        setLoading(false)
+        return
+      }
       if (selected === 'gcash') {
         router.push(`/payment/gcash?order=${order.orderNumber}&amount=${totalAmount}&orderId=${order.id}`)
       } else if (selected === 'cashless') {
