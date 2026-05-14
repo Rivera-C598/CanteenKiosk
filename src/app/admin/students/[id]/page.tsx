@@ -445,9 +445,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
           </p>
           <p className="text-4xl font-black mb-1">&#8369;{lastTopup.amount.toFixed(2)}</p>
           <div className="border-t border-black border-dashed my-4" />
-          <p className="text-sm font-bold mb-1">Before: &#8369;{lastTopup.balanceBefore.toFixed(2)}</p>
-          <p className="text-sm font-bold mb-4">After: &#8369;{lastTopup.balanceAfter.toFixed(2)}</p>
-          {lastTopup.note && <p className="text-xs font-bold mb-1">Ref: {lastTopup.note}</p>}
+          <p className="text-xs font-bold mb-4">REF-{String(lastTopup.id).padStart(6, '0')}</p>
           {lastTopup.admin && <p className="text-xs font-bold mb-4">By: {lastTopup.admin.username}</p>}
           <p className="text-[10px] mt-6 opacity-50 mb-4 tracking-widest">
             Date: {new Date(lastTopup.createdAt).toLocaleString('en-PH')}

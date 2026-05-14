@@ -90,9 +90,7 @@ export default function TransactionsPage() {
             </p>
             <p className="text-4xl font-black mb-1">&#8369;{selectedTx.amount.toFixed(2)}</p>
             <div className="border-t border-black border-dashed my-3" />
-            <p className="text-sm font-bold mb-1">Before: &#8369;{selectedTx.balanceBefore.toFixed(2)}</p>
-            <p className="text-sm font-bold mb-3">After: &#8369;{selectedTx.balanceAfter.toFixed(2)}</p>
-            {selectedTx.note && <p className="text-xs font-bold mb-1">Ref: {selectedTx.note}</p>}
+            <p className="text-xs font-bold mb-3">REF-{String(selectedTx.id).padStart(6, '0')}</p>
             {selectedTx.admin && <p className="text-xs font-bold mb-3">By: {selectedTx.admin.username}</p>}
             <p className="text-[10px] opacity-50 mb-4 tracking-widest">
               {new Date(selectedTx.createdAt).toLocaleString('en-PH')}
@@ -124,9 +122,7 @@ export default function TransactionsPage() {
           </p>
           <p className="text-4xl font-black mb-1">&#8369;{selectedTx.amount.toFixed(2)}</p>
           <div className="border-t border-black border-dashed my-4" />
-          <p className="text-sm font-bold mb-1">Before: &#8369;{selectedTx.balanceBefore.toFixed(2)}</p>
-          <p className="text-sm font-bold mb-4">After: &#8369;{selectedTx.balanceAfter.toFixed(2)}</p>
-          {selectedTx.note && <p className="text-xs font-bold mb-1">Ref: {selectedTx.note}</p>}
+          <p className="text-xs font-bold mb-4">REF-{String(selectedTx.id).padStart(6, '0')}</p>
           {selectedTx.admin && <p className="text-xs font-bold mb-4">By: {selectedTx.admin.username}</p>}
           <p className="text-[10px] mt-6 opacity-50 mb-4 tracking-widest">
             Date: {new Date(selectedTx.createdAt).toLocaleString('en-PH')}
