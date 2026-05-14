@@ -31,6 +31,8 @@ function CashlessContent() {
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
   const [lockMsg, setLockMsg] = useState('')
+  const [cameras, setCameras] = useState<MediaDeviceInfo[]>([])
+  const [cameraIndex, setCameraIndex] = useState(0)
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const animRef = useRef<number>(0)
@@ -39,12 +41,22 @@ function CashlessContent() {
   useEffect(() => {
     if (stage !== 'scanning') return
     scannedRef.current = false
+    setError('')
 
+    let cancelled = false
     const start = async () => {
+      await new Promise(r => setTimeout(r, 300))
+      if (cancelled) return
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } },
-        })
+        const constraints: MediaStreamConstraints = cameras.length > 0
+          ? { video: { deviceId: { exact: cameras[cameraIndex].deviceId }, width: { ideal: 1280 } } }
+          : { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } } }
+        const stream = await navigator.mediaDevices.getUserMedia(constraints)
+
+        if (cameras.length === 0) {
+          const all = await navigator.mediaDevices.enumerateDevices()
+          setCameras(all.filter(d => d.kind === 'videoinput'))
+        }
         streamRef.current = stream
         if (videoRef.current) {
           videoRef.current.srcObject = stream
@@ -81,11 +93,12 @@ function CashlessContent() {
     start()
 
     return () => {
+      cancelled = true
       scannedRef.current = true
       cancelAnimationFrame(animRef.current)
       stopStream()
     }
-  }, [stage])
+  }, [stage, cameraIndex])
 
   const stopStream = () => {
     streamRef.current?.getTracks().forEach(t => t.stop())
@@ -141,6 +154,7 @@ function CashlessContent() {
       {/* Header */}
       <header className="flex items-center justify-between gap-3 px-4 sm:px-8 py-3 sm:py-4 bg-surface-container-low shrink-0">
         <div className="flex items-center gap-2">
+          {stage !== 'success' && stage !== 'processing' && (<>
           <button
             onClick={async () => {
               await fetch(`/api/orders/${orderId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'cancelled', cancelReason: 'customer_cancelled' }) })
@@ -170,6 +184,7 @@ function CashlessContent() {
           >
             <Icon name="close" size={20} /> Cancel
           </button>
+          </>)}
         </div>
         <div className="text-xl sm:text-2xl font-black italic text-primary" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
           Cashless Pay
@@ -204,6 +219,15 @@ function CashlessContent() {
                 <div className="w-48 h-48 border-2 border-primary rounded-xl opacity-70" />
               </div>
             </div>
+            {cameras.length > 1 && (
+              <button
+                onClick={() => setCameraIndex(i => (i + 1) % cameras.length)}
+                className="flex items-center gap-2 text-on-surface-variant text-sm active:scale-95 transition-transform"
+              >
+                <Icon name="cameraswitch" size={20} />
+                Switch Camera ({cameraIndex + 1}/{cameras.length})
+              </button>
+            )}
             {error && <p className="text-error text-sm text-center">{error}</p>}
           </div>
         )}

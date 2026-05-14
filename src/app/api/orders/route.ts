@@ -41,7 +41,34 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { items, paymentMethod, totalAmount } = body
+    const { items, paymentMethod } = body
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ error: 'No items' }, { status: 400 })
+    }
+    const VALID_METHODS = ['cash', 'gcash', 'cashless']
+    if (!VALID_METHODS.includes(paymentMethod)) {
+      return NextResponse.json({ error: 'Invalid payment method' }, { status: 400 })
+    }
+
+    // Fetch real prices from DB — never trust client-supplied prices
+    const itemIds = items.map((i: { id: number }) => i.id)
+    const menuItems = await prisma.menuItem.findMany({
+      where: { id: { in: itemIds }, available: true },
+    })
+    if (menuItems.length !== itemIds.length) {
+      return NextResponse.json({ error: 'One or more items unavailable' }, { status: 400 })
+    }
+
+    const priceMap = new Map(menuItems.map(m => [m.id, m.price]))
+    let computedTotal = 0
+    const orderItems = items.map((item: { id: number; quantity: number }) => {
+      const unitPrice = priceMap.get(item.id)!
+      const qty = Math.max(1, Math.floor(item.quantity))
+      const subtotal = unitPrice * qty
+      computedTotal += subtotal
+      return { menuItemId: item.id, quantity: qty, unitPrice, subtotal }
+    })
 
     const today = new Date()
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
@@ -69,16 +96,9 @@ export async function POST(request: Request) {
         paymentMethod,
         paymentStatus: 'unpaid',
         status: paymentMethod === 'cash' ? 'awaiting_payment' : 'pending_verification',
-        totalAmount,
+        totalAmount: computedTotal,
         gcashAccountId,
-        items: {
-          create: items.map((item: { id: number; quantity: number; price: number }) => ({
-            menuItemId: item.id,
-            quantity: item.quantity,
-            unitPrice: item.price,
-            subtotal: item.price * item.quantity,
-          }))
-        }
+        items: { create: orderItems },
       },
       include: {
         items: { include: { menuItem: true } },

@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyPin } from '@/lib/pin-utils'
+import { rateLimit } from '@/lib/rate-limit'
 
 const MAX_ATTEMPTS = 3
 const LOCKOUT_SECONDS = 30
 
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  const check = rateLimit(`pay:${ip}`, 20, 60 * 1000) // 20 attempts per minute per IP
+  if (!check.ok) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
+
   const { qrToken, pin, orderId } = await request.json()
   if (!qrToken || !pin || !orderId) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })

@@ -77,6 +77,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         include: { items: { include: { menuItem: true } } },
       })
       if (!current) return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+      if (current.status === 'cancelled') return NextResponse.json(current)
 
       const isCashlessPaid = current.paymentMethod === 'cashless' && current.paymentStatus === 'paid'
       const isGCashPaid = current.paymentMethod === 'gcash' && current.paymentStatus === 'paid'
@@ -111,7 +112,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           data: {
             status: 'cancelled',
             cancelReason: cancelReason ?? '',
-            ...(isCashlessPaid ? { refundStatus: 'completed' } : {}),
+            ...(isCashlessPaid ? { refundStatus: 'completed', paymentStatus: 'refunded' } : {}),
             ...(isGCashPaid ? { refundStatus: 'pending' } : {}),
           },
           include: { items: { include: { menuItem: true } }, gcashAccount: true },

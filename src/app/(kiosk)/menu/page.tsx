@@ -144,7 +144,7 @@ export default function MenuPage() {
       </div>
 
       {/* Item grid */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 pb-28">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5">
         {activeItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-on-surface-variant">
             <Icon name="restaurant_menu" size={48} />
@@ -202,9 +202,9 @@ export default function MenuPage() {
         )}
       </div>
 
-      {/* Floating cart bar */}
+      {/* Cart bar */}
       {totalItems > 0 && (
-        <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 z-20">
+        <div className="shrink-0 p-3 sm:p-4">
           <button
             onClick={() => router.push('/cart')}
             className="w-full bg-primary text-on-primary rounded-xl px-4 sm:px-6 py-4 flex items-center justify-between gap-3 shadow-primary-glow active:scale-[0.98] transition-transform duration-150"
