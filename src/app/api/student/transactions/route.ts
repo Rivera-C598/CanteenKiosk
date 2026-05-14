@@ -15,6 +15,9 @@ export async function GET() {
     where: { studentAccountId: session.studentId },
     orderBy: { createdAt: 'desc' },
     take: 50,
+    include: {
+      admin: { select: { username: true } },
+    },
   })
   return NextResponse.json(transactions)
 }
