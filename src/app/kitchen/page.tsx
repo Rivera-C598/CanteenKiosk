@@ -9,7 +9,7 @@ interface OrderItem {
   id: number
   quantity: number
   unitPrice: number
-  menuItem: { id: number; name: string }
+  menuItem: { id: number; name: string; stock: number }
 }
 interface Order {
   id: number
@@ -117,6 +117,7 @@ export default function KitchenPage() {
   const [autoPrintKitchenReceipts, setAutoPrintKitchenReceipts] = useState(initialAutoPrintKitchenReceipts)
   const [checkedItems, setCheckedItems] = useState<Map<number, Set<number>>>(new Map())
   const [cancelTarget, setCancelTarget] = useState<Order | null>(null)
+  const [cancelRestock, setCancelRestock] = useState(true)
   const [editingOrder, setEditingOrder] = useState<Order | null>(null)
   const [cashlessTarget, setCashlessTarget] = useState<Order | null>(null)
   const [cashlessStudentId, setCashlessStudentId] = useState('')
@@ -264,7 +265,9 @@ export default function KitchenPage() {
   }
 
   const doCancel = async (order: Order, reason: string) => {
+    const shouldRestock = cancelRestock
     setCancelTarget(null)
+    setCancelRestock(true)
     setCompleting(prev => new Set(prev).add(order.id))
     setTimeout(() => {
       setOrders(prev => prev.filter(o => o.id !== order.id))
@@ -274,7 +277,7 @@ export default function KitchenPage() {
     await fetch(`/api/orders/${order.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'cancelled', cancelReason: reason }),
+      body: JSON.stringify({ status: 'cancelled', cancelReason: reason, restock: shouldRestock }),
     })
   }
 
@@ -461,6 +464,20 @@ export default function KitchenPage() {
                     })}
                   </div>
 
+                  {/* Stock mismatch warning */}
+                  {order.items.some(item => item.menuItem.stock > 0 && item.quantity > item.menuItem.stock) && (
+                    <div className="flex items-start gap-2 bg-error-container/60 text-on-error-container rounded-xl px-3 py-2 text-xs font-semibold">
+                      <Icon name="warning" size={14} className="shrink-0 mt-0.5" />
+                      <span>
+                        Stock mismatch:{' '}
+                        {order.items
+                          .filter(item => item.menuItem.stock > 0 && item.quantity > item.menuItem.stock)
+                          .map(item => `${item.menuItem.name} (${item.quantity} ordered, ${item.menuItem.stock} in stock)`)
+                          .join(' · ')}
+                      </span>
+                    </div>
+                  )}
+
                   {/* Actions Area */}
                   <div className="flex flex-col gap-3 pt-2">
                     {/* Elapsed */}
@@ -556,6 +573,24 @@ export default function KitchenPage() {
               </div>
             )}
 
+            {/* Restock toggle */}
+            <button
+              onClick={() => setCancelRestock(v => !v)}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl mb-3 transition-all border-2 ${
+                cancelRestock
+                  ? 'bg-secondary-container/40 border-secondary-container text-on-surface'
+                  : 'bg-surface-container border-outline-variant/30 text-on-surface-variant'
+              }`}
+            >
+              <div className="text-left">
+                <p className="font-bold text-sm">Restock items</p>
+                <p className="text-xs opacity-70">{cancelRestock ? 'Items will be returned to stock' : 'Items will NOT be returned to stock'}</p>
+              </div>
+              <div className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${cancelRestock ? 'bg-primary' : 'bg-outline-variant'}`}>
+                <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${cancelRestock ? 'translate-x-5' : 'translate-x-0'}`} />
+              </div>
+            </button>
+
             <div className="flex flex-col gap-2 mb-3">
               {[
                 { key: 'customer_request', label: 'Customer Request' },
@@ -573,7 +608,7 @@ export default function KitchenPage() {
               ))}
             </div>
             <button
-              onClick={() => setCancelTarget(null)}
+              onClick={() => { setCancelTarget(null); setCancelRestock(true) }}
               className="w-full py-3.5 rounded-xl font-headline font-bold text-sm bg-surface-container-low hover:bg-surface-container active:scale-95 transition-all text-on-surface"
             >
               Oops, go back

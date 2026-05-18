@@ -52,6 +52,8 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [deleteError, setDeleteError] = useState('')
   const [pendingTopup, setPendingTopup] = useState<{ amount: number; note: string } | null>(null)
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [printTx, setPrintTx] = useState<{
     id: number
     type: string
@@ -88,6 +90,8 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
   const doTopup = () => {
     const amount = parseFloat(topupAmount)
     if (!amount || !topupNote.trim()) return
+    setConfirmPassword('')
+    setShowConfirmPassword(false)
     setPendingTopup({ amount, note: topupNote.trim() })
   }
 
@@ -98,7 +102,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
     const res = await fetch(`/api/admin/students/${id}/topup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount: pendingTopup.amount, note: pendingTopup.note }),
+      body: JSON.stringify({ amount: pendingTopup.amount, note: pendingTopup.note, password: confirmPassword }),
     })
     if (!res.ok) {
       const data = await res.json()
@@ -111,10 +115,11 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
     setPrintTx(data.transaction)
     setTopupAmount('')
     setTopupNote('')
+    const wasTopup = pendingTopup.amount > 0
     setPendingTopup(null)
     await fetch_()
     setTopupLoading(false)
-    window.print()
+    if (wasTopup) setTimeout(() => window.print(), 50)
   }
 
   const openEdit = () => {
@@ -341,9 +346,12 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
         ) : (
           <div className="space-y-2">
             {student.transactions.map(tx => (
-              <div key={tx.id} className="flex items-center justify-between px-4 py-3 bg-surface-container-lowest rounded-xl">
+              <div key={tx.id} className="flex items-center justify-between px-4 py-3 bg-surface-container-lowest rounded-md">
                 <div>
-                  <p className={`text-sm font-semibold capitalize ${txTypeColor[tx.type]}`}>{tx.type}</p>
+                  <div className="flex items-center gap-2">
+                    <p className={`text-sm font-semibold capitalize ${txTypeColor[tx.type]}`}>{tx.type}</p>
+                    <p className="text-xs font-mono text-on-surface-variant">REF-{String(tx.id).padStart(6, '0')}</p>
+                  </div>
                   <p className="text-on-surface-variant text-xs">{new Date(tx.createdAt).toLocaleString()}</p>
                   {tx.note && <p className="text-on-surface-variant text-xs">{tx.note}</p>}
                   {(tx.type === 'topup' || tx.type === 'adjustment') && (
@@ -391,16 +399,34 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
                 <span className="text-on-surface text-sm font-medium">{pendingTopup.note}</span>
               </div>
             </div>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                placeholder="Enter your admin password"
+                className="w-full px-4 py-3 pr-12 rounded-xl bg-surface-container-low border border-surface-container focus:border-primary text-on-surface text-sm outline-none"
+                onKeyDown={e => e.key === 'Enter' && !topupLoading && confirmPassword && confirmTopup()}
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(v => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
+              >
+                <Icon name={showConfirmPassword ? 'visibility_off' : 'visibility'} size={18} />
+              </button>
+            </div>
             {topupError && <p className="text-error text-xs font-medium">{topupError}</p>}
             <div className="flex gap-3 mt-2">
-              <button onClick={() => setPendingTopup(null)} disabled={topupLoading}
+              <button onClick={() => { setPendingTopup(null); setConfirmPassword('') }} disabled={topupLoading}
                 className="flex-1 py-3 rounded-xl bg-surface-container text-on-surface font-bold text-sm active:scale-95 disabled:opacity-40">
                 Cancel
               </button>
-              <button onClick={confirmTopup} disabled={topupLoading}
+              <button onClick={confirmTopup} disabled={topupLoading || !confirmPassword}
                 className="flex-1 py-3 rounded-xl bg-primary text-on-primary font-bold text-sm shadow-primary-glow active:scale-95 disabled:opacity-40 flex items-center justify-center gap-2">
-                <Icon name="print" size={16} />
-                {topupLoading ? 'Processing…' : 'Confirm & Print'}
+                <Icon name={pendingTopup && pendingTopup.amount > 0 ? 'print' : 'check'} size={16} />
+                {topupLoading ? 'Processing…' : pendingTopup && pendingTopup.amount > 0 ? 'Confirm & Print' : 'Confirm'}
               </button>
             </div>
           </div>
@@ -488,7 +514,9 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
           <p className="text-[10px] uppercase font-bold tracking-widest mb-1">
             {printTx.type === 'topup' ? 'TOP-UP' : 'ADJUSTMENT'}
           </p>
-          <p className="text-4xl font-black mb-1">&#8369;{printTx.amount.toFixed(2)}</p>
+          <p className="text-4xl font-black mb-1">
+            {printTx.type !== 'topup' ? '-' : ''}&#8369;{printTx.amount.toFixed(2)}
+          </p>
           <div className="border-t border-black border-dashed my-4" />
           <p className="text-xs font-bold mb-4">REF-{String(printTx.id).padStart(6, '0')}</p>
           {printTx.admin && <p className="text-xs font-bold mb-4">By: {printTx.admin.username}</p>}

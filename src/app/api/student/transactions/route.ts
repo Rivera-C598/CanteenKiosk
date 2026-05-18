@@ -17,6 +17,16 @@ export async function GET() {
     take: 50,
     include: {
       admin: { select: { username: true } },
+      order: {
+        select: {
+          orderNumber: true,
+          totalAmount: true,
+          createdAt: true,
+          items: {
+            include: { menuItem: { select: { name: true } } },
+          },
+        },
+      },
     },
   })
   return NextResponse.json(transactions)

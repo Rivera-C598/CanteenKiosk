@@ -59,11 +59,7 @@ export function EditOrderDrawer({ order, onClose, onSaved }: EditOrderDrawerProp
     categories.flatMap(c => c.items.map(i => [i.id, i.stock]))
   )
 
-  const maxQty = (menuItemId: number) => {
-    const dbStock = stockMap.get(menuItemId) ?? 0
-    const origQty = originalQtyMap.get(menuItemId) ?? 0
-    return dbStock + origQty
-  }
+  const maxQty = (menuItemId: number) => stockMap.get(menuItemId) ?? 0
 
   useEffect(() => {
     if (!order) return
@@ -103,7 +99,7 @@ export function EditOrderDrawer({ order, onClose, onSaved }: EditOrderDrawerProp
       const existing = prev.findIndex(i => i.menuItemId === menuItem.id)
       if (existing >= 0) {
         const current = prev[existing]
-        const max = (stockMap.get(menuItem.id) ?? 0) + (originalQtyMap.get(menuItem.id) ?? 0)
+        const max = stockMap.get(menuItem.id) ?? 0
         if (current.quantity >= max) return prev
         return prev.map((item, i) => i === existing ? { ...item, quantity: item.quantity + 1 } : item)
       }
@@ -113,8 +109,19 @@ export function EditOrderDrawer({ order, onClose, onSaved }: EditOrderDrawerProp
 
   const handleSave = async () => {
     if (!order || editItems.length === 0) return
-    setSaving(true)
     setSaveError('')
+    setSaving(true)
+
+    // Client-side stock check before save — qty must not exceed current stock
+    for (const item of editItems) {
+      const stock = stockMap.get(item.menuItemId)
+      if (stock !== undefined && item.quantity > stock) {
+        setSaveError(`${item.name}: quantity (${item.quantity}) exceeds current stock (${stock}). Reduce before saving.`)
+        setSaving(false)
+        return
+      }
+    }
+
     try {
       const res = await fetch(`/api/orders/${order.id}`, {
         method: 'PATCH',

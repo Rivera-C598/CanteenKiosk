@@ -1,12 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Icon } from '@/components/shared/Icon'
 import { useStoreName } from '@/lib/store-context'
 
 export default function AdminLoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const sessionExpired = searchParams.get('expired') === '1'
   const storeName = useStoreName()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -64,6 +66,13 @@ export default function AdminLoginPage() {
             <h2 className="font-headline font-bold text-2xl text-on-surface mb-2">Welcome Back</h2>
             <p className="text-on-surface-variant text-sm">Please enter your credentials to access the dashboard</p>
           </div>
+
+          {sessionExpired && (
+            <div className="flex items-center gap-2 bg-secondary-container text-on-secondary-container rounded-xl px-4 py-3 mb-6">
+              <Icon name="info" size={18} />
+              <p className="text-sm font-medium">Session expired. Please sign in again.</p>
+            </div>
+          )}
 
           <form onSubmit={handleLogin} className="space-y-6">
             {/* Username */}

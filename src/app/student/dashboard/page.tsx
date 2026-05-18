@@ -22,7 +22,7 @@ function TopupGuide() {
         <Icon name={open ? 'expand_less' : 'expand_more'} size={20} />
       </button>
       {open && (
-        <div className="mt-2 px-4 py-4 bg-surface-container-lowest rounded-xl space-y-3">
+        <div className="mt-2 px-4 py-4 bg-surface-container-lowest rounded-2xl space-y-3">
           {[
             { icon: 'person', text: 'Go to the canteen admin or cashier counter.' },
             { icon: 'badge', text: 'Provide your Student ID number and full name so they can find your account.' },
@@ -101,17 +101,17 @@ export default function StudentDashboard() {
       {/* Quick actions */}
       <div className="grid grid-cols-3 gap-3 mb-4">
         <button onClick={() => router.push('/student/transactions')}
-          className="flex flex-col items-center gap-2 p-4 bg-surface-container-lowest rounded-xl active:scale-95 transition-transform">
+          className="flex flex-col items-center gap-2 p-4 bg-surface-container-lowest rounded-md active:scale-95 transition-transform">
           <Icon name="receipt_long" size={28} className="text-primary" />
           <span className="text-xs font-medium text-on-surface">History</span>
         </button>
         <button onClick={() => router.push('/student/qr')}
-          className="flex flex-col items-center gap-2 p-4 bg-surface-container-lowest rounded-xl active:scale-95 transition-transform">
+          className="flex flex-col items-center gap-2 p-4 bg-surface-container-lowest rounded-md active:scale-95 transition-transform">
           <Icon name="qr_code" size={28} className="text-primary" />
           <span className="text-xs font-medium text-on-surface">My QR</span>
         </button>
         <button onClick={() => router.push('/student/change-pin')}
-          className="flex flex-col items-center gap-2 p-4 bg-surface-container-lowest rounded-xl active:scale-95 transition-transform">
+          className="flex flex-col items-center gap-2 p-4 bg-surface-container-lowest rounded-md active:scale-95 transition-transform">
           <Icon name="pin" size={28} className="text-primary" />
           <span className="text-xs font-medium text-on-surface">Change PIN</span>
         </button>

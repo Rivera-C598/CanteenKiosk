@@ -82,11 +82,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'One or more items unavailable' }, { status: 400 })
     }
 
+    const nameMap = new Map(menuItems.map(m => [m.id, m.name]))
     const priceMap = new Map(menuItems.map(m => [m.id, m.price]))
+
+    for (const item of items as { id: number; quantity: number }[]) {
+      const qty = Math.max(1, Math.floor(item.quantity))
+      if (qty > MAX_QTY_PER_ITEM) {
+        const name = nameMap.get(item.id) ?? 'Item'
+        return NextResponse.json(
+          { error: `${name}: max ${MAX_QTY_PER_ITEM} per order. Please reduce quantity.` },
+          { status: 400 }
+        )
+      }
+    }
+
     let computedTotal = 0
-    const orderItems = items.map((item: { id: number; quantity: number }) => {
+    const orderItems = (items as { id: number; quantity: number }[]).map(item => {
       const unitPrice = priceMap.get(item.id)!
-      const qty = Math.min(MAX_QTY_PER_ITEM, Math.max(1, Math.floor(item.quantity)))
+      const qty = Math.max(1, Math.floor(item.quantity))
       const subtotal = unitPrice * qty
       computedTotal += subtotal
       return { menuItemId: item.id, quantity: qty, unitPrice, subtotal }

@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { cookies } from 'next/headers'
 import { getIronSession } from 'iron-session'
+import bcrypt from 'bcryptjs'
 import { sessionOptions, SessionData } from '@/lib/session'
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const { amount, note } = await request.json()
+  const { amount, note, password } = await request.json()
 
   if (amount === undefined || amount === null || amount === 0) {
     return NextResponse.json({ error: 'Amount cannot be zero' }, { status: 400 })
@@ -14,11 +15,19 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (!note || !String(note).trim()) {
     return NextResponse.json({ error: 'Reference note is required' }, { status: 400 })
   }
+  if (!password) {
+    return NextResponse.json({ error: 'Password is required' }, { status: 400 })
+  }
 
   const cookieStore = await cookies()
   const session = await getIronSession<SessionData>(cookieStore, sessionOptions)
   const adminId = session.isLoggedIn ? (session.userId ?? null) : null
   if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const adminUser = await prisma.adminUser.findUnique({ where: { id: adminId } })
+  if (!adminUser || !await bcrypt.compare(password, adminUser.passwordHash)) {
+    return NextResponse.json({ error: 'Incorrect password' }, { status: 401 })
+  }
 
   try {
     const student = await prisma.studentAccount.findUnique({ where: { id: parseInt(id) } })

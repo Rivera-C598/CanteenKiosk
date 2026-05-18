@@ -155,7 +155,7 @@ function GCashContent() {
           </div>
 
           {/* Steps */}
-          <div className="w-full max-w-sm bg-secondary-container rounded-xl p-4">
+          <div className="w-full max-w-sm bg-secondary-container rounded-2xl p-4">
             <p className="font-headline font-bold text-on-secondary-container text-sm mb-3" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
               {t('gcash.how_to')}
             </p>

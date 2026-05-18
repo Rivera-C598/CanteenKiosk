@@ -29,7 +29,13 @@ export default function PaymentPage() {
           (categories as { items: { id: number; stock: number; available: boolean }[] }[])
             .flatMap(c => c.items.map(i => [i.id, i.available ? i.stock : 0]))
         )
+        const MAX_QTY = 20
         for (const item of items) {
+          if (item.quantity > MAX_QTY) {
+            setError(`${item.name}: max ${MAX_QTY} per order. Please reduce quantity in cart.`)
+            setLoading(false)
+            return
+          }
           const available = stockMap.get(item.id) ?? 0
           if (available < item.quantity) {
             setError(`Only ${available} ${item.name} left in stock. Please update your cart.`)

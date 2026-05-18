@@ -50,7 +50,7 @@ export default function DashboardPage() {
 
   const fetchStats = () => {
     fetch('/api/orders/stats')
-      .then(r => r.json())
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
       .then(data => { setStats(data); setLoading(false) })
       .catch(() => setLoading(false))
   }

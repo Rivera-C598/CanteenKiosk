@@ -88,7 +88,7 @@ export default function TopupAuditPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-surface-container">
-                {['Date', 'Student', 'Admin', 'Type', 'Amount', 'Balance After', 'Note'].map(h => (
+                {['Date', 'Ref', 'Student', 'Admin', 'Type', 'Amount', 'Balance After', 'Note'].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-on-surface-variant uppercase tracking-wide">
                     {h}
                   </th>
@@ -102,6 +102,9 @@ export default function TopupAuditPage() {
                   className="border-b border-surface-container last:border-0 hover:bg-surface-container cursor-pointer transition-colors">
                   <td className="px-4 py-3 text-on-surface-variant text-xs whitespace-nowrap">
                     {new Date(e.createdAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </td>
+                  <td className="px-4 py-3 text-xs font-mono text-on-surface-variant whitespace-nowrap">
+                    REF-{String(e.id).padStart(6, '0')}
                   </td>
                   <td className="px-4 py-3">
                     <p className="text-sm font-medium text-on-surface">{e.studentAccount.fullName}</p>

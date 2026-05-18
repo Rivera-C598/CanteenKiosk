@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { Icon } from '@/components/shared/Icon'
 import { useStoreName } from '@/lib/store-context'
@@ -17,10 +18,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname()
   const router = useRouter()
   const storeName = useStoreName()
+  const [authChecked, setAuthChecked] = useState(false)
+
+  useEffect(() => {
+    if (pathname === '/admin/login') { setAuthChecked(true); return }
+    fetch('/api/auth/me').then(async r => {
+      if (!r.ok) {
+        router.replace('/admin/login?expired=1')
+        return
+      }
+      const data = await r.json()
+      if (data.role !== 'admin') {
+        router.replace('/admin/login?expired=1')
+      } else {
+        setAuthChecked(true)
+      }
+    })
+  }, [pathname, router])
 
   // Don't show sidebar on login page
   if (pathname === '/admin/login') {
     return <div className="min-h-screen bg-background">{children}</div>
+  }
+
+  // Block render until session confirmed — prevents flash of zeroed dashboard
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Icon name="hourglass_empty" size={32} className="text-primary animate-spin" />
+      </div>
+    )
   }
 
   const handleLogout = async () => {

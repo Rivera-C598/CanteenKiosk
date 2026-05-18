@@ -27,7 +27,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const { id } = await params
     const orderId = parseInt(id)
     const body = await request.json()
-    const { status, paymentStatus, items, totalAmount, cancelReason, refundStatus } = body
+    const { status, paymentStatus, items, totalAmount, cancelReason, refundStatus, restock } = body
 
     // ── Edit items ──────────────────────────────────────────────
     if (items !== undefined) {
@@ -113,6 +113,16 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       const isGCashPaid = current.paymentMethod === 'gcash' && current.paymentStatus === 'paid'
 
       const order = await prisma.$transaction(async (tx) => {
+        // Restore stock (default: always, unless caller explicitly passes restock: false)
+        if (restock !== false) {
+          for (const item of current.items) {
+            await tx.menuItem.update({
+              where: { id: item.menuItem.id },
+              data: { stock: { increment: item.quantity } },
+            })
+          }
+        }
+
         // Auto-refund cashless balance
         if (isCashlessPaid && current.studentAccountId) {
           const student = await tx.studentAccount.findUnique({ where: { id: current.studentAccountId } })
@@ -156,6 +166,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
               total: current.totalAmount,
               cancelReason: cancelReason ?? '',
               refund: isCashlessPaid ? 'auto' : isGCashPaid ? 'manual_pending' : 'none',
+              restocked: restock !== false,
             }),
           },
         })
