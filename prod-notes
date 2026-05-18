@@ -42,6 +42,11 @@ Rate Limiting:
   src/lib/rate-limit.ts            In-memory rate limiter (single-instance, no Redis needed)
                                    Student login: 10 req/min per IP + 5 wrong PINs → 15-min account lock
                                    Cashless identify: 30 req/min per IP
+                                   Cashless pay (QR): 20 req/min per IP
+                                   Cashless pay (ID): 20 req/min per IP
+                                   Kitchen auth: 10 req/min per IP
+                                   Order creation: 5 req/min per IP
+                                   Order status lookup: 30 req/min per IP
 
 Other:
   html5-qrcode (npm)               Installed but replaced by jsQR — can remove
@@ -53,16 +58,22 @@ FIRST-TIME SETUP
 1. Create .env file in project root:
 
    DATABASE_URL="file:./dev.db"
-   SESSION_SECRET="change-this-to-a-long-random-string-in-production"
+   SESSION_SECRET="<random 32+ char string — REQUIRED, app crashes on startup if missing>"
    KIOSK_IP=          ← tablet/device IP that runs the kiosk (blank = no IP lock)
                        Set to the KIOSK DEVICE's IP, not the server PC's IP.
                        Localhost (127.0.0.1) always bypasses this lock.
-   KITCHEN_PIN=1234   ← 4–6 digit staff PIN to access /kitchen page
-                       Verified via POST /api/kitchen/auth. Stored in sessionStorage (clears on browser close).
-                       Change this before going to production.
+   KITCHEN_PIN=1234   ← staff PIN to access /kitchen page. Change before production.
+                       Verified via POST /api/kitchen/auth. Sets an iron-session cookie
+                       (server-side, survives page refresh, clears when cookie expires).
    ENABLE_DANGER_ZONE=true  ← set to true in dev only; remove or set false in production
                                Controls visibility of Fresh Start / Load Demo / Nuclear Reset buttons
                                and blocks the /api/system/reset endpoint entirely when false/missing
+
+   Generate SESSION_SECRET:
+     node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+   IMPORTANT: SESSION_SECRET must be at least 32 characters. The app throws on
+   startup if this env var is missing or too short — intentional, not a bug.
 
 2. Install dependencies:
    npm install
@@ -141,23 +152,31 @@ Session Auth:
     /student if not authenticated. Forces /student/change-pin if isTemporaryPin.
 
 Kitchen PIN Gate:
-  - /kitchen has no session auth. Protected by a staff PIN stored in .env as
-    KITCHEN_PIN. Verified via POST /api/kitchen/auth. Result stored in
-    sessionStorage (clears on browser close).
-  - Known limitation: sessionStorage is client-side only. For stronger security,
-    add a proper session — listed as future recommendation.
+  - /kitchen is protected by a staff PIN stored in .env as KITCHEN_PIN.
+  - Verified via POST /api/kitchen/auth, which sets an iron-session cookie
+    (role: 'kitchen'). Server-side — cannot be faked from browser console.
+  - Rate limited: 10 attempts/min per IP.
+  - Logout: DELETE /api/kitchen/auth destroys the session cookie.
+  - All kitchen API calls (order edits, status changes, cancels, cleanup)
+    require a valid kitchen or admin session — enforced server-side on every route.
 
 Queue (/queue):
   - Intentionally open. Read-only, shows order numbers only, no sensitive data.
     Designed to be displayed on a public TV screen.
 
 API-level Guards:
-  - Admin APIs (/api/admin/*) check admin session cookie — middleware alone is
-    not enough since middleware only covers page routes, not /api/*.
+  - Admin APIs (/api/admin/*, /api/menu-items, /api/orders/metrics|stats|logs)
+    check admin session cookie — middleware alone is not enough since middleware
+    only covers page routes, not /api/*.
+  - Kitchen APIs (/api/orders GET+PATCH, /api/orders/cleanup) require kitchen
+    or admin session. All order mutations (status, cancel, edit) are gated.
+  - Menu-items PATCH whitelists allowed fields (name, price, description, image,
+    stock, available, categoryId) — no mass-assignment via raw body.
+  - Order creation caps: max 10 distinct items per order, max qty 20 per item.
   - Paid orders cannot be edited — server rejects edit requests if
     paymentStatus === 'paid', regardless of UI state.
-  - Cashless pay is atomic (Prisma $transaction) — balance check and deduction
-    happen in a single DB transaction to prevent double-spend.
+  - Cashless pay is atomic (Prisma $transaction) — paymentStatus re-checked
+    inside transaction to prevent double-payment race condition.
   - Kiosk cashless PIN brute force: 3 wrong attempts → 30-second lockout per account
     (tracked in StudentAccount.pinAttempts + pinLockedUntil).
   - Student portal login brute force: 5 wrong PINs → 15-minute account lockout
@@ -165,6 +184,8 @@ API-level Guards:
   - Cashless identify endpoint: 30 requests/min per IP rate limit.
   - Rate limiter: in-memory (src/lib/rate-limit.ts), resets on server restart.
     Suitable for single-instance local deployment. No Redis needed.
+  - Stock is pre-validated on the payment page (fresh fetch) before order
+    submission — catches stock changes between cart and checkout.
 
 Password/PIN Storage:
   - All passwords and PINs stored as bcrypt hashes (cost 10). Never stored plain.
@@ -281,8 +302,17 @@ GCash Monthly Limit Idempotency:
 Double-Spend Prevention:
   Initial cashless pay did balance check then wrote in two separate DB calls.
   Race condition: concurrent requests could both pass the check with stale balance.
-  Fixed with Prisma interactive transaction — fresh balance read and deduction
-  happen atomically inside the same transaction.
+  Fixed with Prisma interactive transaction — fresh paymentStatus AND fresh
+  balance re-read inside the transaction before any write. Applies to both
+  /api/cashless/pay (QR scan) and /api/cashless/pay-by-id (manual entry).
+
+SQLite WAL Mode:
+  Default SQLite journal mode serializes all writes — concurrent kiosk orders
+  queue behind each other, risking "database is locked" errors under load.
+  Fixed via src/instrumentation.ts (Next.js startup hook): runs
+  PRAGMA journal_mode=WAL and PRAGMA busy_timeout=5000 on server start.
+  WAL allows concurrent readers + one writer without blocking. Enabled in
+  next.config.mjs via experimental.instrumentationHook: true.
 
 Cart Cleared Too Early (GCash/Cashless):
   Payment page called clearCart() immediately after order creation, before payment
@@ -298,9 +328,12 @@ Soft Delete for Audit Trail:
   deletion is allowed.
 
 Stock Deduction Timing:
-  Stock is deducted when order reaches 'completed' (not on order creation).
-  Abandoned/cancelled orders don't consume stock. Restored if a completed order
-  is somehow cancelled after the fact.
+  Stock is deducted atomically at order creation (inside the same DB transaction
+  as the order insert). This prevents overselling between concurrent kiosks —
+  the first POST to commit wins; the second gets a stock error.
+  Stock is restored on cancellation at any stage (UI cancel, GCash auto-timeout,
+  admin delete of non-completed orders). A floor guard ensures stock never goes
+  below 0 due to edge-case bugs. Edit order adjusts stock by delta only.
 
 --------------------------------------------------------------------------------
 STUDENT CASHLESS ACCOUNTS
@@ -399,9 +432,8 @@ FUTURE RECOMMENDATIONS
   Top-ups and order edits/cancels ARE logged. Add StudentAccountLog model
   (studentAccountId, action, adminId, createdAt) for full admin audit trail.
 
-- Stronger kitchen access: /kitchen PIN gate uses sessionStorage — clears on
-  browser close but no server-side session. Add proper server session for kitchen
-  staff (similar to admin session).
+- Stronger kitchen access: DONE. Kitchen PIN now sets an iron-session cookie
+  (server-side). All kitchen API routes require valid session.
 
 - Online hosting: SQLite → PostgreSQL, HTTPS via Let's Encrypt, deploy to VPS
   or Railway/Render. Required for student portal access outside school Wi-Fi.
@@ -442,15 +474,81 @@ Covers:
   - Limitations to acknowledge
 
 --------------------------------------------------------------------------------
+DATABASE BACKUPS
+--------------------------------------------------------------------------------
+
+Script: backup-db.ps1 (project root)
+npm shortcut: npm run backup
+
+What it does:
+  - Copies prisma/dev.db → backups/dev_YYYY-MM-DD_HH-mm.db
+  - Keeps last 14 backups automatically (older ones deleted)
+  - backups/ folder is gitignored — never committed
+
+Run manually anytime:
+  npm run backup
+  -- or --
+  powershell -ExecutionPolicy Bypass -File backup-db.ps1
+
+Schedule daily (recommended):
+  1. Open Task Scheduler (taskschd.msc)
+  2. Create Basic Task
+     Name: CanteenKiosk DB Backup
+     Trigger: Daily (e.g. 11 PM, after closing)
+     Action: Start a program
+     Program: powershell.exe
+     Arguments: -ExecutionPolicy Bypass -File "C:\full\path\to\CanteenKiosk\backup-db.ps1"
+
+Restore from backup:
+  Copy any file from backups/ → overwrite prisma/dev.db → restart app
+
+--------------------------------------------------------------------------------
+MULTI-COMPUTER / GIT WORKFLOW
+--------------------------------------------------------------------------------
+
+Key fact: dev.db is gitignored — each computer has its own independent database.
+Schema migrations ARE committed (prisma/migrations/) and travel with the code.
+
+Making a schema change (on main computer):
+  1. Edit prisma/schema.prisma
+  2. npx prisma migrate dev --name describe_the_change
+     ← creates a new migration file in prisma/migrations/
+  3. git add prisma/migrations/ prisma/schema.prisma
+  4. git commit + git push
+
+Other computer pulling the schema change:
+  1. git pull
+  2. npx prisma migrate deploy
+     ← applies only migrations not yet in their local dev.db
+     ← existing data is preserved, schema is updated
+
+New computer from scratch:
+  1. git clone / git pull
+  2. Copy .env from the main machine (not in git — transfer manually)
+  3. npm install
+  4. npx prisma generate
+  5. npx prisma migrate deploy  ← builds fresh db with full schema
+  6. npx prisma db seed         ← optional: loads default menu + admin account
+     Skip step 6 if you want a completely blank database.
+
+Migrating existing data to a new computer:
+  - Copy prisma/dev.db from old machine → prisma/dev.db on new machine
+  - Run npm install + npx prisma generate + npx prisma migrate deploy
+  - Data intact, any pending migrations applied
+
+IMPORTANT: never run `prisma migrate dev` on the production machine.
+  migrate dev resets/recreates migrations — use `migrate deploy` in production.
+  migrate dev is for development only (schema design phase).
+
+--------------------------------------------------------------------------------
 MIGRATION NOTES (moving to a new computer)
 --------------------------------------------------------------------------------
 
-1. Copy the entire project folder
-2. Copy the .env file (not committed to git — keep it separate and safe)
-3. Run: npm install
-4. Run: npx prisma generate
-5. Run: npx prisma migrate deploy
-6. If migrating existing data: copy prisma/dev.db from old machine
-   If starting fresh: npx prisma db seed
+(See MULTI-COMPUTER / GIT WORKFLOW above — supersedes this section.)
+
+Quick reference:
+  git pull → npm install → npx prisma generate → npx prisma migrate deploy
+  Copy .env manually (not in git).
+  Copy prisma/dev.db manually if you want existing data.
 
 --------------------------------------------------------------------------------

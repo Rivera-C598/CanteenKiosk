@@ -16,7 +16,7 @@ function ConfirmedContent() {
   const orderNumber = searchParams.get('order') ?? 'A-001'
   const method = searchParams.get('method') ?? 'cash'
   const amount = parseFloat(searchParams.get('amount') ?? '0')
-  const [countdown, setCountdown] = useState(15)
+  const [countdown, setCountdown] = useState(10)
   const [waitTime, setWaitTime] = useState('Calculating...')
   const autoPrintedRef = useRef(false)
 

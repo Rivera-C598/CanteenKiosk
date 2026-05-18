@@ -21,6 +21,24 @@ export default function PaymentPage() {
     setError('')
 
     try {
+      // Revalidate stock before placing order — catches race conditions between kiosks
+      const stockRes = await fetch('/api/categories')
+      if (stockRes.ok) {
+        const categories = await stockRes.json()
+        const stockMap = new Map<number, number>(
+          (categories as { items: { id: number; stock: number; available: boolean }[] }[])
+            .flatMap(c => c.items.map(i => [i.id, i.available ? i.stock : 0]))
+        )
+        for (const item of items) {
+          const available = stockMap.get(item.id) ?? 0
+          if (available < item.quantity) {
+            setError(`Only ${available} ${item.name} left in stock. Please update your cart.`)
+            setLoading(false)
+            return
+          }
+        }
+      }
+
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -143,6 +161,15 @@ export default function PaymentPage() {
             <Icon name="info" size={20} className="text-on-secondary-container shrink-0 mt-0.5" />
             <p className="text-on-secondary-container text-sm font-medium">
               {t('payment.cash_info')}
+            </p>
+          </div>
+        )}
+
+        {selected === 'cashless' && (
+          <div className="w-full max-w-lg bg-secondary-container rounded-xl p-4 flex items-start gap-3 animate-slide-up">
+            <Icon name="info" size={20} className="text-on-secondary-container shrink-0 mt-0.5" />
+            <p className="text-on-secondary-container text-sm font-medium">
+              {t('payment.cashless_info')}
             </p>
           </div>
         )}

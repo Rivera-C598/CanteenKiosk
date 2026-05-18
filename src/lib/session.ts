@@ -7,8 +7,13 @@ export interface SessionData {
   isLoggedIn: boolean
 }
 
+const secret = process.env.SESSION_SECRET
+if (!secret || secret.length < 32) {
+  throw new Error('SESSION_SECRET env var must be set and at least 32 characters long')
+}
+
 export const sessionOptions: SessionOptions = {
-  password: process.env.SESSION_SECRET ?? 'canteen-kiosk-secret-key-change-in-production-32chars',
+  password: secret,
   cookieName: 'hyperbite-admin-session',
   cookieOptions: {
     secure: process.env.NODE_ENV === 'production',

@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { rateLimit } from '@/lib/rate-limit'
 
 const CANCEL_REASON_LABELS: Record<string, string> = {
   customer_request: 'Cancelled by customer request',
@@ -7,7 +8,13 @@ const CANCEL_REASON_LABELS: Record<string, string> = {
   duplicate: 'Duplicate order',
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  const check = rateLimit(`order-status:${ip}`, 30, 60 * 1000)
+  if (!check.ok) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
+
   const { searchParams } = new URL(request.url)
   const orderNumber = searchParams.get('order')?.toUpperCase().trim()
 

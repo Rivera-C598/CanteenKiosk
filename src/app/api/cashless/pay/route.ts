@@ -53,6 +53,9 @@ export async function POST(request: NextRequest) {
 
   try {
     await prisma.$transaction(async (tx) => {
+      const freshOrder = await tx.order.findUnique({ where: { id: orderId } })
+      if (freshOrder?.paymentStatus === 'paid') throw new Error('ALREADY_PAID')
+
       const freshStudent = await tx.studentAccount.findUnique({ where: { id: student.id } })
       if (!freshStudent || freshStudent.balance < order.totalAmount) {
         throw new Error('INSUFFICIENT')
@@ -81,6 +84,9 @@ export async function POST(request: NextRequest) {
       })
     })
   } catch (e: unknown) {
+    if (e instanceof Error && e.message === 'ALREADY_PAID') {
+      return NextResponse.json({ error: 'Order already paid' }, { status: 400 })
+    }
     if (e instanceof Error && e.message === 'INSUFFICIENT') {
       return NextResponse.json({ error: `Insufficient balance. Balance: ₱${student.balance.toFixed(2)}` }, { status: 400 })
     }

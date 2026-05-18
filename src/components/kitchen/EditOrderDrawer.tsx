@@ -53,15 +53,28 @@ export function EditOrderDrawer({ order, onClose, onSaved }: EditOrderDrawerProp
   const [loadingMenu, setLoadingMenu] = useState(true)
   const [showPicker, setShowPicker] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const [originalQtyMap, setOriginalQtyMap] = useState<Map<number, number>>(new Map())
+
+  const stockMap = new Map(
+    categories.flatMap(c => c.items.map(i => [i.id, i.stock]))
+  )
+
+  const maxQty = (menuItemId: number) => {
+    const dbStock = stockMap.get(menuItemId) ?? 0
+    const origQty = originalQtyMap.get(menuItemId) ?? 0
+    return dbStock + origQty
+  }
 
   useEffect(() => {
     if (!order) return
-    setEditItems(order.items.map(i => ({
+    const items = order.items.map(i => ({
       menuItemId: i.menuItem.id,
       name: i.menuItem.name,
       quantity: i.quantity,
       unitPrice: i.unitPrice,
-    })))
+    }))
+    setEditItems(items)
+    setOriginalQtyMap(new Map(items.map(i => [i.menuItemId, i.quantity])))
     setSaveError('')
     setShowPicker(false)
     setLoadingMenu(true)
@@ -89,6 +102,9 @@ export function EditOrderDrawer({ order, onClose, onSaved }: EditOrderDrawerProp
     setEditItems(prev => {
       const existing = prev.findIndex(i => i.menuItemId === menuItem.id)
       if (existing >= 0) {
+        const current = prev[existing]
+        const max = (stockMap.get(menuItem.id) ?? 0) + (originalQtyMap.get(menuItem.id) ?? 0)
+        if (current.quantity >= max) return prev
         return prev.map((item, i) => i === existing ? { ...item, quantity: item.quantity + 1 } : item)
       }
       return [...prev, { menuItemId: menuItem.id, name: menuItem.name, quantity: 1, unitPrice: menuItem.price }]
@@ -148,27 +164,37 @@ export function EditOrderDrawer({ order, onClose, onSaved }: EditOrderDrawerProp
             <p className="text-stone-400 font-medium text-sm text-center py-4">No items. Add some below.</p>
           )}
 
-          {editItems.map((item, idx) => (
-            <div key={idx} className="flex items-center gap-3 bg-surface-container-low rounded-xl p-3">
-              <span className="flex-1 font-bold text-on-surface text-sm">{item.name}</span>
-              <span className="text-stone-500 text-sm font-medium">₱{item.unitPrice.toFixed(0)}</span>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <button
-                  onClick={() => updateQty(idx, item.quantity - 1)}
-                  className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center active:scale-90 transition-transform"
-                >
-                  <Icon name={item.quantity === 1 ? 'delete' : 'remove'} size={14} className="text-on-surface-variant" />
-                </button>
-                <span className="font-headline font-black text-on-surface w-6 text-center text-sm">{item.quantity}</span>
-                <button
-                  onClick={() => updateQty(idx, item.quantity + 1)}
-                  className="w-8 h-8 rounded-full bg-primary flex items-center justify-center active:scale-90 transition-transform"
-                >
-                  <Icon name="add" size={14} className="text-on-primary" />
-                </button>
+          {editItems.map((item, idx) => {
+            const max = maxQty(item.menuItemId)
+            const atMax = stockMap.has(item.menuItemId) && item.quantity >= max
+            return (
+              <div key={idx} className="flex items-center gap-3 bg-surface-container-low rounded-xl p-3">
+                <div className="flex-1 min-w-0">
+                  <span className="font-bold text-on-surface text-sm">{item.name}</span>
+                  {atMax && (
+                    <span className="ml-2 text-xs font-bold text-error">max</span>
+                  )}
+                </div>
+                <span className="text-stone-500 text-sm font-medium">₱{item.unitPrice.toFixed(0)}</span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={() => updateQty(idx, item.quantity - 1)}
+                    className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center active:scale-90 transition-transform"
+                  >
+                    <Icon name={item.quantity === 1 ? 'delete' : 'remove'} size={14} className="text-on-surface-variant" />
+                  </button>
+                  <span className="font-headline font-black text-on-surface w-6 text-center text-sm">{item.quantity}</span>
+                  <button
+                    onClick={() => !atMax && updateQty(idx, item.quantity + 1)}
+                    disabled={atMax}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform ${atMax ? 'bg-surface-container opacity-40 cursor-not-allowed' : 'bg-primary active:scale-90'}`}
+                  >
+                    <Icon name="add" size={14} className={atMax ? 'text-on-surface-variant' : 'text-on-primary'} />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
 
           {/* Add item picker */}
           <div className="pt-1">

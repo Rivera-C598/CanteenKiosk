@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyPin } from '@/lib/pin-utils'
+import { rateLimit } from '@/lib/rate-limit'
 
 const MAX_ATTEMPTS = 3
 const LOCKOUT_SECONDS = 30
 
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  const check = rateLimit(`pay-by-id:${ip}`, 20, 60 * 1000)
+  if (!check.ok) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+
   const { studentIdNumber, pin, orderId } = await request.json()
   if (!studentIdNumber || !pin || !orderId) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
@@ -51,30 +56,43 @@ export async function POST(request: NextRequest) {
   const balanceBefore = student.balance
   const balanceAfter = balanceBefore - order.totalAmount
 
-  await prisma.$transaction(async (tx) => {
-    const freshStudent = await tx.studentAccount.findUnique({ where: { id: student.id } })
-    if (!freshStudent || freshStudent.balance < order.totalAmount) throw new Error('INSUFFICIENT')
+  try {
+    await prisma.$transaction(async (tx) => {
+      const freshOrder = await tx.order.findUnique({ where: { id: orderId } })
+      if (freshOrder?.paymentStatus === 'paid') throw new Error('ALREADY_PAID')
 
-    await tx.studentAccount.update({
-      where: { id: student.id },
-      data: { balance: freshStudent.balance - order.totalAmount, pinAttempts: 0, pinLockedUntil: null },
+      const freshStudent = await tx.studentAccount.findUnique({ where: { id: student.id } })
+      if (!freshStudent || freshStudent.balance < order.totalAmount) throw new Error('INSUFFICIENT')
+
+      await tx.studentAccount.update({
+        where: { id: student.id },
+        data: { balance: freshStudent.balance - order.totalAmount, pinAttempts: 0, pinLockedUntil: null },
+      })
+      await tx.order.update({
+        where: { id: orderId },
+        data: { paymentStatus: 'paid', status: 'confirmed', studentAccountId: student.id },
+      })
+      await tx.studentTransaction.create({
+        data: {
+          studentAccountId: student.id,
+          type: 'payment',
+          amount: order.totalAmount,
+          balanceBefore,
+          balanceAfter,
+          orderId,
+          note: 'cashier manual entry',
+        },
+      })
     })
-    await tx.order.update({
-      where: { id: orderId },
-      data: { paymentStatus: 'paid', status: 'confirmed', studentAccountId: student.id },
-    })
-    await tx.studentTransaction.create({
-      data: {
-        studentAccountId: student.id,
-        type: 'payment',
-        amount: order.totalAmount,
-        balanceBefore,
-        balanceAfter,
-        orderId,
-        note: 'cashier manual entry',
-      },
-    })
-  })
+  } catch (e: unknown) {
+    if (e instanceof Error && e.message === 'ALREADY_PAID') {
+      return NextResponse.json({ error: 'Order already paid' }, { status: 400 })
+    }
+    if (e instanceof Error && e.message === 'INSUFFICIENT') {
+      return NextResponse.json({ error: `Insufficient balance. Balance: ₱${student.balance.toFixed(2)}` }, { status: 400 })
+    }
+    return NextResponse.json({ error: 'Payment failed' }, { status: 500 })
+  }
 
   return NextResponse.json({ ok: true, studentName: student.fullName })
 }

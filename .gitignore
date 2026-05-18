@@ -10,8 +10,11 @@ out/
 # database
 *.db
 *.db-journal
+*.db-shm
+*.db-wal
 prisma/*.db
 prisma/*.db-journal
+backups/
 
 # env files
 .env

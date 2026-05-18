@@ -1,7 +1,16 @@
 import { NextResponse } from 'next/server'
+import { getIronSession } from 'iron-session'
+import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
+import { sessionOptions, SessionData } from '@/lib/session'
 
 export async function GET() {
+  const cookieStore = await cookies()
+  const session = await getIronSession<SessionData>(cookieStore, sessionOptions)
+  if (!session.isLoggedIn || session.role !== 'admin') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   try {
     const today = new Date()
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())

@@ -1,7 +1,20 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { getIronSession } from 'iron-session'
+import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
+import { rateLimit } from '@/lib/rate-limit'
+import { sessionOptions, SessionData } from '@/lib/session'
+
+const MAX_ITEMS_PER_ORDER = 10
+const MAX_QTY_PER_ITEM = 20
 
 export async function GET(request: Request) {
+  const cookieStore = await cookies()
+  const session = await getIronSession<SessionData>(cookieStore, sessionOptions)
+  if (!session.isLoggedIn || (session.role !== 'kitchen' && session.role !== 'admin')) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const { searchParams } = new URL(request.url)
   const dateFilter = searchParams.get('date') ?? 'today'
   const statusParam = searchParams.get('status')
@@ -38,13 +51,22 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  const check = rateLimit(`orders:${ip}`, 5, 60 * 1000)
+  if (!check.ok) {
+    return NextResponse.json({ error: 'Too many orders. Please wait a moment.' }, { status: 429 })
+  }
+
   try {
     const body = await request.json()
     const { items, paymentMethod } = body
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'No items' }, { status: 400 })
+    }
+    if (items.length > MAX_ITEMS_PER_ORDER) {
+      return NextResponse.json({ error: `Order cannot exceed ${MAX_ITEMS_PER_ORDER} different items` }, { status: 400 })
     }
     const VALID_METHODS = ['cash', 'gcash', 'cashless']
     if (!VALID_METHODS.includes(paymentMethod)) {
@@ -64,7 +86,7 @@ export async function POST(request: Request) {
     let computedTotal = 0
     const orderItems = items.map((item: { id: number; quantity: number }) => {
       const unitPrice = priceMap.get(item.id)!
-      const qty = Math.max(1, Math.floor(item.quantity))
+      const qty = Math.min(MAX_QTY_PER_ITEM, Math.max(1, Math.floor(item.quantity)))
       const subtotal = unitPrice * qty
       computedTotal += subtotal
       return { menuItemId: item.id, quantity: qty, unitPrice, subtotal }
@@ -101,6 +123,11 @@ export async function POST(request: Request) {
         await tx.menuItem.update({
           where: { id: orderItem.menuItemId },
           data: { stock: { decrement: orderItem.quantity } },
+        })
+        // Floor guard — prevent stock going below 0 due to any edge case
+        await tx.menuItem.updateMany({
+          where: { id: orderItem.menuItemId, stock: { lt: 0 } },
+          data: { stock: 0 },
         })
       }
       return tx.order.create({

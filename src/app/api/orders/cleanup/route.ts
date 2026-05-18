@@ -1,9 +1,18 @@
 import { NextResponse } from 'next/server'
+import { getIronSession } from 'iron-session'
+import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
+import { sessionOptions, SessionData } from '@/lib/session'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
 
 export async function POST() {
+  const cookieStore = await cookies()
+  const session = await getIronSession<SessionData>(cookieStore, sessionOptions)
+  if (!session.isLoggedIn || (session.role !== 'kitchen' && session.role !== 'admin')) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   try {
     const raw = await readFile(join(process.cwd(), 'settings.json'), 'utf-8')
     const settings = JSON.parse(raw)
@@ -23,12 +32,18 @@ export async function POST() {
     if (staleOrders.length === 0) return NextResponse.json({ cancelled: 0 })
 
     await Promise.all(staleOrders.map(order =>
-      prisma.$transaction([
-        prisma.order.update({
+      prisma.$transaction(async (tx) => {
+        for (const item of order.items) {
+          await tx.menuItem.update({
+            where: { id: item.menuItem.id },
+            data: { stock: { increment: item.quantity } },
+          })
+        }
+        await tx.order.update({
           where: { id: order.id },
           data: { status: 'cancelled', cancelReason: 'auto_timeout' },
-        }),
-        prisma.orderLog.create({
+        })
+        await tx.orderLog.create({
           data: {
             orderId: order.id,
             action: 'auto_cancelled',
@@ -38,8 +53,8 @@ export async function POST() {
               total: order.totalAmount,
             }),
           },
-        }),
-      ])
+        })
+      })
     ))
 
     return NextResponse.json({ cancelled: staleOrders.length })

@@ -86,7 +86,7 @@ export default function KitchenPage() {
   const [pinLoading, setPinLoading] = useState(false)
 
   useEffect(() => {
-    if (sessionStorage.getItem('kitchen_authed') === 'yes') setAuthed(true)
+    fetch('/api/kitchen/auth').then(r => { if (r.ok) setAuthed(true) })
   }, [])
 
   const handlePinSubmit = async () => {
@@ -98,7 +98,6 @@ export default function KitchenPage() {
       body: JSON.stringify({ pin: pinInput }),
     })
     if (res.ok) {
-      sessionStorage.setItem('kitchen_authed', 'yes')
       setAuthed(true)
     } else {
       setPinError('Incorrect PIN')

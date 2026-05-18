@@ -116,7 +116,7 @@ export default function WelcomePage() {
       </header>
 
       {/* Main content */}
-      <main className="relative z-10 flex items-center justify-center min-h-[calc(100dvh-230px)] sm:min-h-[calc(100dvh-150px)] px-4 lg:px-12 pb-48 sm:pb-28 lg:pb-16">
+      <main className="relative z-10 flex items-center justify-center min-h-[calc(100dvh-230px)] sm:min-h-[calc(100dvh-150px)] px-4 lg:px-12 pb-64 sm:pb-36 lg:pb-16">
         <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-7 lg:gap-8 items-center justify-items-center lg:justify-items-stretch">
           {/* Left: Hero text */}
           <div className="col-span-1 lg:col-span-7 flex flex-col gap-5 items-center lg:items-start text-center lg:text-left">

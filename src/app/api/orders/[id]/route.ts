@@ -16,6 +16,13 @@ interface EditItem {
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  // All order mutations require kitchen or admin session
+  const cookieStore = await cookies()
+  const session = await getIronSession<SessionData>(cookieStore, sessionOptions)
+  if (!session.isLoggedIn || (session.role !== 'kitchen' && session.role !== 'admin')) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   try {
     const { id } = await params
     const orderId = parseInt(id)
@@ -60,6 +67,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
               throw new Error(`STOCK_INSUFFICIENT:${name}:${avail}`)
             }
             await tx.menuItem.update({ where: { id: itemId }, data: { stock: { decrement: delta } } })
+            await tx.menuItem.updateMany({ where: { id: itemId, stock: { lt: 0 } }, data: { stock: 0 } })
           } else if (delta < 0) {
             await tx.menuItem.update({ where: { id: itemId }, data: { stock: { increment: -delta } } })
           }
@@ -237,6 +245,18 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     const orderId = parseInt(id)
 
     await prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: { items: true },
+      })
+      if (order && order.status !== 'cancelled' && order.status !== 'completed') {
+        for (const item of order.items) {
+          await tx.menuItem.update({
+            where: { id: item.menuItemId },
+            data: { stock: { increment: item.quantity } },
+          })
+        }
+      }
       const orderItems = await tx.orderItem.findMany({ where: { orderId } })
       const orderItemIds = orderItems.map(i => i.id)
       await tx.orderItemAddon.deleteMany({ where: { orderItemId: { in: orderItemIds } } })
