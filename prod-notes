@@ -503,6 +503,60 @@ Restore from backup:
   Copy any file from backups/ → overwrite prisma/dev.db → restart app
 
 --------------------------------------------------------------------------------
+SETTING UP ON ANOTHER COMPUTER (step-by-step)
+--------------------------------------------------------------------------------
+
+Prerequisites: Node.js v18+, Git installed.
+
+1. Clone or pull the repo:
+     git clone https://github.com/Rivera-C598/CanteenKiosk.git
+     cd CanteenKiosk
+   -- or if already cloned --
+     git pull
+
+2. Install dependencies:
+     npm install
+
+3. Create your .env file from the example:
+     copy .env.example .env        (Windows CMD)
+     cp .env.example .env          (PowerShell / Git Bash)
+
+   Then open .env and fill in:
+   a) SESSION_SECRET — generate a fresh one:
+        node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+      Paste the output as the SESSION_SECRET value.
+   b) KITCHEN_PIN — set your actual staff PIN (not 1234)
+   c) KIOSK_IP — set the kiosk tablet's LAN IP, or leave blank for no lock
+   d) ENABLE_DANGER_ZONE — set false for production, true for dev/testing
+
+4. Generate Prisma client:
+     npx prisma generate
+
+5. Apply database schema:
+     npx prisma migrate deploy
+
+6. (Optional) Seed default data — admin account + sample menu:
+     npx prisma db seed
+   Skip if copying an existing dev.db from another machine.
+
+7. Start the app:
+     npm run dev                     ← development (local only)
+     npm run dev -- -H 0.0.0.0      ← accessible from other devices on LAN
+
+8. Open in browser:
+     http://localhost:3000            ← on the server PC
+     http://<server-LAN-IP>:3000     ← from other devices (kiosk, kitchen, queue)
+
+9. First login:
+     Go to http://localhost:3000/admin/login
+     Username: admin  |  Password: admin
+     ← Change password immediately in Admin → Settings → Admin Credentials
+
+TRANSFERRING EXISTING DATA TO NEW COMPUTER:
+  Copy prisma/dev.db from old machine → paste into prisma/ on new machine.
+  Then run steps 1–4 only (skip seed). Your data, menu, and students carry over.
+
+--------------------------------------------------------------------------------
 MULTI-COMPUTER / GIT WORKFLOW
 --------------------------------------------------------------------------------
 
